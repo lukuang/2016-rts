@@ -34,7 +34,7 @@ def main():
         ]
 
     time_interval = t_intervals[args.interval]
-    text_builder = ArchiveTrecTextBuilder(t_intervals,
+    text_builder = ArchiveTrecTextBuilder(time_interval,
                             args.archive_dir,args.dest_dir,
                             debug=args.debug
                             )
