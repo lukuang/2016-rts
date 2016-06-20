@@ -26,8 +26,8 @@ class ArchiveTweetProcessor(TweetProcessor):
         self.archive_dir,self.debug = archive_dir,debug
         self.check_day_dir_factory()
         self.tweet_buffer = []
-        self.day = start.struct_time.tm_mday
-        self.hour = start.struct_time.tm_hour
+        self.day = str(start.struct_time.tm_mday)
+        self.hour = str(start.struct_time.tm_hour)
 
     def check_day_dir_factory(self):
         if self.interval == Interval_value.before:
@@ -64,7 +64,6 @@ class ArchiveTweetProcessor(TweetProcessor):
 
 
     def process_day_dir(self,day_dir):
-        print day_dir
         
         hour_dirs = os.walk(day_dir).next()[1]
         hour_dirs.sort()
@@ -114,7 +113,7 @@ class ArchiveTweetProcessor(TweetProcessor):
     @staticmethod
     def get_hour_day_from_epoch_time(t_time_sec):
         struct_time = time.gmtime(t_time_sec)
-        return struct_time.tm_mday, struct_time.tm_hour
+        return str(struct_time.tm_mday), str(struct_time.tm_hour)
 
     # @staticmethod
     # def get_hour_day_from_path(h_dir):
