@@ -53,7 +53,7 @@ class ArchiveTweetProcessor(TweetProcessor):
 
     def process_top_dir(self):
         day_dirs = [    os.path.join(self.archive_dir,x) \
-                        for x in os.walk(archive_dir).next()[1] \
+                        for x in os.walk(self.archive_dir).next()[1] \
                         if self.check_day_dir(x)
                     ]
         day_dirs.sort()
