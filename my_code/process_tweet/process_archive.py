@@ -11,7 +11,7 @@ import codecs
 import bz2
 import time
 from tweet_proc import *
-from abc import ABCMeta
+from abc import ABCMeta,abstractmethod
 from myUtility.misc import DebugStop
 
 class ArchiveTweet(Tweet):

@@ -11,7 +11,7 @@ import codecs
 import datetime
 import calendar
 import time
-from abc import ABCMeta
+from abc import ABCMeta,abstractmethod
 from myUtility.misc import gene_single_indri_text
 from collections import namedtuple
 
