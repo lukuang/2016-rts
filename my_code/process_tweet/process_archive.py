@@ -23,7 +23,7 @@ class ArchiveTweetProcessor(TweetProcessor):
     def __init__(self,interval,archive_dir,debug=False,start=START15,end=END15):
 
         super(ArchiveTweetProcessor,self).__init__(interval,start,end)
-        self,archive_dir,self.debug = archive_dir,debug
+        self.archive_dir,self.debug = archive_dir,debug
         self.check_day_dir_factory()
         self.tweet_buffer = []
         self.day = start.struct_time.tm_mday
