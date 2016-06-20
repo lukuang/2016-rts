@@ -27,7 +27,7 @@ class TTime(object):
         self.time_string = time_string
         self.struct_time = datetime.datetime.strptime(time_string\
             , '%B %d, %Y, %H:%M:%S UTC').timetuple()
-        self.epoch = calendar.timegm(struct_time)
+        self.epoch = calendar.timegm(self.struct_time)
         self.epoch_ms = self.epoch*1000
 
 
