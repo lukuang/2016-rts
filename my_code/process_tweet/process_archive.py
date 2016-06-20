@@ -76,7 +76,7 @@ class ArchiveTweetProcessor(TweetProcessor):
     def process_hour_dir(self,h_dir):
 
         tweet_files = os.walk(h_dir).next()[2]
-        print tweet_files
+        #print tweet_files
         tweet_files.sort()
         for tweet_file in tweet_files:
             tweet_file = os.path.join(h_dir,tweet_file)
@@ -142,7 +142,7 @@ class ArchiveTrecTextBuilder(ArchiveTweetProcessor):
     def operation(self):
         if self.tweet_buffer:
             file_name = self.day+"-"+self.hour
-            dest_file =os.path.join(dest_dir,file_name)
+            dest_file =os.path.join(self.dest_dir,file_name)
             with open(dest_file,"a") as f:
                 for tweet in self.tweet_buffer:
                     single_text = tweet.tweet_indri_text
