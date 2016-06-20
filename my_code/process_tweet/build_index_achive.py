@@ -10,7 +10,7 @@ import argparse
 import codecs
 from process_archive import ArchiveTweet, ArchiveTrecTextBuilder
 from myUtility.misc import DebugStop
-from tweet_proc import TTime
+from tweet_proc import Interval_value
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -38,7 +38,7 @@ def main():
                             args.archive_dir,args.dest_dir,
                             debug=args.debug
                             )
-    
+
     try:
         text_builder.build()
     except DebugStop as e:
