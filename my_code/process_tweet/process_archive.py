@@ -22,7 +22,7 @@ class ArchiveTweetProcessor(TweetProcessor):
 
     def __init__(self,interval,archive_dir,debug=False,start=START15,end=END15):
 
-        super(ArchiveTweetProcessor,self).__init__(self,interval,start,end)
+        super(ArchiveTweetProcessor,self).__init__(interval,start,end)
         self,archive_dir,self.debug = archive_dir,debug
         self.check_day_dir_factory()
         self.tweet_buffer = []
@@ -132,7 +132,7 @@ class ArchiveTweetProcessor(TweetProcessor):
 
 class ArchiveTrecTextBuilder(ArchiveTweetProcessor):
     def __init__(self,interval,archive_dir,dest_dir,debug=False,start=START15,end=END15):
-        super(ArchiveTrecTextBuilder,self).__init__(self,interval,archive_dir,debug,start,end)
+        super(ArchiveTrecTextBuilder,self).__init__(interval,archive_dir,debug,start,end)
         self.dest_dir = dest_dir
 
 
