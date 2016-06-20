@@ -49,7 +49,7 @@ class ArchiveTweetProcessor(TweetProcessor):
 
     def dir_is_after(self,dir_name):
         
-        return( dir_name=>"29")
+        return( dir_name>="29")
 
     def process_top_dir(self):
         day_dirs = [    os.path.join(self.archive_dir,x) \
