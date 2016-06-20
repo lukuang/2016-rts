@@ -103,7 +103,7 @@ class ArchiveTweetProcessor(TweetProcessor):
             if self.check_time(t_time):
                 tid = tweet["id_str"]
                 text = tweet["text"]
-                day, hour = get_hour_day_from_epoch_time(t_time_sec)
+                day, hour = self.get_hour_day_from_epoch_time(t_time_sec)
                 if day!=self.day or hour!=self.hour:
                     self.operation()
                     self.tweet_buffer
@@ -132,7 +132,6 @@ class ArchiveTweetProcessor(TweetProcessor):
 
 class ArchiveTrecTextBuilder(ArchiveTweetProcessor):
     def __init__(self,interval,archive_dir,dest_dir,debug=False,start=START15,end=END15):
-        print START15,END15
         super(ArchiveTrecTextBuilder,self).__init__(interval,archive_dir,debug,start,end)
         self.dest_dir = dest_dir
 
