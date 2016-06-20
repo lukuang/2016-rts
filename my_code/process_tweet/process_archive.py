@@ -114,7 +114,7 @@ class ArchiveTweetProcessor(TweetProcessor):
     @staticmethod
     def get_hour_day_from_epoch_time(t_time_sec):
         struct_time = time.gmtime(t_time_sec)
-        return struct_time.tm_day, struct_time.tm_hour
+        return struct_time.tm_mday, struct_time.tm_hour
 
     # @staticmethod
     # def get_hour_day_from_path(h_dir):
