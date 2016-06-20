@@ -12,7 +12,8 @@ import bz2
 import time
 from tweet_proc import *
 from abc import ABCMeta,abstractmethod
-from myUtility.misc import DebugStop
+from myUtility.misc import DebugStop,gene_single_indri_text
+
 
 class ArchiveTweet(Tweet):
     def __init__(self,tid,text,created_at,timestamp_ms):
@@ -29,7 +30,7 @@ class ArchiveTweet(Tweet):
                         "created_at" : self.created_at,
                         "timestamp_ms" : self.timestamp_ms
                         }
-        return gene_single_indri_text(self.tid,self.text)
+        return gene_single_indri_text(self.tid,self.text,extra_fields,field_data)
 
 
 class ArchiveTweetProcessor(TweetProcessor):
