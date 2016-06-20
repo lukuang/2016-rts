@@ -15,7 +15,22 @@ from abc import ABCMeta,abstractmethod
 from myUtility.misc import DebugStop
 
 class ArchiveTweet(Tweet):
-    pass
+    def __init__(self,tid,text,created_at,timestamp_ms):
+        super(ArchiveTweet,self).__init__(tid,text)
+        self.created_at,self.timestamp_ms = created_at,timestamp_ms
+
+    @property
+    def tweet_indri_text(self):
+        """return the indir formatted
+        text for a tweet
+        """
+        extra_fields = ["created_at","timestamp_ms"]
+        field_data = {
+                        "created_at" : self.created_at,
+                        "timestamp_ms" : self.timestamp_ms
+                        }
+        return gene_single_indri_text(self.tid,self.text)
+
 
 class ArchiveTweetProcessor(TweetProcessor):
     __metaclass__=ABCMeta
@@ -98,6 +113,7 @@ class ArchiveTweetProcessor(TweetProcessor):
         tweet = json.loads(tweet_string)
         if "delete" not in tweet:
             t_time = int(tweet["timestamp_ms"])
+            created_at = tweet["created_at"]
             t_time_sec = t_time/1000
             if self.check_time(t_time):
                 tid = tweet["id_str"]
@@ -108,7 +124,7 @@ class ArchiveTweetProcessor(TweetProcessor):
                     self.tweet_buffer
                     self.day = day
                     self.hour = hour
-                self.tweet_buffer.append(ArchiveTweet(tid,text))  
+                self.tweet_buffer.append(ArchiveTweet(tid,text,created_at,str(t_time)))  
 
     @staticmethod
     def get_hour_day_from_epoch_time(t_time_sec):
@@ -146,9 +162,12 @@ class ArchiveTrecTextBuilder(ArchiveTweetProcessor):
             with codecs.open(dest_file,"a","utf-8") as f:
                 for tweet in self.tweet_buffer:
                     single_text = tweet.tweet_indri_text
-                    f.write(single_text+"\n")
-                    if self.debug:
-                        raise DebugStop("write to %s" %(dest_file))
+                    if single_text is None:
+                        continue
+                    else:
+                        f.write(single_text+"\n")
+                        if self.debug:
+                            raise DebugStop("write to %s" %(dest_file))
 
         
 
