@@ -143,7 +143,7 @@ class ArchiveTrecTextBuilder(ArchiveTweetProcessor):
         if self.tweet_buffer:
             file_name = self.day+"-"+self.hour
             dest_file =os.path.join(self.dest_dir,file_name)
-            with open(dest_file,"a") as f:
+            with codecs.open(dest_file,"a","utf-8") as f:
                 for tweet in self.tweet_buffer:
                     single_text = tweet.tweet_indri_text
                     f.write(single_text+"\n")
