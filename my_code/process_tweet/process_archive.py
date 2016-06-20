@@ -9,19 +9,25 @@ import re
 import argparse
 import codecs
 import bz2
+import time
 from tweet_proc import *
+from abc import ABCMeta
+from myUtility.misc import DebugStop
 
 class ArchiveTweet(Tweet):
     pass
 
 class ArchiveTweetProcessor(TweetProcessor):
-    def __init__(self,interval,archive_dir,debug=False,start=None,end=None):
-        if start is None:
-            super(ArchiveTweetProcessor,self).__init__(self,interval)
-        else:
-            super(ArchiveTweetProcessor,self).__init__(self,interval,start,end)
+    __metaclass__=ABCMeta
+
+    def __init__(self,interval,archive_dir,debug=False,start=START15,end=END15):
+
+        super(ArchiveTweetProcessor,self).__init__(self,interval,start,end)
         self,archive_dir,self.debug = archive_dir,debug
         self.check_day_dir_factory()
+        self.tweet_buffer = []
+        self.day = start.struct_time.tm_mday
+        self.hour = start.struct_time.tm_hour
 
     def check_day_dir_factory(self):
         if self.interval == Interval_value.before:
@@ -58,7 +64,6 @@ class ArchiveTweetProcessor(TweetProcessor):
 
 
     def process_day_dir(self,day_dir):
-        tweets = []
         print day_dir
         
         hour_dirs = os.walk(day_dir).next()[1]
@@ -68,59 +73,86 @@ class ArchiveTweetProcessor(TweetProcessor):
             self.process_hour_dir(h_dir)
             
 
-        return tweets
 
     def process_hour_dir(self,h_dir):
-        tweets = []
 
         tweet_files = os.walk(h_dir).next()[2]
         print tweet_files
         tweet_files.sort()
         for tweet_file in tweet_files:
             tweet_file = os.path.join(h_dir,tweet_file)
-            tweets += self.process_file(tweet_file)
-            if self.debug:
-                if len(tweets)!=0:
-                    break
-        tweets = sorted(tweets,key= lambda x : x.tid)
-        self.operation(tweets)
+            self.process_file(tweet_file)
 
     def process_file(self,tweet_file):
-        tweets = []
+
         with bz2.BZ2File(tweet_file) as f:
             for line in f:
-                try:
-                    new_tweet = self.process_line(line)
-                except KeyError:
-                    print "wrong tweet fromat"
-                    print "the file is",tweet_file
-                    print "the line is",line
-                if new_tweet is not None:
-                    tweets.append(new_tweet)
-        return tweets
+                self.process_line(line)
+                # except KeyError:
+                #     print "wrong tweet fromat"
+                #     print "the file is",tweet_file
+                #     print "the line is",line
+                # if new_tweet is not None:
+                #     tweets.append(new_tweet)
 
     def process_line(self,tweet_string):
         tweet = json.loads(tweet_string)
-        if "delete" in tweet:
-            return None
-        else:
+        if "delete" not in tweet:
             t_time = int(tweet["timestamp_ms"])
+            t_time_sec = t_time/1000
             if self.check_time(t_time):
                 tid = tweet["id_str"]
                 text = tweet["text"]
-                return ArchiveTweet(tid,text)
-            else:
-                return None   
+                day, hour = get_hour_day_from_epoch_time(t_time_sec)
+                if day!=self.day or hour!=self.hour:
+                    self.operation()
+                    self.tweet_buffer
+                    self.day = day
+                    self.hour = hour
+                self.tweet_buffer.append(ArchiveTweet(tid,text))  
+
+    @staticmethod
+    def get_hour_day_from_epoch_time(t_time_sec):
+        struct_time = time.gmtime(t_time_sec)
+        return struct_time.tm_day, struct_time.tm_hour
+
+    # @staticmethod
+    # def get_hour_day_from_path(h_dir):
+    #     head,hour = os.path.split(h_dir)
+    #     if len(hour) == 0:
+    #         head,hour = os.path.split(head)
+    #     head,day = os.path.split(head)
+
+    #     return day,hour
 
     @abstractmethod
-    def operation(self,):
+    def operation(self):
+        pass
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("")
-    args=parser.parse_args()
+class ArchiveTrecTextBuilder(ArchiveTweetProcessor):
+    def __init__(self,interval,archive_dir,dest_dir,debug=False,start=START15,end=END15):
+        super(ArchiveTweetProcessor,self).__init__(self,interval,archive_dir,debug,start,end)
+        self.dest_dir = dest_dir
 
-if __name__=="__main__":
-    main()
+
+
+    def build(self):
+        self.process_top_dir()
+
+    def operation(self):
+        if self.tweet_buffer:
+            file_name = self.day+"-"+self.hour
+            dest_file =os.path.join(dest_dir,file_name)
+            with open(dest_file,"a") as f:
+                for tweet in self.tweet_buffer:
+                    single_text = tweet.tweet_indri_text
+                    f.write(single_text+"\n")
+                    if self.debug:
+                        raise DebugStop("write to %s" %(dest_file))
+
+        
+
+
+
 

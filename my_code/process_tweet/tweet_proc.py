@@ -19,6 +19,9 @@ IntervalFactory = namedtuple('IntervalFactory', ['before', 'within','after'])
 Interval_value = IntervalFactory._make(["before","within","after"])
 
 
+
+
+
 def TTime(object):
     def __init__(self,time_string):
         self.time_string = time_string
@@ -53,6 +56,7 @@ class Tweet(object):
 
         return data
 
+    @property
     def tweet_indri_text(self):
         """return the indir formatted
         text for a tweet
@@ -106,7 +110,9 @@ __all__=[
         "TweetProcessor",
         "Tweet",
         "TTime",
-        "Interval_value"
+        "Interval_value",
+        "START15",
+        "END15"
     ]
 
 
