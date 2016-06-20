@@ -22,7 +22,7 @@ Interval_value = IntervalFactory._make(["before","within","after"])
 
 
 
-def TTime(object):
+class TTime(object):
     def __init__(self,time_string):
         self.time_string = time_string
         self.struct_time = datetime.datetime.strptime(time_string\
