@@ -132,7 +132,7 @@ class ArchiveTweetProcessor(TweetProcessor):
 
 class ArchiveTrecTextBuilder(ArchiveTweetProcessor):
     def __init__(self,interval,archive_dir,dest_dir,debug=False,start=START15,end=END15):
-        print start,end
+        print START15,END15
         super(ArchiveTrecTextBuilder,self).__init__(interval,archive_dir,debug,start,end)
         self.dest_dir = dest_dir
 
