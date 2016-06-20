@@ -70,7 +70,7 @@ class Tweet(object):
 class TweetProcessor(object):
     __metaclass__=ABCMeta
     def __init__(self,interval,start= START15,end= END15):
-        self.start, self.end, self.interval = 
+        self.start, self.end, self.interval =\
                 start,end,interval
         self.check_time_factory()
 
