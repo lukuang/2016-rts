@@ -16,6 +16,13 @@ from myUtility.misc import DebugStop,gene_single_indri_text
 
 
 class ArchiveTweet(Tweet):
+    """Struct for storing information of a single tweet
+    for archive. Fields it contains are:
+        id,
+        text,
+        created_at,
+        timestamp_ms
+    """
     def __init__(self,tid,text,created_at,timestamp_ms):
         super(ArchiveTweet,self).__init__(tid,text)
         self.created_at,self.timestamp_ms = created_at,timestamp_ms
@@ -34,6 +41,9 @@ class ArchiveTweet(Tweet):
 
 
 class ArchiveTweetProcessor(TweetProcessor):
+    """process the tweets from archive, and generate
+    ArchiveTweet for every valid tweet
+    """
     __metaclass__=ABCMeta
 
     def __init__(self,interval,archive_dir,debug=False,start=START15,end=END15):
@@ -41,9 +51,7 @@ class ArchiveTweetProcessor(TweetProcessor):
         super(ArchiveTweetProcessor,self).__init__(interval,start,end)
         self.archive_dir,self.debug = archive_dir,debug
         self.check_day_dir_factory()
-        self.tweet_buffer = []
-        self.day = str(start.struct_time.tm_mday)
-        self.hour = str(start.struct_time.tm_hour)
+        self.tweet_buffer = {}
 
     def check_day_dir_factory(self):
         if self.interval == Interval_value.before:
@@ -66,6 +74,23 @@ class ArchiveTweetProcessor(TweetProcessor):
     def dir_is_after(self,dir_name):
         
         return( dir_name>="29")
+
+
+    ## Two ways of processing archive:
+    ## 1. get all the file paths and iterate
+    ## over them.(process_flattered_files)
+    ## 2. Recursively find one file at a time
+    ## and process one at a time(process_top_dir)
+
+    def process_flattered_files(self):
+        all_files = self.get_all_files()
+        if self.debug:
+            print all_files
+        for tweet_file in all_files:
+            self.process_file(tweet_file)
+
+
+
 
     def process_top_dir(self):
         day_dirs = [    os.path.join(self.archive_dir,x) \
@@ -109,6 +134,9 @@ class ArchiveTweetProcessor(TweetProcessor):
                 #     print "the line is",line
                 # if new_tweet is not None:
                 #     tweets.append(new_tweet)
+        self.operation()
+        self.tweet_buffer = {}
+
 
     def process_line(self,tweet_string):
         tweet = json.loads(tweet_string)
@@ -120,12 +148,51 @@ class ArchiveTweetProcessor(TweetProcessor):
                 tid = tweet["id_str"]
                 text = tweet["text"]
                 day, hour = self.get_hour_day_from_epoch_time(t_time_sec)
-                if day!=self.day or hour!=self.hour:
-                    self.operation()
-                    self.tweet_buffer
-                    self.day = day
-                    self.hour = hour
-                self.tweet_buffer.append(ArchiveTweet(tid,text,created_at,str(t_time)))  
+                identity = day+"-"+hour
+                if identity not in self.tweet_buffer:
+                    self.tweet_buffer[identity] = []
+
+                self.tweet_buffer[identity].append(ArchiveTweet(tid,text,created_at,str(t_time)))  
+
+
+
+    def get_all_files(self):
+        day_dirs = [    os.path.join(self.archive_dir,x) \
+                        for x in os.walk(self.archive_dir).next()[1] \
+                        if self.check_day_dir(x)
+                    ]
+        day_dirs.sort()
+        all_files = []
+        for day_dir in day_dirs:
+            day_dir = os.path.join(self.archive_dir,day_dir)
+            all_files += self.get_day_files(day_dir)
+
+        return all_files
+
+
+
+    def get_hour_files(self,h_dir):
+        hour_files = []
+        tweet_files = os.walk(h_dir).next()[2]
+        #print tweet_files
+        tweet_files.sort()
+        for tweet_file in tweet_files:
+            tweet_file = os.path.join(h_dir,tweet_file)
+            hour_files.append(tweet_file)
+
+        return hour_files
+
+
+    def get_day_files(self,day_dir):
+        day_files = []
+        hour_dirs = os.walk(day_dir).next()[1]
+        hour_dirs.sort()
+        for h_dir in hour_dirs:
+            h_dir = os.path.join(day_dir,h_dir)
+            day_files += self.get_hour_files(h_dir)
+        return day_files
+
+
 
     @staticmethod
     def get_hour_day_from_epoch_time(t_time_sec):
@@ -154,23 +221,27 @@ class ArchiveTrecTextBuilder(ArchiveTweetProcessor):
 
 
     def build(self):
-        self.process_top_dir()
+        self.process_flattered_files()
 
     def operation(self):
         if self.tweet_buffer:
-            file_name = self.day+"-"+self.hour
-            dest_file =os.path.join(self.dest_dir,file_name)
-            with codecs.open(dest_file,"a","utf-8") as f:
-                for tweet in self.tweet_buffer:
-                    single_text = tweet.tweet_indri_text
-                    if single_text is None:
-                        continue
-                    else:
-                        f.write(single_text+"\n")
-                        if self.debug:
-                            raise DebugStop("write to %s" %(dest_file))
+            for file_name in tweet_buffer:
+                dest_file =os.path.join(self.dest_dir,file_name)
+                with codecs.open(dest_file,"a","utf-8") as f:
+                    for tweet in self.tweet_buffer[file_name]:
+                        single_text = tweet.tweet_indri_text
+                        if single_text is None:
+                            continue
+                        else:
+                            f.write(single_text+"\n")
+                            if self.debug:
+                                raise DebugStop("write to %s" %(dest_file))
+
+
+
 
         
+
 
 
 
