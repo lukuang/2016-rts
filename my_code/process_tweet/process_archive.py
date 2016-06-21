@@ -235,8 +235,8 @@ class ArchiveTrecTextBuilder(ArchiveTweetProcessor):
                             continue
                         else:
                             f.write(single_text+"\n")
-                            if self.debug:
-                                raise DebugStop("write to %s" %(dest_file))
+            if self.debug:
+                raise DebugStop("write to %s" %(dest_file))
 
 
 
