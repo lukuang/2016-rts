@@ -18,7 +18,7 @@ def main():
     #parser.add_argument("list2")
     parser.add_argument("--archive_dir","-ad",default="/lustre/scratch/lukuang/2015-RTS/2015_RTS/2015-data/collection/web-data/raw")
     parser.add_argument("dest_dir")
-    parser.add_argument("num_of_runs",type=int)
+    parser.add_argument("num_of_run",type=int)
     parser.add_argument("run_id",type=int)
     parser.add_argument("--interval","-i",type=int,choices=range(3),
         help="""Choose between the intervals wrt the evaluation period:
