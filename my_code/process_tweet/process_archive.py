@@ -12,7 +12,7 @@ import bz2
 import time
 from tweet_proc import *
 from abc import ABCMeta,abstractmethod
-from myUtility.misc import DebugStop,gene_single_indri_text
+from myUtility.misc import DebugStop,gene_single_indri_text,split_list
 
 
 class ArchiveTweet(Tweet):
@@ -221,8 +221,22 @@ class ArchiveTrecTextBuilder(ArchiveTweetProcessor):
 
 
 
-    def build(self):
-        self.process_flattered_files()
+    def process_flattered_files(self,num_of_run,run_id):
+        all_files = self.get_all_files()
+        sub_list = split_list(all_files,num_of_run,run_id)
+        if self.debug:
+            #print all_files
+            print "there are %d files" %(len(all_files))
+            print "only process %d files" %(len(sub_list))
+            print sub_list
+        for tweet_file in sub_list:
+            self.process_file(tweet_file)
+
+
+    def build(self,num_of_run,run_id):
+        self.process_flattered_files(num_of_run,run_id)
+
+
 
     def operation(self):
         if self.tweet_buffer:
