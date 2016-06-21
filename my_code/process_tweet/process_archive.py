@@ -86,6 +86,7 @@ class ArchiveTweetProcessor(TweetProcessor):
         all_files = self.get_all_files()
         if self.debug:
             print all_files
+            print "there are %d files" %(len(all_files))
         for tweet_file in all_files:
             self.process_file(tweet_file)
 
@@ -225,7 +226,7 @@ class ArchiveTrecTextBuilder(ArchiveTweetProcessor):
 
     def operation(self):
         if self.tweet_buffer:
-            for file_name in tweet_buffer:
+            for file_name in self.tweet_buffer:
                 dest_file =os.path.join(self.dest_dir,file_name)
                 with codecs.open(dest_file,"a","utf-8") as f:
                     for tweet in self.tweet_buffer[file_name]:
