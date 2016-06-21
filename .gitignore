@@ -1,3 +1,5 @@
 trecrts-eval
 twitter_auth
 twitter-tools
+*.pyc
+*.sh.o*
