@@ -45,6 +45,7 @@ def main():
         text_builder.build(args.num_of_run,args.run_id)
     except DebugStop as e:
         print e
+    print "finished!"
 
 if __name__=="__main__":
     main()
