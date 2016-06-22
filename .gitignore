@@ -3,3 +3,5 @@ twitter_auth
 twitter-tools
 *.pyc
 *.sh.o*
+auth_info/
+topics
