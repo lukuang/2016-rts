@@ -159,7 +159,8 @@ def main():
     for topicid in clusters:
         cluster_bins[topicid] = [RelTimeBins()] * len(clusters[topicid])
 
-    plot_hist(rel_bins.bins,all_bins.bins)
+    for topicid in rel_bins:
+        plot_hist(rel_bins[topicid].bins,all_bins.bins)
 
 
 if __name__=="__main__":
