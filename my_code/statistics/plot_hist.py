@@ -10,8 +10,8 @@ import re
 import argparse
 import codecs
 from lxml import etree
-import matplotlib.mlab as mlab
-import matplotlib.pyplot as plt
+#import matplotlib.mlab as mlab
+#import matplotlib.pyplot as plt
 sys.path.append("../")
 from process_tweet.tweet_proc import *
 
