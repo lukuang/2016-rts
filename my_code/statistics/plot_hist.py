@@ -22,7 +22,7 @@ class TimeBins(object):
         self.start,self.end,self.gap = start,end,gap
         self.bin_size = (self.end.epoch-self.start.epoch)/gap + 1
         self.bins = [0]*self.bin_size
-        print "The size is: %d" %(self.bin_size)
+        #print "The size is: %d" %(self.bin_size)
 
     def increment_size(self,bin_id):
         self.bins[bin_id] += 1
@@ -118,8 +118,14 @@ def get_num_of_tweets(single_file):
 
 #TODO implement this function to plot
 #histogram
-def plot_hist(bins1,bins2):
-    pass
+def plot_hist(bins1,bins2,topicid):
+    plt.hist(bins2, histtype='stepfilled', normed=True, color='b', label='All')
+    plt.hist(bins1, histtype='stepfilled', normed=True, color='r', alpha=0.5, label=topicid)
+    plt.title("All/%s Histogram" %(topicid))
+    plt.xlabel("Bin")
+    plt.ylabel("number")
+    plt.legend()
+    plt.savefig("all-%s.png" %(topicid))
     
 
 
@@ -160,7 +166,7 @@ def main():
         cluster_bins[topicid] = [RelTimeBins()] * len(clusters[topicid])
 
     for topicid in rel_bins:
-        plot_hist(rel_bins[topicid].bins,all_bins.bins)
+        plot_hist(rel_bins[topicid].bins,all_bins.bins,topicid)
 
 
 if __name__=="__main__":
