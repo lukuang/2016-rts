@@ -126,7 +126,7 @@ def plot_hist(bins1,bins2,topicid):
     plt.ylabel("number")
     plt.legend()
     plt.savefig("all-%s.png" %(topicid))
-    
+    plt.clf()
 
 
 
