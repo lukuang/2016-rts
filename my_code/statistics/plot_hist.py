@@ -92,9 +92,9 @@ def read_cluster_file(cluster_file):
     {topic:[[tweetid]]}
     """
     clusters = {}
-    topcis = json.load(open(cluster_file))["topcis"]
-    for topicid in topcis:
-        clusters[topicid] = topcis[topicid]["clusters"]
+    topics = json.load(open(cluster_file))["topics"]
+    for topicid in topics:
+        clusters[topicid] = topics[topicid]["clusters"]
     return clusters
 
 def get_num_of_tweets(single_file):
