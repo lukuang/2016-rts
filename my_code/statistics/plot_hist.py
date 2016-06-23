@@ -103,7 +103,10 @@ def get_num_of_tweets(single_file):
     root = etree.fromstring(document)
     return len(root)
 
-def plot_hist(bins1,bins2)
+#TODO implement this function to plot
+#histogram
+def plot_hist(bins1,bins2):
+    pass
     
 
 
