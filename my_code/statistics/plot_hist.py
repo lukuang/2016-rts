@@ -49,7 +49,7 @@ class AllTimeBins(TimeBins):
         if m is not None:
             day = int(m.group(1))
             hour = int(m.group(2))
-            day_diff = day - start.struct_time.tm_mday
+            day_diff = day - self.start.struct_time.tm_mday
             bin_id = day_diff*24
             bin_id += hour
             self.increment_size(bin_id)
