@@ -114,7 +114,7 @@ def get_num_of_tweets(single_file):
 #histogram
 def plot_hist(bins1,bins2,topicid):
     #print bins1
-    #print bins2
+    print bins2
     plt.hist(bins2, histtype='stepfilled', normed=True, color='b', label='All')
     #plt.hist(bins1, histtype='stepfilled', normed=True, color='r', alpha=0.5, label=topicid)
     plt.title("All/%s Histogram" %(topicid))
