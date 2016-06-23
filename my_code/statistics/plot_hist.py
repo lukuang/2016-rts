@@ -96,7 +96,7 @@ def read_qrel(qrel):
                 rel_tweets[topicid] = []
             tweetid = parts[2]
             score = int(parts[3])
-            if score > 0:
+            if 0 < score < 3:
                 rel_tweets[topicid].append(tweetid)
     return rel_tweets
 
@@ -153,11 +153,8 @@ def main():
     for topicid in rel_tweets:
         rel_bins[topicid] = RelTimeBins()
         for tweetid in rel_tweets[topicid]:
-            try:
-                rel_bins[topicid].add_tweet_epoch(tweet2epoch[tweetid])
-            except KeyError:
-                print tweetid
-    sys.exit(-1)
+            rel_bins[topicid].add_tweet_epoch(tweet2epoch[tweetid])
+            
     cluster_bins = {}          
     for topicid in clusters:
         cluster_bins[topicid] = [RelTimeBins()] * len(clusters[topicid])
