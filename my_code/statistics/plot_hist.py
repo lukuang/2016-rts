@@ -23,11 +23,8 @@ class TimeBins(object):
         print "The size is: %d" %(self.bin_size)
 
     def increment_size(self,bin_id):
-        try:
-            self.bins[bin_id] += 1
-        except IndexError:
-            print "wrong index %d" %(bin_id)
-            sys.exit(-1)
+        self.bins[bin_id] += 1
+        
 
 class RelTimeBins(TimeBins):
 
@@ -37,7 +34,12 @@ class RelTimeBins(TimeBins):
 
     def add_tweet_epoch(self,epoch):
         bin_id = (epoch-self.start.epoch)/self.gap
-        self.increment_size(bin_id)
+        try:
+            self.increment_size(bin_id)
+        except IndexError:
+            print "wrong index %d" %(bin_id)
+            print "epoch %"
+            sys.exit(-1)
 
 
 class AllTimeBins(TimeBins):
@@ -56,7 +58,12 @@ class AllTimeBins(TimeBins):
             day_diff = day - self.start.struct_time.tm_mday
             bin_id = day_diff*24
             bin_id += hour
-            self.increment_size(bin_id)
+            try:
+                self.increment_size(bin_id)
+            except IndexError:
+                print "wrong index %d" %(bin_id)
+                print "file name %s" %(file_name)
+                sys.exit(-1)
         else:
             raise ValueError("the file name %s is not right" %(time_string))
 
@@ -70,7 +77,7 @@ def read_epoch_file(epoch_file):
         for line in f:
             line = line.rstrip()
             parts = line.split()
-            tweet2epoch[parts[0]] = parts[2]
+            tweet2epoch[parts[0]] = int(parts[2])
     return tweet2epoch
 
 def read_qrel(qrel):
