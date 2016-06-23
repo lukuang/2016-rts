@@ -98,7 +98,7 @@ def read_cluster_file(cluster_file):
     return clusters
 
 def get_num_of_tweets(single_file):
-    document = open("20-0").read()
+    document = open(single_file).read()
     document = "<root> %s </root>" %(document)
     root = etree.fromstring(document)
     return len(root)
