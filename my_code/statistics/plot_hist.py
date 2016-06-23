@@ -11,7 +11,7 @@ import argparse
 import codecs
 from lxml import etree
 #import matplotlib.mlab as mlab
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 sys.path.append("../")
 from process_tweet.tweet_proc import *
 
@@ -136,19 +136,22 @@ def main():
 
 
     all_bins = AllTimeBins()
-    for single_file in all_files:
-        single_file = os.path.join(args.tweet_dir,single_file)
-        num_of_tweets = get_num_of_tweets(single_file)
-        for _ in range(num_of_tweets):
-            all_bins.add_tweet_file_name(single_file)
-    with open("all_bins","w") as f:
-        f.write(json.dumps(all_bins.bins))
+    if not os.path.exists("all_bins"):
+        for single_file in all_files:
+            single_file = os.path.join(args.tweet_dir,single_file)
+            num_of_tweets = get_num_of_tweets(single_file)
+            for _ in range(num_of_tweets):
+                all_bins.add_tweet_file_name(single_file)
+        with open("all_bins","w") as f:
+            f.write(json.dumps(all_bins.bins))
+    else:
+        all_bins.bins = json.load(open("all_bins"))
 
     rel_bins = {}
     for topicid in rel_tweets:
         rel_bins[topicid] = RelTimeBins()
         for tweetid in rel_tweets[topicid]:
-            rel_bins[topicid].add_tweet_epoch(rel_tweets[topicid][tweetid])
+            rel_bins[topicid].add_tweet_epoch(tweet2epoch[tweetid])
 
     cluster_bins = {}          
     for topicid in clusters:
