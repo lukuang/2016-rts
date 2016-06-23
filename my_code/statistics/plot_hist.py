@@ -22,8 +22,11 @@ class TimeBins(object):
         self.bins = [0]*self.bin_size
 
     def increment_size(self,bin_id):
-        self.bins[bin_id] += 1
-
+        try:
+            self.bins[bin_id] += 1
+        except IndexError:
+            print "wrong index %d" %(bin_id)
+            sys.exit(-1)
 
 class RelTimeBins(TimeBins):
 
