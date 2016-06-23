@@ -20,12 +20,11 @@ from process_tweet.tweet_proc import *
 class TimeBins(object):
     def __init__(self, gap=3600,start=START15,end=END15):
         self.start,self.end,self.gap = start,end,gap
-        self.bin_size = (self.end.epoch-self.start.epoch)/gap + 1
-        self.bins = [0]*self.bin_size
+        #self.bin_size = (self.end.epoch-self.start.epoch)/gap + 1
+        #self.bins = [0]*self.bin_size
+        self.bins = []
         #print "The size is: %d" %(self.bin_size)
 
-    def increment_size(self,bin_id):
-        self.bins[bin_id] += 1
         
 
 class RelTimeBins(TimeBins):
@@ -35,11 +34,11 @@ class RelTimeBins(TimeBins):
         self.add_tweet_epoch(epoch)
 
     def add_tweet_epoch(self,epoch):
-        bin_id = (epoch-self.start.epoch)/self.gap
+        hour_id = (epoch-self.start.epoch)/self.gap
         try:
-            self.increment_size(bin_id)
+            self.bins.append(hour_id)
         except IndexError:
-            print "wrong index %d" %(bin_id)
+            print "wrong index %d" %(hour_id)
             print "epoch %"
             sys.exit(-1)
 
@@ -58,14 +57,9 @@ class AllTimeBins(TimeBins):
             day = int(m.group(1))
             hour = int(m.group(2))
             day_diff = day - self.start.struct_time.tm_mday
-            bin_id = day_diff*24
-            bin_id += hour
-            try:
-                self.increment_size(bin_id)
-            except IndexError:
-                print "wrong index %d" %(bin_id)
-                print "file name %s" %(file_name)
-                sys.exit(-1)
+            hour_id = day_diff*24
+            hour_id += hour
+            self.bins.append(hour_id)
         else:
             raise ValueError("the file name %s is not right" %(time_string))
 
@@ -119,8 +113,8 @@ def get_num_of_tweets(single_file):
 #TODO implement this function to plot
 #histogram
 def plot_hist(bins1,bins2,topicid):
-    print bins1
-    print bins2
+    #print bins1
+    #print bins2
     plt.hist(bins2, histtype='stepfilled', normed=True, color='b', label='All')
     #plt.hist(bins1, histtype='stepfilled', normed=True, color='r', alpha=0.5, label=topicid)
     plt.title("All/%s Histogram" %(topicid))
