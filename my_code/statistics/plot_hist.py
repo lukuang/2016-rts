@@ -18,7 +18,7 @@ from process_tweet.tweet_proc import *
 class TimeBins(object):
     def __init__(self, gap=3600,start=START15,end=END15):
         self.start,self.end = start,end
-        self.bin_size = (self.start.epoch-self.end.epoch)/gap
+        self.bin_size = (self.end.epoch-self.start.epoch)/gap
         self.bins = [0]*self.bin_size
         print "The size is: %d" %(self.bin_size)
 
