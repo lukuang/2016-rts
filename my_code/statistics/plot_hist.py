@@ -128,7 +128,7 @@ def main():
     for single_file in all_files:
         single_file = os.path.join(args.tweet_dir,single_file)
         num_of_tweets = get_num_of_tweets(single_file)
-        for _ in range(num_of_tweets)
+        for _ in range(num_of_tweets):
             all_bins.add_tweet_file_name(single_file)
     with open("all_bins","w") as f:
         f.write(json.dumps(all_bins.bins))
