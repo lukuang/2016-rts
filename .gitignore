@@ -5,3 +5,5 @@ twitter-tools
 *.sh.o*
 auth_info/
 topics
+histogram/
+*.png
