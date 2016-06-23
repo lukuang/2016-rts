@@ -153,8 +153,11 @@ def main():
     for topicid in rel_tweets:
         rel_bins[topicid] = RelTimeBins()
         for tweetid in rel_tweets[topicid]:
-            rel_bins[topicid].add_tweet_epoch(tweet2epoch[tweetid])
-
+            try:
+                rel_bins[topicid].add_tweet_epoch(tweet2epoch[tweetid])
+            except KeyError:
+                print tweetid
+    sys.exit(-1)
     cluster_bins = {}          
     for topicid in clusters:
         cluster_bins[topicid] = [RelTimeBins()] * len(clusters[topicid])
