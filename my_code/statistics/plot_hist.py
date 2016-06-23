@@ -20,6 +20,7 @@ class TimeBins(object):
         self.start,self.end = start,end
         self.bin_size = (self.start.epoch-self.end.epoch)/gap
         self.bins = [0]*self.bin_size
+        print "The size is: %d" %(self.bin_size)
 
     def increment_size(self,bin_id):
         try:
