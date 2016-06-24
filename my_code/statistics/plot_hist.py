@@ -116,7 +116,7 @@ def plot_hist(bins1,bins2,topicid):
     #print bins1
     #print bins2
     plt.hist(bins2, histtype='stepfilled', normed=True, color='b', label='All',bins=240)
-    #plt.hist(bins1, histtype='stepfilled', normed=True, color='r', alpha=0.5, label=topicid)
+    plt.hist(bins1, histtype='stepfilled', normed=True, color='r', alpha=0.5, label=topicid,bins=240)
     plt.title("All/%s Histogram" %(topicid))
     plt.xlabel("Bin")
     plt.ylabel("number")
