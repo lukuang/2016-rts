@@ -163,7 +163,7 @@ def main():
 
     for topicid in rel_bins:
         plot_hist(rel_bins[topicid].bins,all_bins.bins,topicid)
-        break
+        #break
 
 if __name__=="__main__":
     main()
