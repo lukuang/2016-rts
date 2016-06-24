@@ -162,6 +162,8 @@ def main():
         cluster_bins[topicid] = [RelTimeBins()] * len(clusters[topicid])
 
     for topicid in rel_bins:
+        if not rel_bins[topicid].bins:
+            continue
         plot_hist(rel_bins[topicid].bins,all_bins.bins,topicid)
         #break
 
