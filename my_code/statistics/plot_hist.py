@@ -115,8 +115,8 @@ def get_num_of_tweets(single_file):
 def plot_hist(bins1,bins2,topicid):
     #print bins1
     #print bins2
-    plt.hist(bins2, histtype='stepfilled', normed=True, color='b', label='All')
-    plt.hist(bins1, histtype='stepfilled', normed=True, color='r', alpha=0.5, label=topicid)
+    plt.hist(bins2, histtype='stepfilled', normed=True, color='b', label='All',bins=240)
+    #plt.hist(bins1, histtype='stepfilled', normed=True, color='r', alpha=0.5, label=topicid)
     plt.title("All/%s Histogram" %(topicid))
     plt.xlabel("Bin")
     plt.ylabel("number")
@@ -163,10 +163,10 @@ def main():
     #     cluster_bins[topicid] = [RelTimeBins()] * len(clusters[topicid])
 
     for topicid in rel_bins:
-        if not rel_bins[topicid].bins:
-            continue
+        #if not rel_bins[topicid].bins:
+        #    continue
         plot_hist(rel_bins[topicid].bins,all_bins.bins,topicid)
-        #break
+        break
 
 if __name__=="__main__":
     main()
