@@ -20,7 +20,7 @@ def main():
     for f in files:
         query_file = os.path.join(args.query_dir,f)
         run_args[1] = query_file
-        p = subprocess.Popen(run_args,stdout=PIPE)
+        p = subprocess.Popen(run_args,stdout=subprocess.PIPE)
         output = p.communicate()[0]
 
         result_file = re.sub("queries","result",f)
