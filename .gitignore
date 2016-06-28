@@ -7,3 +7,4 @@ auth_info/
 topics
 histogram/
 *.png
+additional_data/
