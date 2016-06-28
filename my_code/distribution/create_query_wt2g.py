@@ -46,9 +46,9 @@ def get_queries(original_file):
 def write_query_to_file(queries,query_file,index,count):
     rules = {
         "f2exp":"method:f2exp,s:0.5",
-        "pivoted":"method:pivoted,s=0.2",
-        "BM25":"method:okapi,k1=1.2,b=0.75",
-        "JM":"method:jm,lambda=0.2"
+        "pivoted":"method:pivoted,s:0.2",
+        "BM25":"method:okapi,k1:1.2,b:0.75",
+        "JM":"method:jm,lambda:0.2"
 
         }
 
