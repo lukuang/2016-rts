@@ -93,7 +93,7 @@ int main(int argc, char** argv){
     vector<string> query_words = get_query_words(original_query_file);
     r.openRead( rep_name );
     get_statistics(r,cf,df,n,query_words);
-    output(cf,df,n,dest_dir)
+    output(cf,df,n,dest_dir);
 
     r.close();
 }
