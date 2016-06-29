@@ -48,34 +48,33 @@ void get_statistics(indri::collection::Repository& r,map<string, int>& cf,
 void output(map<string, int>& cf, map<string, int> df,int& n,string& dest_dir){
     
     string end_str = "/";
-    if (end_str.compare(dest_dir.back())!=0){
+    if (end_str.compare(dest_dir[dest_dir.length() - 1])!=0){
         dest_dir += end_str;
     }
 
-    char* n_file_name = (dest_dir+"n").c_str();
+    const char* n_file_name = (dest_dir+"n").c_str();
     ofstream n_file;
     n_file.open(n_file_name);
     n_file << n <<endl;
     n_file.close();
 
-    char* cf_file_name = (dest_dir+"cf").c_str();
+    const char* cf_file_name = (dest_dir+"cf").c_str();
     ofstream cf_file;
     cf_file.open(cf_file_name);
-    for(map<string,int>::iterator it=cf.begin(),it!=cf.end();++it){
+    for(map<string,int>::iterator it=cf.begin();it!=cf.end();++it){
         cf_file<< it->first <<" "<<it->second<<endl;
     }
     cf_file.close();
 
-    char* df_file_name = (dest_dir+"df").c_str();
+    const char* df_file_name = (dest_dir+"df").c_str();
     ofstream df_file;
     df_file.open(df_file_name);
-    for(map<string,int>::iterator it=df.begin(),it!=df.end();++it){
+    for(map<string,int>::iterator it=df.begin();it!=df.end();++it){
         df_file<< it->first <<" "<<it->second<<endl;
     }
     df_file.close();
 
 
-    return 0;
 }
 
 
@@ -96,5 +95,5 @@ int main(int argc, char** argv){
     get_statistics(r,cf,df,n,query_words);
     output(cf,df,n,dest_dir)
 
-    r.close
+    r.close();
 }
