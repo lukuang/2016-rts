@@ -42,6 +42,7 @@ void get_statistics(indri::collection::Repository& r,map<string, int>& cf,
         
         cf[*it] = local.termCount( *it );
         df[*it] = local.documentCount(*it);
+        cout<< "term "<<*it<<" with df "<<local.documentCount(*it); <<endl;
     }
 }
 
