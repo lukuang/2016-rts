@@ -30,7 +30,7 @@ vector<string> get_query_words(char* original_query_file){
             words.push_back(line);
         }
     }
-    return words
+    return words;
 }
 
 void get_statistics(indri::collection::Repository& r,map<string, int>& cf,
