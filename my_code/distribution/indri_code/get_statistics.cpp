@@ -48,8 +48,8 @@ void get_statistics(indri::collection::Repository& r,map<string, int>& cf,
 void output(map<string, int>& cf, map<string, int> df,int& n,string& dest_dir){
     
     string end_str = "/";
-    const string for_test = dest_dir;
-    if (end_str.compare(for_test[for_test.length() - 1])!=0){
+    const char* real_end= dest_dir[dest_dir.length() - 1];
+    if (end_str.compare(real_end)!=0){
         dest_dir += end_str;
     }
 
