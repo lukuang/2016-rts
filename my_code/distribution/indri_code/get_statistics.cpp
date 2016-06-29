@@ -34,7 +34,7 @@ vector<string> get_query_words(char* original_query_file){
 }
 
 void get_statistics(indri::collection::Repository& r,map<string, int>& cf,
-    map<string, int> df,int& n,vector<string>& query_words){
+    map<string, int>& df,int& n,vector<string>& query_words){
 
     indri::server::LocalQueryServer local(r);
     n = local.documentCount();
@@ -46,7 +46,7 @@ void get_statistics(indri::collection::Repository& r,map<string, int>& cf,
     }
 }
 
-void output(map<string, int>& cf, map<string, int> df,int& n,string& dest_dir){
+void output(map<string, int>& cf, map<string, int>& df,int& n,string& dest_dir){
     
     string end_str = "/";
     const char* real_end;
