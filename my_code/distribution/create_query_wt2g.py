@@ -55,7 +55,9 @@ def write_query_to_file(queries,query_file,index,count):
     for method in rules:
         file_path = query_file + "_" + method
         run_id = method
-        gene_indri_query_file(file_path,queries,index,count=count,run_id=run_id,rule=rules[method])
+        gene_indri_query_file(file_path,queries,index,count=count,
+                              run_id=run_id,rule=rules[method],
+                              use_stopper=True)
 
 
 def main():
