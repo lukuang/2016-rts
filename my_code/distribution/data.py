@@ -49,7 +49,7 @@ class IndexStats(object):
 
         with open(n_file) as f:
             content = f.read()
-            content = content.rstrp()
+            content = content.rstrip()
             self.n = int(content)
 
         with open(df_file) as f:
