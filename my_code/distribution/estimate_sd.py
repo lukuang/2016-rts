@@ -83,7 +83,7 @@ def main():
     method = all_methods[args.method]
     
     #qrel = Qrel(args.qrel_file)
-    stat_dir = os.path.join(args.data_dir,stat)
+    stat_dir = os.path.join(args.data_dir,"stat")
     index_stats = IndexStats(stat_dir)
     run = Run(args.result_file)
     real_ap = get_real_ap(args.data_dir,result_file)
