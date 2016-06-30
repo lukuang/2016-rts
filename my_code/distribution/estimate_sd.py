@@ -75,7 +75,7 @@ def main():
     parser.add_argument("data_dir")
     parser.add_argument("original_query_file")
     parser.add_argument("result_file")
-    parser.add_argument("--method","-m",choices=[0,1],default=0)
+    parser.add_argument("--method","-m",type=int,choices=[0,1],default=0)
     #parser.add_argument("qrel_file")
     args = parser.parse_args()
 
