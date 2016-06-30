@@ -125,7 +125,7 @@ class SD(object):
         return self._non_rel_distribution[qid].cdf(score)
 
     def _compute_aupr(self,qid,lambda_value):
-        n = len(self._run.ranking[qid].scores)
+        N = len(self._run.ranking[qid].scores)
         ap = .0
         s1 = self._run.ranking[qid].scores[0]
         score = 2*s1
