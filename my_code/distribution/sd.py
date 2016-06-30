@@ -56,7 +56,7 @@ class SD(object):
         }
         for qid in self._run.ranking:
             
-            m1,v1,m0,v0 = self._compute_mean_and_var(qid,self._distribution_method)
+            m1,v1,m0,v0 = self._compute_mean_and_var(qid)
 
             lambda1,lambda2,lambda3 =\
                 self._compute_lambda(qid,queries,index_stats)
