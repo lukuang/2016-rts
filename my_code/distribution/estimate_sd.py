@@ -86,7 +86,7 @@ def main():
     stat_dir = os.path.join(args.data_dir,"stat")
     index_stats = IndexStats(stat_dir)
     run = Run(args.result_file)
-    real_ap = get_real_ap(args.data_dir,result_file)
+    real_ap = get_real_ap(args.data_dir,args.result_file)
 
     stopword_handler = Stopword_Handler()
     long_queries = process_query(original_query_file,stopword_handler)
