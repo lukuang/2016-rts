@@ -3,6 +3,7 @@ get some necessary data
 """
 
 import collections
+import os
 
 DocScorePair  = collections.namedtuple('DocScorePair', ['scores', 'docids'])
 
