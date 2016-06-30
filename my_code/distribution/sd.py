@@ -138,8 +138,7 @@ class SD(object):
             score = score - ds
             recall += self._compute_recall(qid,score)*ds
             fallout += self._compute_non_re_likelihood(qid,score)*ds
-            prec[i] = (lambda_value*recall) / 
-                    ( lambda_value*recall + (1-lambda_value)*fallout)
+            prec[i] = (lambda_value*recall)/( lambda_value*recall + (1-lambda_value)*fallout)
             rec[i] = recall
             if i>0:
                 ap += (rec[i]-rec[i-1]) * (prec[i]-prec[i-1])/2
