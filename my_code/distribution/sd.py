@@ -150,7 +150,7 @@ class SD(object):
         for lambda_string in self._lambda:
             self._aupr[lambda_string] = {}
             for qid in self._run.ranking:
-                self._aupr[lambda_string][qid]
+    
                 lambda_value = self._lambda[lambda_string][qid]
                 self._aupr[lambda_string][qid] = \
                         self._compute_aupr(qid,lambda_value)
