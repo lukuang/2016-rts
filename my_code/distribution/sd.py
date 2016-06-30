@@ -136,7 +136,7 @@ class SD(object):
         ds = score/N
         for i in range(N):
             score = score - ds
-            recall += self._compute_recall(qid,score)*ds
+            recall += self._compute_re_likelihood(qid,score)*ds
             fallout += self._compute_non_re_likelihood(qid,score)*ds
             prec[i] = (lambda_value*recall)/( lambda_value*recall + (1-lambda_value)*fallout)
             rec[i] = recall
