@@ -1,7 +1,7 @@
 """
 get some necessary data
 """
-
+from __future__ import division
 import collections
 import os
 
@@ -62,7 +62,7 @@ class IndexStats(object):
 
         self.idf = {}
         for w in self.df:
-            self.idf = self.df[w]/(self.n*1.0)
+            self.idf[w] = self.df[w]/(self.n*1.0)
 
         with open(cf_file) as f:
             for line in f:
