@@ -54,7 +54,7 @@ class IndexStats(object):
 
         with open(df_file) as f:
             for line in f:
-                line = line.rstrp()
+                line = line.rstrip()
                 if len(line) == 0:
                     continue
                 parts = line.split()
@@ -66,7 +66,7 @@ class IndexStats(object):
 
         with open(cf_file) as f:
             for line in f:
-                line = line.rstrp()
+                line = line.rstrip()
                 if len(line) == 0:
                     continue
                 parts = line.split()
