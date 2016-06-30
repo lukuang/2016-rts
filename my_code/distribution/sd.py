@@ -3,7 +3,7 @@ score distributions for ranking lists
 """
 from __future__ import division
 import math
-from abc import ABCMeta,abstract_distribution_method
+from abc import ABCMeta,abstractmethod
 from scipy.stats import gamma,lognorm
 from misc import compute_stat_from_list  
 
@@ -70,7 +70,7 @@ class SD(object):
             self._lambda["lambda2"][qid] = lambda2
             self._lambda["lambda3"][qid] = lambda3
 
-    @abstract_distribution_method
+    @abstractmethod
     def estimate_distribution(self,index_stats,queries,qrel=None):
         pass
 
