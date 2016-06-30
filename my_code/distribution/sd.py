@@ -178,7 +178,7 @@ class SD(object):
 
 class GammaSD(SD):
     def __init__(self,run):
-        super(Gamma,self).__init__(run,"gamma")
+        super(GammaSD,self).__init__(run,"gamma")
 
     def _estimate_para_without_rel_info(self,index_stats,queries):
         #estimate parameters for models
@@ -224,7 +224,7 @@ class GammaSD(SD):
 
 class LognormalSD(SD):
     def __init__(self,run):
-        super(Lognormal,self).__init__(run,"lognormal")
+        super(LognormalSD,self).__init__(run,"lognormal")
 
     def _estimate_para_without_rel_info(self,index_stats,queries):
         #estimate parameters for models
