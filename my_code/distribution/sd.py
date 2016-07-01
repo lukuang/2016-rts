@@ -122,11 +122,11 @@ class SD(object):
 
 
     def _compute_re_likelihood(self,qid,score):
-        return self._rel_distribution[qid].cdf(score)
+        return self._rel_distribution[qid].pdf(score)
 
     
     def _compute_non_re_likelihood(self,qid,score):
-        return self._non_rel_distribution[qid].cdf(score)
+        return self._non_rel_distribution[qid].pdf(score)
 
     def _compute_aupr(self,qid,lambda_value):
         N = len(self._run.ranking[qid].scores)
