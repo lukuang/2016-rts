@@ -62,7 +62,7 @@ class IndexStats(object):
 
         self.idf = {}
         for w in self.df:
-            self.idf[w] = self.df[w]/(self.n*1.0)
+            self.idf[w] = (self.n*1.0)/self.df[w]
 
         with open(cf_file) as f:
             for line in f:
