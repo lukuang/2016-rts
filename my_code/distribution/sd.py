@@ -110,7 +110,8 @@ class SD(object):
         for score in self._run.ranking[qid].scores:
             if score >= lower_bound:
                 sub_scores.append(score)
-        m1, temp_var =  compute_stat_from_list(sub_scores)
+        temp_mean, temp_var =  compute_stat_from_list(sub_scores)
+        m1 = 4*math.sqrt(temp_var)
         m0, v0 = compute_stat_from_list(self._run.ranking[qid].scores)
         if self._distribution_method == "lognormal":
             v1 = ( (m1/m0) * math.sqrt(v0) )**2
