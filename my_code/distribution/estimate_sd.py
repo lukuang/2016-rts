@@ -101,7 +101,7 @@ def main():
     sd.estimate_distribution(index_stats,long_queries)
     sd.predict_aupr()
     sd.show_aupr()
-    estimated_aupr = sd.aupr()
+    estimated_aupr = sd.aupr
     get_linear_correlations(estimated_aupr,real_ap)
 
 

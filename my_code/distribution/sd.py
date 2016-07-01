@@ -30,9 +30,9 @@ class SD(object):
     score distribution for rankings
     """
     __metaclass__ = ABCMeta
-    def __init__(self,run,distribution_method):
-        self._run,self._distribution_method =\
-                        run, distribution_method
+    def __init__(self,run,distribution_method,debug=False):
+        self._run,self._distribution_method,self._debug =\
+                        run, distribution_method, debug
         self._m1 = {}
         self._v1 = {}
         self._m0 = {}
@@ -69,6 +69,10 @@ class SD(object):
             self._lambda["lambda1"][qid] = lambda1
             self._lambda["lambda2"][qid] = lambda2
             self._lambda["lambda3"][qid] = lambda3
+            if self._debug :
+                print "for query %s:" %(qid)
+                print "m1: %f, v1: %f, m0: %f, v0: %f" %(m1,v1,m0,v0)
+                print "lambda1: %f, lambda2: %f, lambda2: %f" %(lambda1,lambda2,lambda3)
 
     @abstractmethod
     def estimate_distribution(self,index_stats,queries,qrel=None):
@@ -177,8 +181,8 @@ class SD(object):
 
 
 class GammaSD(SD):
-    def __init__(self,run):
-        super(GammaSD,self).__init__(run,"gamma")
+    def __init__(self,run,debug=False):
+        super(GammaSD,self).__init__(run,"gamma",debug)
 
     def _estimate_para_without_rel_info(self,index_stats,queries):
         #estimate parameters for models
@@ -200,6 +204,10 @@ class GammaSD(SD):
             
             self._k0[qid] = (m0)**2 / v0
             self._theta0[qid] = v0 / m0
+            if self._debug :
+                print "for query %s:" %(qid)
+                print "k1: %f, theta1: %f, k0: %f, theta0: %f" %(self._k1[qid],self._theta1[qid],self._k0[qid],self._theta0[qid])
+
 
 
     def _estimate_para_with_rel_info(self,index_stats,queries,qrel):
@@ -246,6 +254,11 @@ class LognormalSD(SD):
             self._mu0[qid] = math.log(m0) - 0.5*(1 + (v0/(m0**2)) )
             var0 = math.log(1 + (v0/(m0**2)) )
             self._sigma0[qid] = math.sqrt(var0)
+            if self._debug :
+                print "for query %s:" %(qid)
+                print "mu1: %f, sigma1: %f, mu0: %f, sigma0: %f" %(self._mu1[qid],self._sigma1[qid],self._mu0[qid],self._sigma0[qid])
+
+
 
     def _estimate_para_with_rel_info(self,index_stats,queries,qrel):
         pass
