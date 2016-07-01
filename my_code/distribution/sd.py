@@ -231,8 +231,8 @@ class GammaSD(SD):
 
 
 class LognormalSD(SD):
-    def __init__(self,run):
-        super(LognormalSD,self).__init__(run,"lognormal")
+    def __init__(self,run,debug=False):
+        super(LognormalSD,self).__init__(run,"lognormal",debug)
 
     def _estimate_para_without_rel_info(self,index_stats,queries):
         #estimate parameters for models
