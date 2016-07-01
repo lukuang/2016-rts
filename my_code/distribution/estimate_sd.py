@@ -76,6 +76,7 @@ def main():
     parser.add_argument("original_query_file")
     parser.add_argument("result_file")
     parser.add_argument("--method","-m",type=int,choices=[0,1],default=0)
+    parser.add_argument("--debug","-de",action='store_true')
     #parser.add_argument("qrel_file")
     args = parser.parse_args()
 
@@ -94,9 +95,9 @@ def main():
     
 
     if method == "gamma":
-        sd = GammaSD(run)
+        sd = GammaSD(run,args.debug)
     else:
-        sd = LognormalSD(run)
+        sd = LognormalSD(run,args.debug)
 
     sd.estimate_distribution(index_stats,long_queries)
     sd.predict_aupr()
