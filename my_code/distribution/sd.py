@@ -133,6 +133,8 @@ class SD(object):
         N = len(self._run.ranking[qid].scores)
         ap = .0
         s1 = self._run.ranking[qid].scores[0]
+        if self._debug:
+            print "for query %s, top score is %f" %(qid,s1)
         score = 2*s1
         recall = 0
         fallout = 0
@@ -147,6 +149,8 @@ class SD(object):
             rec[i] = recall
             if i>0:
                 ap += (rec[i]-rec[i-1]) * (prec[i]-prec[i-1])/2
+                if self._debug:
+                    print "now ap is %f" %(ap)
 
         return ap           
 
