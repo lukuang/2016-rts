@@ -20,11 +20,11 @@
 #include <dirent.h>
 using namespace std;
 
-vector<string> get_query_words(char* original_query_file){
+vector<string> get_query_words(char* all_query_word_file){
     ifstream original_query;
     string line;
     vector<string> words;
-    original_query.open(original_query_file);
+    original_query.open(all_query_word_file);
     if(original_query.is_open()){
         while(getline(original_query, line)){
             words.push_back(line);
@@ -87,12 +87,12 @@ int main(int argc, char** argv){
     //string idf_term  = argv[3];
     //float variance_threshold = atof(argv[4]);
 
-    char* original_query_file = argv[2];
+    char* all_query_word_file = argv[2];
     string dest_dir = argv[3];
     map<string, int> cf;
     map<string, int> df;
     int n;
-    vector<string> query_words = get_query_words(original_query_file);
+    vector<string> query_words = get_query_words(all_query_word_file);
     r.openRead( rep_name );
     get_statistics(r,cf,df,n,query_words);
     output(cf,df,n,dest_dir);
