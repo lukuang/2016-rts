@@ -78,8 +78,8 @@ def main():
     args=parser.parse_args()
 
     title_queries,desc_queries = get_queries(args.original_file)
-    write_query_to_file(title_queries,args.title_query_file,args.index,args.count,agrs.use_stopper)
-    write_query_to_file(desc_queries,args.desc_query_file,args.index,args.count,agrs.use_stopper)
+    write_query_to_file(title_queries,args.title_query_file,args.index,args.count,args.use_stopper)
+    write_query_to_file(desc_queries,args.desc_query_file,args.index,args.count,args.use_stopper)
     #print title_queries
     #print desc_queries
 
