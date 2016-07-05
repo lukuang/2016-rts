@@ -80,6 +80,9 @@ class SD(object):
         distributions(mean/variance: m/v). Note that the subscripts
         "1,0" corresponds statistics of relevant/non-relevant
         """
+
+        self._lambda["lambda"] = {}
+        
         for qid in self._run.ranking:
             non_rel = []
             rel = []

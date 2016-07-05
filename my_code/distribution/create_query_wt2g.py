@@ -9,8 +9,8 @@ import re
 import argparse
 import codecs
 from myUtility.misc import gene_indri_query_file
-
-def get_queries(original_file):
+from misc import get_wt2g_queries
+def get_wt2g_queries(original_file):
     title_queries = {}
     desc_queries = {}
     qid = ""
@@ -77,7 +77,7 @@ def main():
 
     args=parser.parse_args()
 
-    title_queries,desc_queries = get_queries(args.original_file)
+    title_queries,desc_queries = get_wt2g_queries(args.original_file)
     write_query_to_file(title_queries,args.title_query_file,args.index,args.count,args.use_stopper)
     write_query_to_file(desc_queries,args.desc_query_file,args.index,args.count,args.use_stopper)
     #print title_queries
