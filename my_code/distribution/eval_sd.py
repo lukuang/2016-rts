@@ -89,6 +89,7 @@ def main():
     estimated_aupr = get_aupr(args.aupr_file)
     real_ap = get_real_ap(args.data_dir,args.result_file)
     qids = real_ap.keys()
+    real_ap_list = to_list(qids,real_ap)
     print "-"*20
     print method_name + ":"
     for lambda_choice in estimated_aupr:
