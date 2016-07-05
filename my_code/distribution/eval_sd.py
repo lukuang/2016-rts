@@ -31,6 +31,14 @@ def get_real_ap(data_dir,result_file):
             break
     return real_ap
 
+def to_ranking(ap_dict):
+    ap_ranking = {}
+    sorted_ap = sorted(ap_dict.items().key=lambda x:x[1], reverse=True)
+    i=1
+    for qid,score in sorted_ap:
+        ap_ranking[qid] = i
+        i+=1
+    return ap_ranking
 
 def to_list(qids,ap_list):
     return [ap_list[qid] for qid in qids]
@@ -89,12 +97,14 @@ def main():
     estimated_aupr = get_aupr(args.aupr_file)
     real_ap = get_real_ap(args.data_dir,args.result_file)
     qids = real_ap.keys()
-    real_ap_list = to_list(qids,real_ap)
+    real_ap_ranking = to_ranking(real_ap)
+    real_ap_ranking_list = to_list(qids,real_ap_ranking)
     print "-"*20
     print method_name + ":"
     for lambda_choice in estimated_aupr:
-        estimated = to_list(qids,estimated_aupr[lambda_choice])
-        eval_value = method(real_ap_list, estimated)
+        estimated_ranking = to_ranking(estimated_aupr[lambda_choice])
+        estimated = to_list(qids,estimated_ranking)
+        eval_value = method(real_ap_ranking_list, estimated)
         print "\tFor %s: %f" %(lambda_choice,eval_value)
     print "-"*20
 
