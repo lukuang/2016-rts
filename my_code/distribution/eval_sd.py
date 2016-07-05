@@ -41,7 +41,7 @@ def kendal_ltau(estimated_aupr,real_ap_list):
 
 def pearson_r(estimated_aupr,real_ap_list):
     r,p_value = pearsonr(estimated_aupr, real_ap_list)
-    return tau
+    return r
 
 def rmse(estimated_aupr,real_ap_list):
     raise RuntimeError("not implemented!")
@@ -95,7 +95,7 @@ def main():
     for lambda_choice in estimated_aupr:
         estimated = to_list(qids,estimated_aupr[lambda_choice])
         eval_value = method(real_ap_list, estimated)
-        print "\tFor %s: %f" %(lambda_choice,tau)
+        print "\tFor %s: %f" %(lambda_choice,eval_value)
     print "-"*20
 
 if __name__=="__main__":
