@@ -149,8 +149,8 @@ class SD(object):
             rec[i] = recall
             if i>0:
                 ap += (rec[i]-rec[i-1]) * (prec[i]+prec[i-1])/2
-                if self._debug:
-                    print "now ap is %f" %(ap)
+        if self._debug:
+            print "ap is %f for query %s" %(ap,qid)
 
         return ap           
 
