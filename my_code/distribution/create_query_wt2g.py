@@ -43,7 +43,7 @@ def get_queries(original_file):
     return title_queries,desc_queries
 
 
-def write_query_to_file(queries,query_file,index,count):
+def write_query_to_file(queries,query_file,index,count,use_stopper):
     rules = {
         "f2exp":"method:f2exp,s:0.5",
         "pivoted":"method:pivoted,s:0.2",
@@ -57,7 +57,7 @@ def write_query_to_file(queries,query_file,index,count):
         run_id = method
         gene_indri_query_file(file_path,queries,index,count=count,
                               run_id=run_id,rule=rules[method],
-                              use_stopper=True)
+                              use_stopper)
 
 
 def main():
@@ -70,13 +70,16 @@ def main():
         os.path.join(base_dir,"additional_data/topics.401-450"))
     
     parser.add_argument("index")
+    parser.add_argument(
+        "--use_stopper","-us", action='store_true')
+    
     parser.add_argument("--count","-c",type=int,default = 1000)
 
     args=parser.parse_args()
 
     title_queries,desc_queries = get_queries(args.original_file)
-    write_query_to_file(title_queries,args.title_query_file,args.index,args.count)
-    write_query_to_file(desc_queries,args.desc_query_file,args.index,args.count)
+    write_query_to_file(title_queries,args.title_query_file,args.index,args.count,agrs.use_stopper)
+    write_query_to_file(desc_queries,args.desc_query_file,args.index,args.count,agrs.use_stopper)
     #print title_queries
     #print desc_queries
 
