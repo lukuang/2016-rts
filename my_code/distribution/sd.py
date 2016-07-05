@@ -90,7 +90,20 @@ class SD(object):
                     rel.append(score)
                 else:
                     non_rel.append(score)
-            m1,v1 = compute_stat_from_list(rel)                
+            m1,v1 = compute_stat_from_list(rel)  
+            m0,v0 = compute_stat_from_list(rel)
+
+            self._m1[qid] = m1
+            self._v1[qid] = v1
+            self._m0[qid] = m0
+            self._v0[qid] = v0
+            self._lambda["lambda"][qid] = estimated_lambda
+
+            if self._debug :
+                print "for query %s:" %(qid)
+                print "m1: %f, v1: %f, m0: %f, v0: %f" %(m1,v1,m0,v0)
+                print "lambda: %f" %(estimated_lambda)
+             
 
 
 
@@ -211,6 +224,7 @@ class GammaSD(SD):
     def __init__(self,run,debug=False):
         super(GammaSD,self).__init__(run,"gamma",debug)
 
+
     def _estimate_para(self,index_stats,queries,qrel=None):
         #estimate parameters for models
         if qrel is None:
@@ -259,7 +273,7 @@ class LognormalSD(SD):
     def __init__(self,run,debug=False):
         super(LognormalSD,self).__init__(run,"lognormal",debug)
 
-   def _estimate_para(self,index_stats,queries,qrel=None):
+    def _estimate_para(self,index_stats,queries,qrel=None):
         #estimate parameters for models
         if qrel is None:
             self._estimate_stats_without_rel_info(index_stats,queries)
