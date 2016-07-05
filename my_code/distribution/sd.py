@@ -56,10 +56,10 @@ class SD(object):
         }
         for qid in self._run.ranking:
             
-            m1,v1,m0,v0 = self._compute_mean_and_var(qid)
+            m1,v1,m0,v0 = self._compute_mean_and_var_without_rel_info(qid)
 
             lambda1,lambda2,lambda3 =\
-                self._compute_lambda(qid,queries,index_stats)
+                self._compute_lambda_without_rel_info(qid,queries,index_stats)
             
 
             self._m1[qid] = m1
@@ -74,11 +74,31 @@ class SD(object):
                 print "m1: %f, v1: %f, m0: %f, v0: %f" %(m1,v1,m0,v0)
                 print "lambda1: %f, lambda2: %f, lambda2: %f" %(lambda1,lambda2,lambda3)
 
+
+    def _estimate_stats_with_rel_info(index_stats,queries,qrel):
+        """estimate the statistics of relevant/non-relevant
+        distributions(mean/variance: m/v). Note that the subscripts
+        "1,0" corresponds statistics of relevant/non-relevant
+        """
+        for qid in self._run.ranking:
+            non_rel = []
+            rel = []
+            for i in len(self._run.ranking[qid].docids):
+                docid = self._run.ranking[qid].docids[i]
+                score = self._run.ranking[qid].scores[i]
+                if qrel.is_relevant(qid,docid):
+                    rel.append(score)
+                else:
+                    non_rel.append(score)
+            m1,v1 = compute_stat_from_list(rel)                
+
+
+
     @abstractmethod
     def estimate_distribution(self,index_stats,queries,qrel=None):
         pass
 
-    def _compute_lambda(self,qid,queries,index_stats):
+    def _compute_lambda_without_rel_info(self,qid,queries,index_stats):
 
         lambda1 = 10.0/len(self._run.ranking[qid].scores)
         if lambda1 > 1.0:
@@ -98,7 +118,7 @@ class SD(object):
 
 
 
-    def _compute_mean_and_var(self,qid):
+    def _compute_mean_and_var_without_rel_info(self,qid):
         m1 = .0
         v1 = .0
         m0 = .0
@@ -158,6 +178,8 @@ class SD(object):
     def predict_aupr(self):
         for lambda_string in self._lambda:
             self._aupr[lambda_string] = {}
+            if self._debug:
+                print "when using %s" %(lambda_string)
             for qid in self._run.ranking:
     
                 lambda_value = self._lambda[lambda_string][qid]
@@ -189,9 +211,12 @@ class GammaSD(SD):
     def __init__(self,run,debug=False):
         super(GammaSD,self).__init__(run,"gamma",debug)
 
-    def _estimate_para_without_rel_info(self,index_stats,queries):
+    def _estimate_para(self,index_stats,queries,qrel=None):
         #estimate parameters for models
-        self._estimate_stats_without_rel_info(index_stats,queries)
+        if qrel is None:
+            self._estimate_stats_without_rel_info(index_stats,queries)
+        else:
+            self._estimate_stats_with_rel_info(index_stats,queries,qrel)
 
         self._k1 = {}
         self._theta1 = {}
@@ -215,14 +240,9 @@ class GammaSD(SD):
 
 
 
-    def _estimate_para_with_rel_info(self,index_stats,queries,qrel):
-        pass
 
     def estimate_distribution(self,index_stats,queries,qrel=None):
-        if qrel:
-            self._estimate_para_with_rel_info(index_stats,queries,qrel)
-        else:
-            self._estimate_para_without_rel_info(index_stats,queries)
+        self._estimate_para(index_stats,queries,qrel)
 
 
         for qid in self._run.ranking:
@@ -239,9 +259,12 @@ class LognormalSD(SD):
     def __init__(self,run,debug=False):
         super(LognormalSD,self).__init__(run,"lognormal",debug)
 
-    def _estimate_para_without_rel_info(self,index_stats,queries):
+   def _estimate_para(self,index_stats,queries,qrel=None):
         #estimate parameters for models
-        self._estimate_stats_without_rel_info(index_stats,queries)
+        if qrel is None:
+            self._estimate_stats_without_rel_info(index_stats,queries)
+        else:
+            self._estimate_stats_with_rel_info(index_stats,queries,qrel)
 
         self._mu1 = {}
         self._sigma1 = {}
@@ -265,14 +288,11 @@ class LognormalSD(SD):
 
 
 
-    def _estimate_para_with_rel_info(self,index_stats,queries,qrel):
-        pass
+
 
     def estimate_distribution(self,index_stats,queries,qrel=None):
-        if qrel:
-            self._estimate_para_with_rel_info(index_stats,queries,qrel)
-        else:
-            self._estimate_para_without_rel_info(index_stats,queries)
+
+        self._estimate_para(index_stats,queries,qrel)
 
 
         for qid in self._run.ranking:

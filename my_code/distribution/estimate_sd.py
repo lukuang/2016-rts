@@ -75,6 +75,7 @@ def main():
     parser.add_argument("data_dir")
     parser.add_argument("original_query_file")
     parser.add_argument("result_file")
+    parser.add_argument("ap_store_file")
     parser.add_argument("--method","-m",type=int,choices=[0,1],default=0)
     parser.add_argument("--debug","-de",action='store_true')
     #parser.add_argument("qrel_file")
@@ -103,6 +104,8 @@ def main():
     sd.predict_aupr()
     sd.show_aupr()
     estimated_aupr = sd.aupr
+    with open(args.ap_store_file,"w") as f:
+        f.write(json.dumps(estimated_aupr))
     get_linear_correlations(estimated_aupr,real_ap)
 
 
