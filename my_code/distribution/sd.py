@@ -92,6 +92,8 @@ class SD(object):
                     non_rel.append(score)
             m1,v1 = compute_stat_from_list(rel)  
             m0,v0 = compute_stat_from_list(rel)
+            estimated_lambda = len(rel)*1.0/len(self._run.ranking[qid])
+
 
             self._m1[qid] = m1
             self._v1[qid] = v1
