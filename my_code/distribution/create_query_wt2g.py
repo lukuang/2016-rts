@@ -57,7 +57,7 @@ def write_query_to_file(queries,query_file,index,count,use_stopper):
         run_id = method
         gene_indri_query_file(file_path,queries,index,count=count,
                               run_id=run_id,rule=rules[method],
-                              use_stopper)
+                              use_stopper= use_stopper)
 
 
 def main():
