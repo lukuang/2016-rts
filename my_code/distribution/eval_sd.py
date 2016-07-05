@@ -8,6 +8,7 @@ import sys
 import re
 import argparse
 import codecs
+import subprocess
 from scipy.stats import pearsonr, kendalltau
 
 
