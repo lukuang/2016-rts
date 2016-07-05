@@ -148,7 +148,7 @@ class SD(object):
             prec[i] = (lambda_value*recall)/( lambda_value*recall + (1-lambda_value)*fallout)
             rec[i] = recall
             if i>0:
-                ap += (rec[i]-rec[i-1]) * (prec[i]-prec[i-1])/2
+                ap += (rec[i]-rec[i-1]) * (prec[i]+prec[i-1])/2
                 if self._debug:
                     print "now ap is %f" %(ap)
 
