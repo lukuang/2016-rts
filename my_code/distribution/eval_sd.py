@@ -33,7 +33,7 @@ def get_real_ap(data_dir,result_file):
 
 def to_ranking(ap_dict):
     ap_ranking = {}
-    sorted_ap = sorted(ap_dict.items().key=lambda x:x[1], reverse=True)
+    sorted_ap = sorted(ap_dict.items(),key=lambda x:x[1], reverse=True)
     i=1
     for qid,score in sorted_ap:
         ap_ranking[qid] = i
