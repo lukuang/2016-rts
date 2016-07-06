@@ -8,7 +8,7 @@ import sys
 import re
 import argparse
 import codecs
-
+import subprocess
 
 from myUtility.misc import Stopword_Handler
 from misc import compute_stat_from_list,compute_idf_avg,compute_scq_avg  
