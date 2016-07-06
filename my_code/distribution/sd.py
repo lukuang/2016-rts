@@ -71,7 +71,7 @@ class SD(object):
         for qid in self._run.ranking:
             non_rel = []
             rel = []
-            for i in range(self._run.ranking[qid].docids):
+            for i in range(len(self._run.ranking[qid].docids)):
                 docid = self._run.ranking[qid].docids[i]
                 score = self._run.ranking[qid].scores[i]
                 if qrel.is_relevant(qid,docid):
