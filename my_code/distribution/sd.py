@@ -191,10 +191,14 @@ class SD(object):
             #fallout += self._compute_non_re_likelihood(qid,score)*ds
             recall = self._compute_recall(qid,score)
             fallout = self._compute_fallout(qid,score)
-            if qid == "429":
-                print "recall %f" %recall
-                print "fallot %f" %fallout
-            prec[i] = (lambda_value*recall)/( lambda_value*recall + (1-lambda_value)*fallout)
+            #if qid == "429":
+            #    print "recall %f" %recall
+            #    print "fallot %f" %fallout
+            denominator = lambda_value*recall + (1-lambda_value)*fallout
+            if recall == 0:
+                prec[i] = 0
+            else:
+                prec[i] = (lambda_value*recall)/denominator
             rec[i] = recall
             if i>0:
                 ap += (rec[i]-rec[i-1]) * (prec[i]+prec[i-1])/2
