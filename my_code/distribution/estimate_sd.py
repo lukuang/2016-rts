@@ -20,7 +20,7 @@ from sd import LognormalSD,GammaSD
 
 
 
-def process_query(original_query_file,stopword_handler):
+def process_query(original_query_file,stopword_handler=None):
     queries = {}
     content = ""
     with open(original_query_file) as f:
@@ -29,7 +29,8 @@ def process_query(original_query_file,stopword_handler):
     for child in root.iter("query"):
         qid = child.find("number").text
         text = child.find("text").text.lower()
-        text = stopword_handler.remove_stopwords(text)
+        if stopword_handler is not None:
+            text = stopword_handler.remove_stopwords(text)
         words = re.findall("\w+",text)
         word_set = set(words)
         queries[qid] = list(word_set)
@@ -78,6 +79,7 @@ def main():
     parser.add_argument("ap_store_file")
     parser.add_argument("--method","-m",type=int,choices=[0,1],default=0)
     parser.add_argument("--debug","-de",action='store_true')
+    parser.add_argument("--no_stopwords","-ns",action='store_true')
     #parser.add_argument("qrel_file")
     args = parser.parse_args()
 
@@ -91,9 +93,12 @@ def main():
     real_ap = get_real_ap(args.data_dir,args.result_file)
     print real_ap
 
-    stopword_handler = Stopword_Handler()
-    long_queries = process_query(args.original_query_file,stopword_handler)
-    
+    if args.no_stopwords:
+
+        stopword_handler = Stopword_Handler()
+        long_queries = process_query(args.original_query_file,stopword_handler)
+    else:
+        long_queries = process_query(args.original_query_file)
 
     if method == "gamma":
         sd = GammaSD(run,args.debug)
