@@ -5,24 +5,9 @@ from __future__ import division
 import math
 from abc import ABCMeta,abstractmethod
 from scipy.stats import gamma,lognorm
-from misc import compute_stat_from_list  
-
-def compute_idf_avg(stats,query):
-    idf_avg = .0
-    for w in query:
-        idf_avg += math.log( stats.idf[w] )
-
-    idf_avg /= len(query)
-    return idf_avg
+from misc import compute_stat_from_list,compute_idf_avg,compute_scq_avg  
 
 
-def compute_scq_avg(stats,query):
-    scq_avg = .0
-    for w in query:
-        scq_avg += 1+ math.log(stats.cf[w])*math.log( 1 + stats.idf[w] )
-
-    scq_avg /= len(query)
-    return scq_avg
 
 
 class SD(object):
