@@ -10,37 +10,7 @@ import argparse
 import codecs
 from myUtility.misc import gene_indri_query_file
 from misc import get_wt2g_queries
-def get_wt2g_queries(original_file):
-    title_queries = {}
-    desc_queries = {}
-    qid = ""
-    in_desc = False
-    with open(original_file) as f:
-        for line in f:
-            line = line.rstrip()
-            mn = re.search("<num> Number: (\d+)",line)
-            
-            if mn is not None:
-                qid = mn.group(1)
-                title_queries[qid] = ""
-                desc_queries[qid] = ""
-            else:
-                mt = re.search("<title>(.+)",line)
-                if mt is not None:
-                    title_queries[qid] = mt.group(1)
-                else:
-                    md = re.search("<desc> Description:",line)
-                    if md is not None:
-                        in_desc = True
-                        continue
-                    else:
-                        ma = re.search("<narr> Narrative:",line)
-                        if ma is not None:
-                            in_desc = False
-            
-            if in_desc:
-                desc_queries[qid] += line+"\n"
-    return title_queries,desc_queries
+
 
 
 def write_query_to_file(queries,query_file,index,count,use_stopper):
@@ -48,7 +18,7 @@ def write_query_to_file(queries,query_file,index,count,use_stopper):
         "f2exp":"method:f2exp,s:0.5",
         "pivoted":"method:pivoted,s:0.2",
         "BM25":"method:okapi,k1:1.2,b:0.75",
-        "JM":"method:jm,lambda:0.2"
+        "JM":"method:jm-smoothing,lambda:0.2"
 
         }
 
