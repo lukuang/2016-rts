@@ -191,6 +191,9 @@ class SD(object):
             #fallout += self._compute_non_re_likelihood(qid,score)*ds
             recall = self._compute_recall(qid,score)
             fallout = self._compute_fallout(qid,score)
+            if qid == "403":
+                print "recall %f" %recall
+                print "fallot %f" %fallot
             prec[i] = (lambda_value*recall)/( lambda_value*recall + (1-lambda_value)*fallout)
             rec[i] = recall
             if i>0:
