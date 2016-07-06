@@ -13,7 +13,7 @@ import codecs
 from myUtility.misc import Stopword_Handler
 from misc import compute_stat_from_list,compute_idf_avg,compute_scq_avg  
 from data import *
-from esitmate_sd import process_query
+from estimate_sd import process_query
 
 
 def get_real_ap(data_dir,result_file):
