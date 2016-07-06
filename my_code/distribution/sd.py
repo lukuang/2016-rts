@@ -82,7 +82,7 @@ class SD(object):
         """
 
         self._lambda["lambda"] = {}
-        
+
         for qid in self._run.ranking:
             non_rel = []
             rel = []
@@ -167,6 +167,12 @@ class SD(object):
     def _compute_non_re_likelihood(self,qid,score):
         return self._non_rel_distribution[qid].pdf(score)
 
+    def _compute_recall(self,qid,score):
+        return 1-self._rel_distribution[qid].cdf(score)
+
+    def _compute_fallout(self,qid,score):
+        return 1-self._non_rel_distribution[qid].cdf(score)
+
     def _compute_aupr(self,qid,lambda_value):
         N = len(self._run.ranking[qid].scores)
         ap = .0
@@ -181,9 +187,11 @@ class SD(object):
         ds = score/N
         for i in range(N):
             score = score - ds
-            recall += self._compute_re_likelihood(qid,score)*ds
-            fallout += self._compute_non_re_likelihood(qid,score)*ds
-            prec[i] = (lambda_value*recall)/( lambda_value*recall + (1-lambda_value)*fallout)
+            #recall += self._compute_re_likelihood(qid,score)*ds
+            #fallout += self._compute_non_re_likelihood(qid,score)*ds
+            recall = self._compute_recall(qid,score)
+            fallout = self._compute_fallout(qid,score)
+            prec[i] = (lambda_value*recall)/( lambda_value*recall + (1-laombda_value)*fallout)
             rec[i] = recall
             if i>0:
                 ap += (rec[i]-rec[i-1]) * (prec[i]+prec[i-1])/2
