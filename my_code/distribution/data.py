@@ -91,5 +91,8 @@ class Qrel(object):
                 self._judgement[qid][docid] = jud   
                 
     def is_relevant(self,qid,docid):
-        return  self._judgement[qid][docid]
+        try:
+            return  self._judgement[qid][docid]
+        except KeyError:
+            return False
                 
