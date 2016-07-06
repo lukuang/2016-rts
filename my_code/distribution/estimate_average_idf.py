@@ -9,6 +9,7 @@ import re
 import argparse
 import codecs
 import subprocess
+from scipy.stats import pearsonr, kendalltau
 
 from myUtility.misc import Stopword_Handler
 from misc import compute_stat_from_list,compute_idf_avg,compute_scq_avg  
