@@ -91,7 +91,7 @@ def main():
         long_queries = process_query(args.original_query_file)
 
     average_idf = {}
-    for qid in long_queries
+    for qid in long_queries:
         average_idf[qid] = compute_idf_avg(index_stats,long_queries[qid])
     
 
