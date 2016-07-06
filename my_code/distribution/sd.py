@@ -60,7 +60,7 @@ class SD(object):
                 print "lambda1: %f, lambda2: %f, lambda2: %f" %(lambda1,lambda2,lambda3)
 
 
-    def _estimate_stats_with_rel_info(index_stats,queries,qrel):
+    def _estimate_stats_with_rel_info(self,index_stats,queries,qrel):
         """estimate the statistics of relevant/non-relevant
         distributions(mean/variance: m/v). Note that the subscripts
         "1,0" corresponds statistics of relevant/non-relevant
