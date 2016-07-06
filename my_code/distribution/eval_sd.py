@@ -97,17 +97,15 @@ def main():
     estimated_aupr = get_aupr(args.aupr_file)
     real_ap = get_real_ap(args.data_dir,args.result_file)
     qids = real_ap.keys()
-    real_ap_ranking = to_ranking(real_ap)
-    real_ap_ranking_list = to_list(qids,real_ap_ranking)
-    print real_ap_ranking
+    real_ap_list = to_list(qids,real_ap)
+    print real_ap_list
     print "-"*20
     print method_name + ":"
     for lambda_choice in estimated_aupr:
 
-        estimated_ranking = to_ranking(estimated_aupr[lambda_choice])
-        estimated = to_list(qids,estimated_ranking)
-        print estimated_ranking
-        eval_value = method(real_ap_ranking_list, estimated)
+        estimated = to_list(qids,estimated_aupr[lambda_choice])
+        print estimated
+        eval_value = method(real_ap_list, estimated)
         print "\tFor %s: %f" %(lambda_choice,eval_value)
     print "-"*20
 
