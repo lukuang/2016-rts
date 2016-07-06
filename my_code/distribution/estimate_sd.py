@@ -80,7 +80,7 @@ def main():
     parser.add_argument("--method","-m",type=int,choices=[0,1],default=0)
     parser.add_argument("--debug","-de",action='store_true')
     parser.add_argument("--no_stopwords","-ns",action='store_true')
-    parser.add_argument("qrel_file")
+    parser.add_argument("--qrel_file","-qr")
     args = parser.parse_args()
 
     all_methods = ["gamma","lognormal"]
