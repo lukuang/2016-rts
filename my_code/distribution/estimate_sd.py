@@ -80,7 +80,7 @@ def main():
     parser.add_argument("--method","-m",type=int,choices=[0,1],default=0)
     parser.add_argument("--debug","-de",action='store_true')
     parser.add_argument("--no_stopwords","-ns",action='store_true')
-    #parser.add_argument("qrel_file")
+    parser.add_argument("qrel_file")
     args = parser.parse_args()
 
     all_methods = ["gamma","lognormal"]
@@ -105,7 +105,11 @@ def main():
     else:
         sd = LognormalSD(run,args.debug)
 
-    sd.estimate_distribution(index_stats,long_queries)
+    if args.qrel_file:
+        qrel = Qrel(args.qrel_file)
+        sd.estimate_distribution(index_stats,long_queries,qrel)
+    else:
+        sd.estimate_distribution(index_stats,long_queries)
     sd.predict_aupr()
     sd.show_aupr()
     estimated_aupr = sd.aupr
