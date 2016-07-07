@@ -17,7 +17,7 @@ def output(queries,dest_file):
         for w in re.findall("\w+",queries[qid]):
             words.add(w.lower())
 
-    with codecs.open(dest_file,"w"."utf-8") as f:
+    with codecs.open(dest_file,"w","utf-8") as f:
         for w in words:
             f.write(w+'\n')
 
