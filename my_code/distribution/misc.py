@@ -9,7 +9,10 @@ import math
 def compute_idf_avg(stats,query):
     idf_avg = .0
     for w in query:
-        idf_avg += math.log( stats.idf[w] )
+        try:
+            idf_avg += math.log( stats.idf[w] )
+        except ValueError:
+            idf_avg += 0
 
     idf_avg /= len(query)
     return idf_avg
@@ -22,7 +25,7 @@ def compute_scq_avg(stats,query):
 
     scq_avg /= len(query)
     return scq_avg
-    
+
 def compute_stat_from_list(score_list):
     temp = np.array(score_list)
     mean = np.mean(temp)
