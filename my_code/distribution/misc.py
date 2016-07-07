@@ -21,7 +21,10 @@ def compute_idf_avg(stats,query):
 def compute_scq_avg(stats,query):
     scq_avg = .0
     for w in query:
-        scq_avg += 1+ math.log(stats.cf[w])*math.log( 1 + stats.idf[w] )
+        if stats.cf[w] == 0:
+            scq_avg += 1
+        else:
+            scq_avg += 1+ math.log(stats.cf[w])*math.log( 1 + stats.idf[w] )
 
     scq_avg /= len(query)
     return scq_avg
