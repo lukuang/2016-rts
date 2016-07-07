@@ -36,7 +36,7 @@ def main():
 
     
     if args.query_type == 0:
-        title_queries,desc_queries = get_wt2g_queries(original_query_file)
+        title_queries,desc_queries = get_wt2g_queries(args.original_query_file)
         for qid in title_queries:
             queries[qid] = title_queries[qid] +" " +desc_queries[qid]
     else:
