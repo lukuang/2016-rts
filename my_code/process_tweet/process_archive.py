@@ -247,6 +247,7 @@ class ArchiveReorganizaer(ArchiveTweetProcessor):
                 text = tweet["text"]
                 day, hour = self.get_hour_day_from_epoch_time(t_time_sec)
                 file_name = "status.log.2015-07_"+"%s-%s" %(day,hour)
+                return file_name
         else:
             return None
 
