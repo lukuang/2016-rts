@@ -17,11 +17,11 @@ from data import *
 from estimate_sd import process_query
 
 
-def get_real_ap(data_dir,result_file):
+def get_real_ap(code_file,qrel_file,result_file):
     real_ap = {}
-    script = os.path.join(data_dir,"trec_eval.8.1","trec_eval")
-    qrel_file = os.path.join(data_dir,"small_web.qrels")
-    run_command = "%s -q %s %s | grep map" %(script,qrel_file,result_file)
+    #script = os.path.join(code_dir,"trec_eval.8.1","trec_eval")
+    #qrel_file = os.path.join(data_dir,"small_web.qrels")
+    run_command = "%s -q %s %s | grep map" %(code_file,qrel_file,result_file)
     p = subprocess.Popen(run_command,stdout=subprocess.PIPE,shell=True)
     while True:
         line = p.stdout.readline()
@@ -54,7 +54,9 @@ def rmse(estimated_aupr,real_ap_list):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("data_dir")
+    parser.add_argument("stat_dir")
+    parser.add_argument("code_file")
+    parser.add_argument("qrel_file")
     parser.add_argument("original_query_file")
     parser.add_argument("result_file")
     parser.add_argument("--no_stopwords","-ns",action='store_true')
@@ -77,10 +79,9 @@ def main():
     method_name = method_names[args.method]
     method =  methods[method_name]
 
-    stat_dir = os.path.join(args.data_dir,"stat")
-    index_stats = IndexStats(stat_dir)
+    index_stats = IndexStats(args.stat_dir)
     run = Run(args.result_file)
-    real_ap = get_real_ap(args.data_dir,args.result_file)
+    real_ap = get_real_ap(args.code_file,args.qrel_file,args.result_file)
     qids = real_ap.keys()
     real_ap_list = to_list(qids,real_ap)
 
