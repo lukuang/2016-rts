@@ -230,8 +230,10 @@ class ArchiveReorganizaer(ArchiveTweetProcessor):
             for line in f:
                 file_name = self.process_line(line.rstrip())
                 if file_name is not None:
+                    self.operation(tweet_file,file_name)
                     break
-        self.operation(tweet_file,file_name)
+
+        
 
 
     def process_line(self,tweet_string):
