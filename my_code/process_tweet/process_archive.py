@@ -10,6 +10,7 @@ import argparse
 import codecs
 import bz2
 import time
+import shutil
 from tweet_proc import *
 from abc import ABCMeta,abstractmethod
 from myUtility.misc import DebugStop,gene_single_indri_text,split_list
@@ -212,6 +213,48 @@ class ArchiveTweetProcessor(TweetProcessor):
     @abstractmethod
     def operation(self):
         pass
+
+
+
+class ArchiveReorganizaer(ArchiveTweetProcessor):
+    """Reorganize the files. Find the day and hour for each file
+    and copy  
+    """
+    def __init__(self,interval,archive_dir,dest_dir,debug=False,start=START15,end=END15):
+        super(ArchiveReorganizaer,self).__init__(interval,archive_dir,debug,start,end)
+        self.dest_dir = dest_dir
+
+    def process_file(self,tweet_file):
+
+        with bz2.BZ2File(tweet_file) as f:
+            for line in f:
+                file_name = self.process_line(line.rstrip())
+                if file_name is not None:
+                    break
+        self.operation(tweet_file,file_name)
+
+
+    def process_line(self,tweet_string):
+        if len(tweet_string)==0:
+            return None
+        tweet = json.loads(tweet_string)
+        if "delete" not in tweet:
+            t_time = int(tweet["timestamp_ms"])
+            created_at = tweet["created_at"]
+            t_time_sec = t_time/1000
+            if self.check_time(t_time):
+                tid = tweet["id_str"]
+                text = tweet["text"]
+                day, hour = self.get_hour_day_from_epoch_time(t_time_sec)
+                file_name = "status.log.2015-07_"+"%s-%s" %(day,hour)
+        else:
+            return None
+
+
+    def operation(self,tweet_file,file_name):
+        dest_file = os.path.join(self.dest_dir,file_name) 
+        shutil.copy(tweet_file,dest_file)
+
 
 
 class ArchiveTrecTextBuilder(ArchiveTweetProcessor):
