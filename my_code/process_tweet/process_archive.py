@@ -264,8 +264,7 @@ class ArchiveReorganizaer(ArchiveTrecTextBuilder):
     and write to correct file in the dest dir 
     """
     def __init__(self,interval,archive_dir,dest_dir,debug=False,start=START15,end=END15):
-        super(ArchiveReorganizaer,self).__init__(interval,archive_dir,debug,start,end)
-        self.dest_dir = dest_dir
+        super(ArchiveReorganizaer,self).__init__(interval,archive_dir,dest_dir,debug,start,end)
 
         
 
