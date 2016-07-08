@@ -216,47 +216,7 @@ class ArchiveTweetProcessor(TweetProcessor):
 
 
 
-class ArchiveReorganizaer(ArchiveTweetProcessor):
-    """Reorganize the files. Find the day and hour for each file
-    and copy  
-    """
-    def __init__(self,interval,archive_dir,dest_dir,debug=False,start=START15,end=END15):
-        super(ArchiveReorganizaer,self).__init__(interval,archive_dir,debug,start,end)
-        self.dest_dir = dest_dir
 
-    def process_file(self,tweet_file):
-
-        with bz2.BZ2File(tweet_file) as f:
-            for line in f:
-                file_name = self.process_line(line.rstrip())
-                if file_name is not None:
-                    self.operation(tweet_file,file_name)
-                    break
-
-        
-
-
-    def process_line(self,tweet_string):
-        if len(tweet_string)==0:
-            return None
-        tweet = json.loads(tweet_string)
-        if "delete" not in tweet:
-            t_time = int(tweet["timestamp_ms"])
-            created_at = tweet["created_at"]
-            t_time_sec = t_time/1000
-            if self.check_time(t_time):
-                tid = tweet["id_str"]
-                text = tweet["text"]
-                day, hour = self.get_hour_day_from_epoch_time(t_time_sec)
-                file_name = "status.log.2015-07_"+"%s-%s" %(day,hour)
-                return file_name
-        else:
-            return None
-
-
-    def operation(self,tweet_file,file_name):
-        dest_file = os.path.join(self.dest_dir,file_name) 
-        shutil.copy(tweet_file,dest_file)
 
 
 
@@ -299,8 +259,46 @@ class ArchiveTrecTextBuilder(ArchiveTweetProcessor):
                 raise DebugStop("write to %s" %(dest_file))
 
 
+class ArchiveReorganizaer(ArchiveTrecTextBuilder):
+    """Reorganize the files. Find the day and hour for each file
+    and write to correct file in the dest dir 
+    """
+    def __init__(self,interval,archive_dir,dest_dir,debug=False,start=START15,end=END15):
+        super(ArchiveReorganizaer,self).__init__(interval,archive_dir,debug,start,end)
+        self.dest_dir = dest_dir
+
+        
 
 
+    def process_line(self,tweet_string):
+        if len(tweet_string)==0:
+            return 
+        tweet = json.loads(tweet_string)
+        if "delete" not in tweet:
+            t_time = int(tweet["timestamp_ms"])
+            created_at = tweet["created_at"]
+            t_time_sec = t_time/1000
+            if self.check_time(t_time):
+                tid = tweet["id_str"]
+                text = tweet["text"]
+                day, hour = self.get_hour_day_from_epoch_time(t_time_sec)
+                identity = day+"-"+hour
+                if identity not in self.tweet_buffer:
+                    self.tweet_buffer[identity] = []
+
+                self.tweet_buffer[identity].append(tweet_string)  
+
+
+
+    def operation(self):
+        if self.tweet_buffer:
+            for file_name in self.tweet_buffer:
+                dest_file =os.path.join(self.dest_dir,"status.log.2015-07_"+file_name)
+                with codecs.open(dest_file,"a","bz2") as f: as f:
+                    for tweet in self.tweet_buffer[file_name]:
+                        f.write(single_text+"\n")
+            if self.debug:
+                raise DebugStop("write to %s" %(dest_file))
         
 
 
