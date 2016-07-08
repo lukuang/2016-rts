@@ -11,5 +11,5 @@ source /home/1546/myEV/bin/activate
 # When a single command in the array job is sent to a compute node,
 # its task number is stored in the variable SGE_TASK_ID,
 # so we can use the value of that variable to get the results we want:
-echo python /lustre/scratch/lukuang/2015-RTS/2015_RTS/src/2016-rts/my_code/process_tweet/build_index_achive.py $dest 400 -i $method $SGE_TASK_ID
-python /lustre/scratch/lukuang/2015-RTS/2015_RTS/src/2016-rts/my_code/process_tweet/build_index_achive.py $dest  400 -i $method $SGE_TASK_ID
+echo python /lustre/scratch/lukuang/2016-RTS/src/2016-rts/my_code/process_tweet/build_index_achive.py $dest 400 -i $method $SGE_TASK_ID
+python /lustre/scratch/lukuang/2016-RTS/src/2016-rts/my_code/process_tweet/build_index_achive.py $dest  400 -i $method $SGE_TASK_ID
