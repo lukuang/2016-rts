@@ -16,7 +16,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     #parser.add_argument("list1")
     #parser.add_argument("list2")
-    parser.add_argument("--archive_dir","-ad",default="/lustre/scratch/lukuang/2015-RTS/2015_RTS/2015-data/collection/web-data/raw")
+    parser.add_argument("--archive_dir","-ad",default="/lustre/scratch/lukuang/2016-RTS/2015-data/collection/web-data/raw")
     parser.add_argument("dest_dir")
     parser.add_argument("num_of_run",type=int)
     parser.add_argument("run_id",type=int)
