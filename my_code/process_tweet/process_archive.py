@@ -295,7 +295,7 @@ class ArchiveReorganizaer(ArchiveTrecTextBuilder):
                 dest_file =os.path.join(self.dest_dir,"status.log.2015-07_"+file_name)
                 with codecs.open(dest_file,"a","bz2") as f:
                     for tweet in self.tweet_buffer[file_name]:
-                        f.write(single_text+"\n")
+                        f.write(tweet+"\n")
             if self.debug:
                 raise DebugStop("write to %s" %(dest_file))
         
