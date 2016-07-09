@@ -270,6 +270,7 @@ class ArchiveReorganizaer(ArchiveTrecTextBuilder):
 
 
     def process_line(self,tweet_string):
+        tweet_string = tweet_string.decode("utf-8")
         if len(tweet_string)==0:
             return 
         tweet = json.loads(tweet_string)
@@ -293,7 +294,7 @@ class ArchiveReorganizaer(ArchiveTrecTextBuilder):
         if self.tweet_buffer:
             for file_name in self.tweet_buffer:
                 dest_file =os.path.join(self.dest_dir,"status.log.2015-07_"+file_name)
-                with codecs.open(dest_file,"a","bz2") as f:
+                with codecs.open(dest_file,"a","utf-8") as f:
                     for tweet in self.tweet_buffer[file_name]:
                         f.write(tweet+"\n")
             if self.debug:
