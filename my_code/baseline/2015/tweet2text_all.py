@@ -27,7 +27,7 @@ def main():
 
     sub_list = split_list(all_files,args.num_of_run,args.run_id)
     for tweet_file in sub_list:
-        text_writer = CrawledTweetTrecTextFactory(tweet_file,args.source_dir)
+        text_writer = CrawledTweetTrecTextFactory(tweet_file,args.dest_dir)
         text_writer.write()
 
     print "finished"
