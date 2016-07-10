@@ -70,6 +70,15 @@ class CrawledTweetTrecTextFactory(TextFactory):
 
     def _get_dest_file_path(self,source_file,dest_dir):
         file_name = os.path.basename(source_file)
+        m =  re.search("status\.log\.(\d+)\-(\d+)_(\d+)\-(\d+)",file_name)
+        if m is not None:
+            year = m.group(1)
+            month = m.group(2)
+            day = m.group(3)
+            hour = m.group(4)
+            file_name = "%s-%s-%s_%s" %(year,month,day,hour)
+        else:
+            raise RuntimeError("file name %s wrong!" %(file_name))
         dest_file_path = os.path.join(dest_dir,file_name)
         return dest_file_path
 
