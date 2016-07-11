@@ -34,7 +34,7 @@ def main():
     parser.add_argument("--result_count","-rc",type=int,default=10)
     parser.add_argument("--fbDocs","-fd",type=int,default=10)
     parser.add_argument("--fbTerms","-ft",type=int,default=10)
-    parser.add_argument("--fbOriWeight","-fw",type=float,default=0.5)
+    parser.add_argument("--fbOrigWeight","-fw",type=float,default=0.5)
     parser.add_argument("--expansion_method","-em",type=int,choices=[0,1,2,3],
             default=0,
             help="""methodes for expansion. Options:
@@ -96,7 +96,7 @@ def main():
                 
                 query_builder.gene_query_with_date_filter(query_file,
                     original_queries,index_dir,date_when_str, fbDocs=args.fbDocs,
-                    fbTerms=args.fbTerms,fbOriWeight=args.fbOriWeight)
+                    fbTerms=args.fbTerms,fbOrigWeight=args.fbOrigWeight)
         else:
             raise RuntimeError("method not implemented yet!")
 
