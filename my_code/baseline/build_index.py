@@ -72,7 +72,7 @@ def main():
     method = METHODS[args.method_index] 
     file_list = get_file_list(args.text_dir,args.date,args.simulate,method)
     index_para_file = os.path.join(args.index_para_top_dir,method,str(args.date))
-    index_path = os.path.join(args.index_top_dir,method,str(date))
+    index_path = os.path.join(args.index_top_dir,method,str(args.date))
     field_data = [
                 {"name":"date", "type":"date"}
             ]
