@@ -20,7 +20,7 @@ def get_day_hour_from_file_name(hour_text_file):
 
 
 def check_file_time(simulate,hour_text_file,method,date):
-    if method = "incremental":
+    if method == "incremental":
         if simulate:
             file_date,file_hour = get_day_hour_from_file_name(hour_text_file)
             if file_date < date:
