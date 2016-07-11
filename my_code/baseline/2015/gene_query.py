@@ -59,7 +59,8 @@ def main():
     index_dir = os.path.join(args.top_index_dir,args.index_method)
     original_queries =  get_original_queries(args.original_query_file)
 
-
+    print args.top_query_para_dir,
+                            args.index_method,args.expansion_method
     query_root_dir =  os.path.join(
                             args.top_query_para_dir,
                             args.index_method,args.expansion_method)
