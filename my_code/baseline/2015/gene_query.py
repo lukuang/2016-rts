@@ -8,6 +8,7 @@ import sys
 import re
 import argparse
 import codecs
+import string
 sys.path.append("../../")
 
 from myUtility.indri import IndriQueryFactory
@@ -53,6 +54,9 @@ def main():
     ]
 
     dates = range(20,30)
+    year = 2015
+    month = 7
+
 
     expansion_method = METHODS[args.expansion_method]
     
@@ -72,7 +76,9 @@ def main():
         query_file = os.path.join(query_root_dir,date)
 
 
-
+        date_when_string = "%s/%s/%d" %(string.zfill(str(month),2),
+                                        string.zfill(date,2),
+                                        year)
 
         if expansion_method == "original" or "pseudo":
             if expansion_method == "original":
