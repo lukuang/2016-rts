@@ -75,7 +75,6 @@ def main():
 
 
         if expansion_method == "original" or "pseudo":
-            queries = build_raw_query(queries)
             if expansion_method == "original":
 
                 query_builder = IndriQueryFactory(count=args.result_count,
