@@ -36,6 +36,7 @@ def main():
     parser.add_argument("--fbTerms","-ft",type=int,default=10)
     parser.add_argument("--fbOriWeight","-fw",type=float,default=0.5)
     parser.add_argument("--expansion_method","-em",type=int,choices=[0,1,2,3],
+            default=0,
             help="""methodes for expansion. Options:
                     original,
                     snippet,
@@ -55,7 +56,7 @@ def main():
 
     expansion_method = METHODS[args.expansion_method]
     
-    index_dir = os,path.join(args.top_index_dir,args.index_method)
+    index_dir = os.path.join(args.top_index_dir,args.index_method)
     original_queries =  get_original_queries(args.original_query_file)
 
 
