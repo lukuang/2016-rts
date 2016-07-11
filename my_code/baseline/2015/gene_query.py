@@ -62,7 +62,7 @@ def main():
     print args.top_query_para_dir,args.index_method,args.expansion_method
     query_root_dir =  os.path.join(
                             args.top_query_para_dir,
-                            args.index_method,args.expansion_method)
+                            args.index_method,expansion_method)
     if not os.path.exists(query_root_dir):    
         os.makedirs(query_root_dir)
 
