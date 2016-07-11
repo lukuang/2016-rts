@@ -93,7 +93,7 @@ def main():
                 query_builder = IndriQueryFactory(count=args.result_count,
                     rule=args.retrieval_method,use_stopper=False,
                     date_when="datebetween",psr=True)
-
+                
                 query_builder.gene_query_with_date_filter(query_file,
                     original_queries,index_dir,date_when_str, args.fbDocs,
                     args.fbTerms,args.fbOriWeight)
