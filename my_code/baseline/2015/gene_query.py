@@ -95,8 +95,8 @@ def main():
                     date_when="datebetween",psr=True)
 
                 query_builder.gene_query_with_date_filter(query_file,
-                    original_queries,index_dir,date_when_str, args.fbDocs,
-                    args.fbTerms,args.fbOriWeight)
+                    original_queries,index_dir,date_when_str, fbDocs=args.fbDocs,
+                    fbTerms=args.fbTerms,fbOriWeight=args.fbOriWeight)
         else:
             raise RuntimeError("method not implemented yet!")
 
