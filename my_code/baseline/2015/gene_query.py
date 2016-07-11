@@ -8,7 +8,6 @@ import sys
 import re
 import argparse
 import codecs
-import string
 sys.path.append("../../")
 
 from myUtility.indri import IndriQueryFactory
@@ -60,7 +59,6 @@ def main():
 
     expansion_method = METHODS[args.expansion_method]
     
-    index_dir = os.path.join(args.top_index_dir,args.index_method)
     original_queries =  get_original_queries(args.original_query_file)
 
     print args.top_query_para_dir,args.index_method,args.expansion_method
@@ -75,10 +73,12 @@ def main():
         date = str(date)
         query_file = os.path.join(query_root_dir,date)
 
+        index_dir = os.path.join(args.top_index_dir,args.index_method,date)
 
-        date_when_string = "%s/%s/%d" %(string.zfill(str(month),2),
-                                        string.zfill(date,2),
+        date_when_str = "%s/%s/%d" %(str.zfill(str(month),2),
+                                        str.zfill(date,2),
                                         year)
+        date_when_str = "%s %s" %(date_when_str,date_when_str)
 
         if expansion_method == "original" or "pseudo":
             if expansion_method == "original":
@@ -88,15 +88,15 @@ def main():
                     date_when="datebetween",psr=False)
 
                 query_builder.gene_query_with_date_filter(query_file,
-                    original_queries,index_dir,date)
+                    original_queries,index_dir,date_when_str )
             else:
                 query_builder = IndriQueryFactory(count=args.result_count,
                     rule=args.retrieval_method,use_stopper=False,
                     date_when="datebetween",psr=True)
 
                 query_builder.gene_query_with_date_filter(query_file,
-                    original_queries,index_dir,date,args.fdDocs,
-                    args.fbTerms,fbOriWeight)
+                    original_queries,index_dir,date_when_str, args.fbDocs,
+                    args.fbTerms,args.fbOriWeight)
         else:
             raise RuntimeError("method not implemented yet!")
 
