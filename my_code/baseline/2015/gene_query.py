@@ -14,7 +14,7 @@ from myUtility.indri import IndriQueryFactory
 from myUtility.corpus import Query,ExpandedQuery
 
 def get_original_queries(original_query_file):
-    data = json.load(original_query_file)
+    data = json.load(open(original_query_file))
     queries = {}
     for q in data:
         qid = q["topid"]
