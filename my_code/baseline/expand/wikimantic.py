@@ -70,14 +70,14 @@ def write_expansion(wikimantic_output_file,expansion_file):
         for line in f:
             line = line.rstrip()
             parts = line.split()
-            qid = part[0]
-            pid = part[1]
+            qid = parts[0]
+            pid = parts[1]
 
             #get the length of the query
             size = max(int(len(pid)),size)
 
-            term = part[2]
-            weight = float(part[3])
+            term = parts[2]
+            weight = float(parts[3])
             if pid not in all_model:
                 all_model[pid] = {}
             all_model[pid][term] = weight
