@@ -30,7 +30,7 @@ def main():
     parser.add_argument("top_index_dir")
     parser.add_argument("top_query_para_dir")
     parser.add_argument("index_method",choices=["individual","incremental"])
-    parser.add_argument("--retrieval_method","-rm",default="f2exp")
+    parser.add_argument("--retrieval_method","-rm",default="method:f2exp")
     parser.add_argument("--result_count","-rc",type=int,default=10)
     parser.add_argument("--fbDocs","-fd",type=int,default=10)
     parser.add_argument("--fbTerms","-ft",type=int,default=10)
