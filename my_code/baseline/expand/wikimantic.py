@@ -10,6 +10,7 @@ import argparse
 import codecs
 from myUtility.corpus import Model
 
+
 sys.path.append("../../")
 
 from process_query import read_query_file
@@ -62,23 +63,24 @@ def generate_wikimantic_output(
             print "output file %s already exists" %(wikimantic_output_file)
             print "skip query %s" %qid
 
-def write_expansion(wikimantic_output_dir,expansion_file):
+def write_expansion(wikimantic_output_file,expansion_file):
     all_model = {}
     size = 0
-    for line in f:
-        line = line.rstrip()
-        parts = line.split()
-        qid = part[0]
-        pid = part[1]
+    with open(wikimantic_output_file) as f:
+        for line in f:
+            line = line.rstrip()
+            parts = line.split()
+            qid = part[0]
+            pid = part[1]
 
-        #get the length of the query
-        size = max(int(len(pid)),size)
+            #get the length of the query
+            size = max(int(len(pid)),size)
 
-        term = part[2]
-        weight = float(part[3])
-        if pid not in all_model:
-            all_model[pid] = {}
-        all_model[pid][term] = weight
+            term = part[2]
+            weight = float(part[3])
+            if pid not in all_model:
+                all_model[pid] = {}
+            all_model[pid][term] = weight
 
     # remove "sub-strings of sub-strings" 
     print "original phrases:\n%s\n" %(all_model.keys())
@@ -120,7 +122,7 @@ def generate_expansion(wikimantic_output_dir,expansion_dir):
 
         if not os.path.exists(expansion_file):
             wikimantic_output_file = os.path.join(wikimantic_output_dir,qid)
-            write_expansion(wikimantic_output_dir,expansion_file)
+            write_expansion(wikimantic_output_file,expansion_file)
 
 
 
