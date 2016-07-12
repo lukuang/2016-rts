@@ -63,9 +63,8 @@ def generate_wikimantic_output(
             print "output file %s already exists" %(wikimantic_output_file)
             print "skip query %s" %qid
 
-def write_expansion(wikimantic_output_file,expansion_file):
+def write_expansion(wikimantic_output_file,expansion_file,size):
     all_model = {}
-    size = 0
     with open(wikimantic_output_file) as f:
         for line in f:
             line = line.rstrip()
@@ -74,7 +73,6 @@ def write_expansion(wikimantic_output_file,expansion_file):
             pid = parts[1]
 
             #get the length of the query
-            size = max(int(len(pid)),size)
 
             term = parts[2]
             weight = float(parts[3])
@@ -121,6 +119,7 @@ def generate_expansion(wikimantic_output_dir,expansion_dir):
         expansion_file = os.path.join(expansion_dir,qid)
 
         if not os.path.exists(expansion_file):
+            size = len(re.findall("\w+",queries[qid]))
             wikimantic_output_file = os.path.join(wikimantic_output_dir,qid)
             write_expansion(wikimantic_output_file,expansion_file)
 
