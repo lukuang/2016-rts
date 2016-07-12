@@ -120,6 +120,7 @@ def generate_expansion(wikimantic_output_dir,expansion_dir,queries):
 
         if not os.path.exists(expansion_file):
             size = len(re.findall("",queries[qid]))
+            print "size is %d for query %s" %(size,qid)
             wikimantic_output_file = os.path.join(wikimantic_output_dir,qid)
             write_expansion(wikimantic_output_file,expansion_file,size)
 
