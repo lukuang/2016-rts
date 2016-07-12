@@ -108,7 +108,7 @@ def write_expansion(wikimantic_output_file,expansion_file):
     expanding_model.normalize()
     
 
-    with codecs.open(wikimantic_output_dir,"r","utf8") as f:
+    with codecs.open(expansion_file,"r","utf8") as f:
         f.write(json.dumps(expanding_model.model,indent=4))
 
 
