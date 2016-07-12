@@ -54,7 +54,7 @@ def get_original_queries(original_query_file):
     title_queries,desc_queries = get_mb_queries(original_query_file)
     queries = {}
     for qid in title_queries:
-        qid = q["topid"]
+        
         q_text = title_queries[qid]
         queries[qid] = Query(qid,q_text)
 
