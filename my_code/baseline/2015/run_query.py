@@ -14,7 +14,7 @@ def run_query(query_file,result_file,debug):
     run_args = ["IndriRunQuery",query_file]
     if debug:
         print "-"*20
-        print %run_args
+        print run_args
         print result_file
         print "-"*20
     else:
