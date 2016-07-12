@@ -19,7 +19,7 @@ from process_query import read_query_file
 
 
 def generate_wikimantic_input(queries,wikimantic_input_dir):
-    wikimantic_input_file 
+     
     
     for qid in queries:
         wikimantic_input_file = os.path.join(wikimantic_input_dir,qid)
