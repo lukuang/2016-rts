@@ -114,14 +114,14 @@ def write_expansion(wikimantic_output_file,expansion_file,size):
 
 
 
-def generate_expansion(wikimantic_output_dir,expansion_dir):
+def generate_expansion(wikimantic_output_dir,expansion_dir,queries):
     for qid in os.walk(wikimantic_output_dir).next()[2]:
         expansion_file = os.path.join(expansion_dir,qid)
 
         if not os.path.exists(expansion_file):
-            size = len(re.findall("\w+",queries[qid]))
+            size = len(re.findall("",queries[qid]))
             wikimantic_output_file = os.path.join(wikimantic_output_dir,qid)
-            write_expansion(wikimantic_output_file,expansion_file)
+            write_expansion(wikimantic_output_file,expansion_file,size)
 
 
 
@@ -150,7 +150,7 @@ def main():
                                args.wikimantic_input_dir,
                                args.wikimantic_output_dir)
 
-    generate_expansion(args.wikimantic_output_dir,args.expansion_dir)
+    generate_expansion(args.wikimantic_output_dir,args.expansion_dir,queries)
 
     
 
