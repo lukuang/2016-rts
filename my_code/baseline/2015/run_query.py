@@ -45,27 +45,26 @@ def main():
 
     
 
-    for date in dates:
-        date = str(date)
-        for index_method in index_methods:
-            for expansion_method in expansion_methods:
-                if expansion_method not in not_implemented:
-                    sub_query_dir = os.path.join(
-                                        args.top_query_para_dir,
-                                        index_method,
-                                        expansion_method,
-                                    )
-                    sub_result_dir = os.path.join(
-                                        args.top_result_dir,
-                                        index_method,
-                                        expansion_method,
-                                    )
-                    file_names =  os.walk(sub_query_dir).next()[2]
-                    for file_name in file_names:
 
-                        query_file = os.path.join(sub_query_dir,file_name)
-                        result_file = os.path.join(sub_result_dir,file_name)
-                        run_query(query_file,result_file,args.debug)
+    for index_method in index_methods:
+        for expansion_method in expansion_methods:
+            if expansion_method not in not_implemented:
+                sub_query_dir = os.path.join(
+                                    args.top_query_para_dir,
+                                    index_method,
+                                    expansion_method,
+                                )
+                sub_result_dir = os.path.join(
+                                    args.top_result_dir,
+                                    index_method,
+                                    expansion_method,
+                                )
+                file_names =  os.walk(sub_query_dir).next()[2]
+                for file_name in file_names:
+
+                    query_file = os.path.join(sub_query_dir,file_name)
+                    result_file = os.path.join(sub_result_dir,file_name)
+                    run_query(query_file,result_file,args.debug)
 
 
 if __name__=="__main__":
