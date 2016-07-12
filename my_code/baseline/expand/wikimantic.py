@@ -126,7 +126,7 @@ def generate_expansion(wikimantic_output_dir,expansion_dir):
 
         else:
             print "expansion file %s exists" %expansion_file
-            print "skip query %s" qid
+            print "skip query %s" %qid
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
