@@ -66,3 +66,40 @@ def get_wt2g_queries(original_file):
             if in_desc:
                 desc_queries[qid] += line+"\n"
     return title_queries,desc_queries
+
+def get_mb_queries(original_file):
+    title_queries = {}
+    desc_queries = {}
+    qid = ""
+    in_desc = False
+    in_title = False
+    with open(original_file) as f:
+        for line in f:
+            line = line.rstrip()
+            mn = re.search("<num> Number: (\w+)",line)
+            
+            if mn is not None:
+                qid = mn.group(1)
+                title_queries[qid] = ""
+                desc_queries[qid] = ""
+            else:
+                mt = re.search("<title>",line)
+                if mt is not None:
+                    in_title = True
+                    continue
+                else:
+                    md = re.search("<desc> Description:",line)
+                    if md is not None:
+                        in_desc = True
+                        continue
+                    else:
+                        ma = re.search("<narr> Narrative:",line)
+                        if ma is not None:
+                            in_desc = False
+            
+            if in_desc:
+                desc_queries[qid] += line+"\n"
+            elif in_title:
+                title_queries[qid] = line+"\n"
+                in_title = False
+    return title_queries,desc_queries
