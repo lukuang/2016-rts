@@ -115,21 +115,21 @@ def main():
         date_when_str = "%s/%s/%d" %(str.zfill(str(month),2),
                                         str.zfill(date,2),
                                         year)
-        date_when_str = "%s %s" %(date_when_str,date_when_str)
+        date_when_str = "%s" %(date_when_str)
 
         if expansion_method == "original" or "pseudo":
             if expansion_method == "original":
 
                 query_builder = IndriQueryFactory(count=args.result_count,
                     rule=args.retrieval_method,use_stopper=False,
-                    date_when="datebetween",psr=False)
+                    date_when="dateequals",psr=False)
 
                 query_builder.gene_query_with_date_filter(query_file,
                     original_queries,index_dir,date_when_str )
             else:
                 query_builder = IndriQueryFactory(count=args.result_count,
                     rule=args.retrieval_method,use_stopper=False,
-                    date_when="datebetween",psr=True)
+                    date_when="dateequals",psr=True)
 
                 query_builder.gene_query_with_date_filter(query_file,
                     original_queries,index_dir,date_when_str, fbDocs=args.fbDocs,
