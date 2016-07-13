@@ -121,8 +121,8 @@ def main():
         if expansion_method == "original" or "pseudo":
             if expansion_method == "original":
                 if args.tune:
-                    for s in range(3):
-                        s = (s+1)*0.3
+                    for s in range(4):
+                        s = (s+1)*0.1
                         tune_retrieval_method = args.retrieval_method +",s:%f" %(s)
                         tune_run_id = "original_%f" %(s)
                         tune_query_file = '%s_%f' %(query_file,s)
@@ -145,7 +145,7 @@ def main():
                                     tune_run_id = "pseudo_%f_%d_%d_%f" %(s,tune_fbDocs,
                                                                          tune_fbTerms,
                                                                          tune_fbOrigWeight)
-                                    
+
                                     tune_query_file = '%s_%f_%d_%d_%f' %(query_file,s,
                                                                          tune_fbDocs,
                                                                          tune_fbTerms,
