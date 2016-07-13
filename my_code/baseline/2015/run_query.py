@@ -62,7 +62,7 @@ def main():
     file_names =  os.walk(args.query_para_dir).next()[2]
     for file_name in file_names:
 
-        query_file = os.path.join(sub_query_dir,file_name)
+        query_file = os.path.join(args.query_para_dir,file_name)
         #result_file = os.path.join(sub_result_dir,file_name)
         m = re.search("^(\d+)_(.+)$",file_name)
         result_file = os.path.join(sub_result_dir,m.group(2))
