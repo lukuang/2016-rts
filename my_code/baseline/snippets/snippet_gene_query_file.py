@@ -55,7 +55,7 @@ def main():
 
     query_builder = IndriQueryFactory(count=args.result_count,
                             rule=args.retrieval_method)
-
+    
     query_builder.gene_normal_query(args.query_para_file,queries,args.index_path)
 
 if __name__=="__main__":
