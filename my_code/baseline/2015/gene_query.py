@@ -267,8 +267,8 @@ def main():
 
                         query_file = "%s%s" %(query_file,suffix)
                         output = query_file
-                        os.system("trec_query_expansion -oqf=%s -output=%s -index_list=%s -orf=%s -beta=%f" 
-                                    %(oqf,output,index_list,orf))
+                        os.system("axio_expansion -oqf=%s -output=%s -index_list=%s -orf=%s -beta=%f" 
+                                    %(oqf,output,index_list,orf,beta))
 
 
         else:
