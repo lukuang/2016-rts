@@ -59,7 +59,7 @@ def main():
     #                                 index_method,
     #                                 expansion_method,
     #                             )
-    file_names =  os.walk(sub_query_dir).next()[2]
+    file_names =  os.walk(args.query_para_dir).next()[2]
     for file_name in file_names:
 
         query_file = os.path.join(sub_query_dir,file_name)
