@@ -80,6 +80,7 @@ def main():
                     wiki,
                     pseudo 
                 """)
+    parser.add_argument("--tune","-t",action="store_true")
     args=parser.parse_args()
 
     METHODS = [
@@ -119,22 +120,41 @@ def main():
 
         if expansion_method == "original" or "pseudo":
             if expansion_method == "original":
+                if args.tune:
+                    for s in range(3):
+                        s = (s+1)*0.3
+                        tune_retrieval_method = args.retrieval_method +",s:%f" %(s)
+                        tune_run_id = "original_%f" %(s)
+                        tune_query_file = '%s_%f' %(query_file,s)
+                        query_builder = IndriQueryFactory(count=args.result_count,
+                            rule=tune_retrieval_method,use_stopper=False,
+                            date_when="dateequals",psr=False)
 
-                query_builder = IndriQueryFactory(count=args.result_count,
-                    rule=args.retrieval_method,use_stopper=False,
-                    date_when="dateequals",psr=False)
-
-                query_builder.gene_query_with_date_filter(query_file,
-                    original_queries,index_dir,date_when_str )
+                        query_builder.gene_query_with_date_filter(tune_query_file,
+                            original_queries,index_dir,date_when_str,run_id=tune_run_id )
             else:
-                query_builder = IndriQueryFactory(count=args.result_count,
-                    rule=args.retrieval_method,use_stopper=False,
-                
-                    date_when="dateequals",psr=True)
+                if args.tune:
+                    for s in range(3):
+                        s = (s+1)*0.3
+                        tune_retrieval_method = args.retrieval_method +",s:%f" %(s)
+                        tune_query_file = '%s_%f' %(query_file,s)
+                        for tune_fbDocs in [5,10,15]:
+                            for tune_fbTerms in [5,10,15]:
+                                for tune_fbOrigWeight in [0.3,0.6,0.9]:
 
-                query_builder.gene_query_with_date_filter(query_file,
-                    original_queries,index_dir,date_when_str, fbDocs=args.fbDocs,
-                    fbTerms=args.fbTerms,fbOrigWeight=args.fbOrigWeight)
+                                    tune_run_id = "pseudo_%f_%d_%d_%f" %(s,tune_fbDocs,
+                                                                         tune_fbTerms,
+                                                                         tune_fbOrigWeight)
+
+                            query_builder = IndriQueryFactory(count=args.result_count,
+                                rule=tune_retrieval_method,use_stopper=False,
+                            
+                                date_when="dateequals",psr=True)
+
+                            query_builder.gene_query_with_date_filter(tune_query_file,
+                                original_queries,index_dir,date_when_str,run_id=tune_run_id,
+                                fbDocs=tune_fbDocs,fbTerms=tune_fbTerms,
+                                fbOrigWeight=tune_fbOrigWeight)
         else:
             raise RuntimeError("method not implemented yet!")
 
