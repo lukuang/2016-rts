@@ -253,15 +253,22 @@ def main():
 
                     orf = os.path.join(snippet_result_dir,"orf_%f" %s)
                     os.system("IndriRunQuery %s > %s" %(temp_query_file,orf)) 
-                    
 
-                    # for i in range(1,14):
-                    #     beta = 0.3*i
-                    #     suffix = "_%f_%f" %(s,beta)
-                    #     query_file = "%s%s" %(query_file,suffix)
-                    #     output = query_file
-                    #     os.system("trec_query_expansion -oqf=%s -output=%s -index_list=%s -orf=%s -beta=%f" 
-                    #                 %(oqf,))
+                    for i in range(1,14):
+                        beta = 0.3*i
+                        suffix = "_%f_%f" %(s,beta)
+                        tune_run_id = "snippet%s"
+                        oqf = os.path.join(args.snippet_expand_dir,"temp","oqf%s"%suffix)
+                        oqf_builder = IndriQueryFactory(count=args.result_count,
+                            rule=tune_retrieval_method,date_when="dateequals")
+
+                        oqf_builder.gene_query_with_date_filter(oqf,
+                            original_queries,index_dir,date_when_str,run_id=tune_run_id )
+
+                        query_file = "%s%s" %(query_file,suffix)
+                        output = query_file
+                        os.system("trec_query_expansion -oqf=%s -output=%s -index_list=%s -orf=%s -beta=%f" 
+                                    %(oqf,output,index_list,orf))
 
 
         else:
