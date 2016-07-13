@@ -60,6 +60,28 @@ def get_original_queries(original_query_file):
 
     return queries
 
+def get_wiki_expansion_model(wiki_expand_dir,top):
+    expansion_model = {}
+    for qid in os.walk(wiki_expand_dir).next()[2]:
+        expansion_model[qid] = {}
+        query_expanding_file = os.path.join(wiki_expand_dir,qid)
+        temp_model = json.load(open(query_expanding_file))
+        sorted_model = sorted(temp_model.items(),key=lambda x:x[1],reverse=True)[:top]
+        q_weight_sum = .0
+        for (t,w) in sorted_model:
+            expansion_model[qid][t] = w
+            q_weight_sum += w
+        for t in expansion_model[qid]:
+            expansion_model[qid][t] /= q_weight_sum
+    return expansion_model
+
+
+def get_expanded_query(original_queries,expansion_model,para_lambda):
+    expanded_queries = {}
+    for qid in original_queries:
+        expanded_queries[qid] = ExpandedQuery(qid,original_queries[qid].text(),para_lambda)
+        expanded_queries[qid].expand(expansion_model[qid])
+    return expanded_queries
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -69,6 +91,7 @@ def main():
     parser.add_argument("index_method",choices=["individual","incremental"])
     parser.add_argument("--retrieval_method","-rm",default="method:f2exp")
     parser.add_argument("--result_count","-rc",type=int,default=10)
+    parser.add_argument("--wiki_expand_dir","-we")
     parser.add_argument("--fbDocs","-fd",type=int,default=10)
     parser.add_argument("--fbTerms","-ft",type=int,default=10)
     parser.add_argument("--fbOrigWeight","-fw",type=float,default=0.5)
@@ -160,6 +183,29 @@ def main():
                                         original_queries,index_dir,date_when_str,run_id=tune_run_id,
                                         fbDocs=tune_fbDocs,fbTerms=tune_fbTerms,
                                         fbOrigWeight=tune_fbOrigWeight)
+        if expansion_method == "wiki":
+            
+            if args.tune:
+                for s in [0.3,0.6,0.9]:
+                    tune_retrieval_method = args.retrieval_method +",s:%f" %(s)
+
+                    for top in [5,10,15]:
+                        wiki_expansion_model = get_wiki_expansion_model(args.wiki_expand_dir,top)
+
+                        for para_lambda in [0.3,0.6,0.9]:
+                            tune_run_id = "wiki_%f_%d_%f" %(s,top,para_lambda)
+
+                            tune_query_file = '%s_%f_%d_%f' %(query_file,s,top,para_lambda)
+
+                            query_builder = IndriQueryFactory(count=args.result_count,
+                                    rule=tune_retrieval_method,use_stopper=False,
+                                    date_when="dateequals",psr=False)
+                            expanded_queries = get_expanded_query(original_queries,wiki_expansion_model,para_lambda)
+                            query_builder.gene_query_with_date_filter(
+                                        tune_query_file,expanded_queries,
+                                        index_dir,date_when_str,run_id=tune_run_id)
+
+
         else:
             raise RuntimeError("method not implemented yet!")
 
