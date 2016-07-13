@@ -243,8 +243,7 @@ def main():
                     tune_retrieval_method = args.retrieval_method +",s:%f" %(s)
                     temp_query_file = os.path.join(snippet_query_dir,"%f" %s)
                     temp_query_builder = IndriQueryFactory(count=10000,
-                                    rule=tune_retrieval_method,use_stopper=False,
-                                    date_when="dateequals",psr=False)
+                                    rule=tune_retrieval_method)
                     
                     #build snippet temp query file and temp result file (orf)
                     # note that the index here should be the index of the snippet corpus
