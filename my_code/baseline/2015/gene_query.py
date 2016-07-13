@@ -83,6 +83,18 @@ def get_expanded_query(original_queries,expansion_model,para_lambda):
         expanded_queries[qid].expand(expansion_model[qid])
     return expanded_queries
 
+def get_judged_qid(qrel_file):
+    judged_qids = []
+    with open(qrel_file) as f:
+        for line in f:
+            parts= line.rstrip().split()
+            qid = parts[0]
+            if qid not in judged_qids:
+                judged_qids.append(qid)
+    return judged_qids
+
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("original_query_file")
@@ -103,6 +115,7 @@ def main():
                     wiki,
                     pseudo 
                 """)
+    parser.add_argument("--qrel_file","-qf")
     parser.add_argument("--tune","-t",action="store_true")
     args=parser.parse_args()
 
@@ -121,6 +134,17 @@ def main():
     expansion_method = METHODS[args.expansion_method]
     
     original_queries =  get_original_queries(args.original_query_file)
+
+    if args.qrel_file:
+        print "remove unjudged queries"
+        print "# queries before %" %(len(original_queries))
+        judged_qids = get_judged_qid(args.qrel_file)
+        for qid in original_queries.keys():
+            if qid not in judged_qids:
+                original_queries.pop(qid,None)
+        print "# queries after %" %(len(original_queries))
+
+
 
     print args.top_query_para_dir,args.index_method,args.expansion_method
     query_root_dir =  os.path.join(
