@@ -79,7 +79,7 @@ def get_wiki_expansion_model(wiki_expand_dir,top):
 def get_expanded_query(original_queries,expansion_model,para_lambda):
     expanded_queries = {}
     for qid in original_queries:
-        expanded_queries[qid] = ExpandedQuery(qid,original_queries[qid].text(),para_lambda)
+        expanded_queries[qid] = ExpandedQuery(qid,original_queries[qid].text,para_lambda)
         expanded_queries[qid].expand(expansion_model[qid])
     return expanded_queries
 
