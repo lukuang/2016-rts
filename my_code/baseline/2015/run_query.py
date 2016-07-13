@@ -65,7 +65,7 @@ def main():
         query_file = os.path.join(args.query_para_dir,file_name)
         #result_file = os.path.join(sub_result_dir,file_name)
         m = re.search("^(\d+)_(.+)$",file_name)
-        result_file = os.path.join(sub_result_dir,m.group(2))
+        result_file = os.path.join(args.result_dir,m.group(2))
         if m is not None:   
             run_query(query_file,result_file,args.debug)
         else:
