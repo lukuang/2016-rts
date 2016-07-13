@@ -104,6 +104,7 @@ def main():
     parser.add_argument("--retrieval_method","-rm",default="method:f2exp")
     parser.add_argument("--result_count","-rc",type=int,default=10)
     parser.add_argument("--wiki_expand_dir","-we")
+    parser.add_argument("--snippet_expand_dir","-sr")
     parser.add_argument("--fbDocs","-fd",type=int,default=10)
     parser.add_argument("--fbTerms","-ft",type=int,default=10)
     parser.add_argument("--fbOrigWeight","-fw",type=float,default=0.5)
@@ -229,6 +230,26 @@ def main():
                             query_builder.gene_query_with_date_filter(
                                         tune_query_file,expanded_queries,
                                         index_dir,date_when_str,run_id=tune_run_id)
+
+        elif expansion_method == "snippet":
+            if not args.snippet_expand_dir:
+                raise RuntimeError("need snippet_expand_dir when using snippet expansion!")
+            if args.tune:
+                snippet_index = os.path.join(args.snippet_expand_dir,"index_para")
+                snippet_query_dir = os.path.join(args.snippet_expand_dir,"para","query_para")
+                snippet_result_dir = os.path.join(args.snippet_expand_dir,"result")
+                index_list = os.path.join(args.snippet_expand_dir,"index_list")
+                for s in [0.1,0.2,0.3,0.6]:
+                    tune_retrieval_method = args.retrieval_method +",s:%f" %(s)
+                    temp_query_file = os.path.join(snippet_query_dir,"%f" %s)
+                    orf = os.path.join(snippet_result_dir,"orf_%f" %s) 
+                    # for i in range(1,14):
+                    #     beta = 0.3*i
+                    #     suffix = "_%f_%f" %(s,beta)
+                    #     query_file = "%s%s" %(query_file,suffix)
+                    #     output = query_file
+                    #     os.system("trec_query_expansion -oqf=%s -output=%s -index_list=%s -orf=%s -beta=%f" 
+                    #                 %(oqf,))
 
 
         else:
