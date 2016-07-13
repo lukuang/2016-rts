@@ -208,7 +208,8 @@ def main():
                                         fbDocs=tune_fbDocs,fbTerms=tune_fbTerms,
                                         fbOrigWeight=tune_fbOrigWeight)
         elif expansion_method == "wiki":
-            
+            if not args.wiki_expand_dir:
+                raise RuntimeError("need wiki_expand_dir when using wiki expansion!")
             if args.tune:
                 for s in [0.3,0.6,0.9]:
                     tune_retrieval_method = args.retrieval_method +",s:%f" %(s)
