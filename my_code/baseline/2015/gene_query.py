@@ -265,8 +265,8 @@ def main():
                         oqf_builder.gene_query_with_date_filter(oqf,
                             original_queries,index_dir,date_when_str,run_id=tune_run_id )
 
-                        query_file = "%s%s" %(query_file,suffix)
-                        output = query_file
+                        tune_query_file = '%s%s' %(query_file,suffix)
+                        output = tune_query_file
                         os.system("axio_expansion -oqf=%s -output=%s -index_list=%s -orf=%s -beta=%f" 
                                     %(oqf,output,index_list,orf,beta))
 
