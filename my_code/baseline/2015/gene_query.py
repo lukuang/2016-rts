@@ -242,7 +242,20 @@ def main():
                 for s in [0.1,0.2,0.3,0.6]:
                     tune_retrieval_method = args.retrieval_method +",s:%f" %(s)
                     temp_query_file = os.path.join(snippet_query_dir,"%f" %s)
-                    orf = os.path.join(snippet_result_dir,"orf_%f" %s) 
+                    temp_query_builder = IndriQueryFactory(count=10000,
+                                    rule=tune_retrieval_method,use_stopper=False,
+                                    date_when="dateequals",psr=False)
+                    
+                    #build snippet temp query file and temp result file (orf)
+                    # note that the index here should be the index of the snippet corpus
+
+                    temp_query_builder.gene_normal_query(temp_query_file,
+                            original_queries,snippet_index)
+
+                    orf = os.path.join(snippet_result_dir,"orf_%f" %s)
+                    os.system("IndriRunQuery %s > %s" %(temp_query_file,orf)) 
+                    
+
                     # for i in range(1,14):
                     #     beta = 0.3*i
                     #     suffix = "_%f_%f" %(s,beta)
