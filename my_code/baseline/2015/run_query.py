@@ -60,16 +60,27 @@ def main():
     #                                 expansion_method,
     #                             )
     file_names =  os.walk(args.query_para_dir).next()[2]
+    done_results = [
+                    os.path.join(args.result_dir,f) for f in
+                    os.walk(args.result_dir).next()[2]
+                    ]
+    
+
     for file_name in file_names:
 
         query_file = os.path.join(args.query_para_dir,file_name)
         #result_file = os.path.join(sub_result_dir,file_name)
         m = re.search("^(\d+)_(.+)$",file_name)
         result_file = os.path.join(args.result_dir,m.group(2))
+        if result_file in done_results:
+            continue
         if m is not None:   
             run_query(query_file,result_file,args.debug)
         else:
             print "Wrong file name %s" %file_name
+
+    print "files skipped:"
+    print done_results
 
 
 if __name__=="__main__":
