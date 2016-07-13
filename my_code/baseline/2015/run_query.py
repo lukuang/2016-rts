@@ -10,8 +10,8 @@ import subprocess
 import argparse
 import codecs
 
-def run_query(query_file,result_file,debug):
-    run_args = ["IndriRunQuery",query_file]
+def run_query(runquery_script,query_file,result_file,debug):
+    run_args = [runquery_script,query_file]
     if debug:
         print "-"*20
         print run_args
@@ -28,6 +28,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("result_dir")
     parser.add_argument("query_para_dir")
+    parser.add_argument("--runquery_script","-rq",default="IndriRunQuery")
     parser.add_argument("--debug","-de",action="store_true")
     
     
@@ -76,7 +77,7 @@ def main():
             continue
         if m is not None:   
             print "run query %s" %query_file
-            run_query(query_file,result_file,args.debug)
+            run_query(args.runquery_script,query_file,result_file,args.debug)
         else:
             print "Wrong file name %s" %file_name
 
