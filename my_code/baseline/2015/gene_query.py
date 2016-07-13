@@ -183,7 +183,7 @@ def main():
                                         original_queries,index_dir,date_when_str,run_id=tune_run_id,
                                         fbDocs=tune_fbDocs,fbTerms=tune_fbTerms,
                                         fbOrigWeight=tune_fbOrigWeight)
-        if expansion_method == "wiki":
+        elif expansion_method == "wiki":
             
             if args.tune:
                 for s in [0.3,0.6,0.9]:
