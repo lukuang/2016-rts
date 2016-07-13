@@ -16,7 +16,7 @@ def main():
     parser.add_argument("dest_dir")
     args=parser.parse_args()
 
-    for qid in os.walk(args.snippets_dir).next()[2]:
+    for qid in os.walk(args.snippets_dir).next()[1]:
         qid_dir = os.path.join(args.snippets_dir,qid)
         dest_file = os.path.join(args.dest_dir,qid)
         query_snippet_writer = TextFactory(dest_file)
