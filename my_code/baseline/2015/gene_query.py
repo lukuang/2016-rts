@@ -235,7 +235,7 @@ def main():
             if not args.snippet_expand_dir:
                 raise RuntimeError("need snippet_expand_dir when using snippet expansion!")
             if args.tune:
-                snippet_index = os.path.join(args.snippet_expand_dir,"index_para")
+                snippet_index = os.path.join(args.snippet_expand_dir,"index")
                 snippet_query_dir = os.path.join(args.snippet_expand_dir,"para","query_para")
                 snippet_result_dir = os.path.join(args.snippet_expand_dir,"result")
                 index_list = os.path.join(args.snippet_expand_dir,"index_list")
