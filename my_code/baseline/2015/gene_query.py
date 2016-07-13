@@ -137,12 +137,12 @@ def main():
 
     if args.qrel_file:
         print "remove unjudged queries"
-        print "# queries before %" %(len(original_queries))
+        print "# queries before %d" %(len(original_queries))
         judged_qids = get_judged_qid(args.qrel_file)
         for qid in original_queries.keys():
             if qid not in judged_qids:
                 original_queries.pop(qid,None)
-        print "# queries after %" %(len(original_queries))
+        print "# queries after %d" %(len(original_queries))
 
 
 
