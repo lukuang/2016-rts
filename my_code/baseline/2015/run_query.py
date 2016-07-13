@@ -75,6 +75,7 @@ def main():
         if result_file in done_results:
             continue
         if m is not None:   
+            print "run query %s" %query_file
             run_query(query_file,result_file,args.debug)
         else:
             print "Wrong file name %s" %file_name
