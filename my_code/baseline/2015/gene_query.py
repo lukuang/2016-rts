@@ -141,7 +141,7 @@ def main():
                                         year)
         date_when_str = "%s" %(date_when_str)
 
-        if expansion_method == "original" or "pseudo":
+        if expansion_method == "original" or expansion_method == "pseudo":
             if expansion_method == "original":
                 if args.tune:
                     for s in range(4):
