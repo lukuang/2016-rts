@@ -319,7 +319,7 @@ def main():
 
                                     else:
                                         #add MB prefix back
-                                        if qid_finder.search(line)
+                                        if qid_finder.search(line):
                                             line = qid_finder.sub("<number>MB",line)
                                                             
                                         elif index_method == "incremental":
