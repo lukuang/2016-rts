@@ -257,7 +257,7 @@ def main():
                     for i in range(1,14):
                         beta = 0.3*i
                         suffix = "_%f_%f" %(s,beta)
-                        tune_run_id = "snippet%s" $suffix
+                        tune_run_id = "snippet%s" %suffix
                         oqf = os.path.join(args.snippet_expand_dir,"temp","oqf%s"%suffix)
                         oqf_builder = IndriQueryFactory(count=args.result_count,
                             rule=tune_retrieval_method,date_when="dateequals")
