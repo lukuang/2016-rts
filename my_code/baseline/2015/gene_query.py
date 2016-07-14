@@ -93,7 +93,14 @@ def get_judged_qid(qrel_file):
                 judged_qids.append(qid)
     return judged_qids
 
+def process_original_qid(original_queries):
+    processed_queries= {}
+    for qid in original_queries:
+        q_data = original_queries[qid]
+        qid = re.sub("MB","",qid)
+        processed_queries[qid] = q_data
 
+    return processed_queries
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -235,6 +242,11 @@ def main():
             if not args.snippet_expand_dir:
                 raise RuntimeError("need snippet_expand_dir when using snippet expansion!")
             if args.tune:
+
+                # remove the prefix "MB" of original queries' qids
+
+                original_queries = process_original_qid(original_queries)
+                
                 snippet_index = os.path.join(args.snippet_expand_dir,"index")
                 snippet_query_dir = os.path.join(args.snippet_expand_dir,"para","query_para")
                 snippet_result_dir = os.path.join(args.snippet_expand_dir,"result")
@@ -260,15 +272,22 @@ def main():
                         tune_run_id = "snippet%s" %suffix
                         oqf = os.path.join(args.snippet_expand_dir,"temp","oqf%s"%suffix)
                         oqf_builder = IndriQueryFactory(count=args.result_count,
-                            rule=tune_retrieval_method,date_when="dateequals")
+                            rule=tune_retrieval_method)
 
-                        oqf_builder.gene_query_with_date_filter(oqf,
-                            original_queries,index_dir,date_when_str,run_id=tune_run_id )
+                        oqf_builder.gene_normal_query(oqf,
+                            original_queries,index_dir,run_id=tune_run_id )
 
-                        tune_query_file = '%s%s' %(query_file,suffix)
-                        output = tune_query_file
+                        temp_expanded_query_file = os.path.join(args.snippet_expand_dir,"temp","output%s"%suffix)
                         os.system("axio_expansion -oqf=%s -output=%s -index_list=%s -orf=%s -beta=%f" 
-                                    %(oqf,output,index_list,orf,beta))
+                                    %(oqf,temp_expanded_query_file,index_list,orf,beta))
+                        #tune_query_file = '%s%s' %(query_file,suffix)
+                        #output = tune_query_file
+                        #os.system("axio_expansion -oqf=%s -output=%s -index_list=%s -orf=%s -beta=%f" 
+                        #            %(oqf,output,index_list,orf,beta))
+                        #if index_method == "increment":
+
+
+
 
 
         else:
