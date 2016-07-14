@@ -301,7 +301,7 @@ def main():
 
                         tune_query_file = '%s%s' %(query_file,suffix)
 
-                        if index_method == "incremental":
+                        if args.index_method == "incremental":
                             add_filter_time = add_filter_time_wrapper(date_when_str)
                         
                         with open(tune_query_file,'w') as of:
@@ -322,7 +322,7 @@ def main():
                                         if qid_finder.search(line):
                                             line = qid_finder.sub("<number>MB",line)
                                                             
-                                        elif index_method == "incremental":
+                                        elif args.index_method == "incremental":
                                             line = text_finder.sub(add_filter_time,line)
                                         
                                         of.write(line)
