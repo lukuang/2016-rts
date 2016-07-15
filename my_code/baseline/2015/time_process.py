@@ -28,7 +28,7 @@ def compute_all_time_diff(time_stamps):
     time_diff = []
     for i in range(len(time_stamps)):
         if i != 0:
-            time_diff.append(compute_time_diff(time_stamps[i-1],compute_time_diff(start,end)[i]))
+            time_diff.append(compute_time_diff(time_stamps[i-1],time_stamps[i]))
 
     max_time_diff = max(time_diff)
     avergae_time_diff = sum(time_diff)*1.0/len(time_stamps)
