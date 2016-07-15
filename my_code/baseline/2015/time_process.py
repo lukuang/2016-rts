@@ -35,7 +35,7 @@ def compute_all_time_diff(time_stamps):
 
     return max_time_diff,avergae_time_diff
 
-def do_simulation(index_para_dir,index_para_dir,query_para_dir,
+def do_simulation(index_para_dir,index_method,query_para_dir,
                   expansion_method,runquery_script,suffix,
                   temp_dir,debug,time_stamps):
 
@@ -60,7 +60,7 @@ def do_simulation(index_para_dir,index_para_dir,query_para_dir,
         else:    
             os.system("IndriBuildIndex %s" %temp_index_para_file)
         
-        query_file = os.path.join(query_para_dir,expansion_method,
+        query_file = os.path.join(query_para_dir,index_method,expansion_method,
                                   "%d%s" %(date,suffix)) 
         run_query(runquery_script,query_file,temp_result_file,debug)
 
@@ -104,7 +104,7 @@ def main():
     time_stamps.append(start)
 
     
-    do_simulation(args.index_para_dir,args.args.index_para_dir,
+    do_simulation(args.index_para_dir,args.index_method,
                   args.query_para_dir,expansion_method,
                   args.runquery_script,args.suffix,
                   args.dest_file,args.debug,time_stamps)
