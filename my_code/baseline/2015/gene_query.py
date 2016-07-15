@@ -243,7 +243,7 @@ def main():
             if not args.wiki_expand_dir:
                 raise RuntimeError("need wiki_expand_dir when using wiki expansion!")
             if args.tune:
-                for s in [0.3,0.6,0.9]:
+                for s in [0.1,0.2]:
                     tune_retrieval_method = args.retrieval_method +",s:%f" %(s)
 
                     for top in [5,10,15]:
@@ -268,7 +268,7 @@ def main():
                                 query_builder = IndriQueryFactory(count=args.result_count,
                                         rule=tune_retrieval_method,use_stopper=False,
                                         date_when="dateequals",psr=False)
-                                
+
                                 query_builder.gene_query_with_date_filter(
                                             tune_query_file,expanded_queries,
                                             index_dir,date_when_str,run_id=tune_run_id)
