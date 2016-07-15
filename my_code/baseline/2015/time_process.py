@@ -115,9 +115,9 @@ def main():
 
     avergae_time_diff, max_time_diff = \
             compute_all_time_diff(time_stamps)
-    print "average time used: %f minutes" 
+    print "average time used: %f minutes" \
                 %(avergae_time_diff)
-    print "maximun time used: %f minutes" 
+    print "maximun time used: %f minutes" \
                 %(max_time_diff)    
     print "total time used: %f minnutes" compute_time_diff(start,end) 
 
