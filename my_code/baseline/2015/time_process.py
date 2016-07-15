@@ -109,8 +109,7 @@ def main():
                   args.runquery_script,args.suffix,
                   args.temp_dir,args.debug,time_stamps)
 
-    end = show_time_now()
-    time_stamps.append(end)
+
     print "end"
 
     avergae_time_diff, max_time_diff = \
@@ -120,7 +119,7 @@ def main():
     print "maximun time used: %f minutes" \
                 %(max_time_diff)    
     print "total time used: %f minnutes" \
-        %compute_time_diff(start,end) 
+        %compute_time_diff(start,time_stamps[-1]) 
 
 
 
