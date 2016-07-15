@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 
 def show_time_now():
     now = datetime.now()
-    print datetime.isoformat(" ")
+    print now.isoformat(" ")
     return now
 
 
