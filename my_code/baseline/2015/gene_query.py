@@ -189,12 +189,20 @@ def main():
                         tune_retrieval_method = args.retrieval_method +",s:%f" %(s)
                         tune_run_id = "original_%f" %(s)
                         tune_query_file = '%s_%f' %(query_file,s)
-                        query_builder = IndriQueryFactory(count=args.result_count,
+                        if args.index_method == "individual":
+                            query_builder = IndriQueryFactory(count=args.result_count,
+                                    rule=tune_retrieval_method)
+                    
+
+                            query_builder.gene_normal_query(tune_query_file,
+                                original_queries,index_dir,run_id=tune_run_id)
+                        else:
+                            query_builder = IndriQueryFactory(count=args.result_count,
                             rule=tune_retrieval_method,use_stopper=False,
                             date_when="dateequals",psr=False)
 
-                        query_builder.gene_query_with_date_filter(tune_query_file,
-                            original_queries,index_dir,date_when_str,run_id=tune_run_id )
+                            query_builder.gene_query_with_date_filter(tune_query_file,
+                                original_queries,index_dir,date_when_str,run_id=tune_run_id )
             else:
                 if args.tune:
                     for s in range(3):
@@ -213,16 +221,24 @@ def main():
                                                                          tune_fbDocs,
                                                                          tune_fbTerms,
                                                                          tune_fbOrigWeight)
+                                    if args.index_method == "individual":
+                                        query_builder = IndriQueryFactory(count=args.result_count,
+                                                rule=tune_retrieval_method,psr=True)
+                    
 
-                                    query_builder = IndriQueryFactory(count=args.result_count,
-                                        rule=tune_retrieval_method,use_stopper=False,
-                                    
-                                        date_when="dateequals",psr=True)
+                                        query_builder.gene_normal_query(tune_query_file,
+                                            original_queries,index_dir,run_id=tune_run_id,
+                                            fbDocs=tune_fbDocs,fbTerms=tune_fbTerms,
+                                            fbOrigWeight=tune_fbOrigWeight)
+                                    else:
+                                        query_builder = IndriQueryFactory(count=args.result_count,
+                                            rule=tune_retrieval_method,use_stopper=False,
+                                            date_when="dateequals",psr=True)
 
-                                    query_builder.gene_query_with_date_filter(tune_query_file,
-                                        original_queries,index_dir,date_when_str,run_id=tune_run_id,
-                                        fbDocs=tune_fbDocs,fbTerms=tune_fbTerms,
-                                        fbOrigWeight=tune_fbOrigWeight)
+                                        query_builder.gene_query_with_date_filter(tune_query_file,
+                                            original_queries,index_dir,date_when_str,run_id=tune_run_id,
+                                            fbDocs=tune_fbDocs,fbTerms=tune_fbTerms,
+                                            fbOrigWeight=tune_fbOrigWeight)
         elif expansion_method == "wiki":
             if not args.wiki_expand_dir:
                 raise RuntimeError("need wiki_expand_dir when using wiki expansion!")
@@ -237,14 +253,25 @@ def main():
                             tune_run_id = "wiki_%f_%d_%f" %(s,top,para_lambda)
 
                             tune_query_file = '%s_%f_%d_%f' %(query_file,s,top,para_lambda)
-
-                            query_builder = IndriQueryFactory(count=args.result_count,
-                                    rule=tune_retrieval_method,use_stopper=False,
-                                    date_when="dateequals",psr=False)
+                                
                             expanded_queries = get_expanded_query(original_queries,wiki_expansion_model,para_lambda)
-                            query_builder.gene_query_with_date_filter(
-                                        tune_query_file,expanded_queries,
-                                        index_dir,date_when_str,run_id=tune_run_id)
+
+                            if args.index_method == "individual":
+                                query_builder = IndriQueryFactory(count=args.result_count,
+                                    rule=tune_retrieval_method)
+                    
+
+                                query_builder.gene_normal_query(tune_query_file,
+                                    expanded_queries,index_dir,run_id=tune_run_id)
+
+                            else:
+                                query_builder = IndriQueryFactory(count=args.result_count,
+                                        rule=tune_retrieval_method,use_stopper=False,
+                                        date_when="dateequals",psr=False)
+                                
+                                query_builder.gene_query_with_date_filter(
+                                            tune_query_file,expanded_queries,
+                                            index_dir,date_when_str,run_id=tune_run_id)
 
         elif expansion_method == "snippet":
             if not args.snippet_expand_dir:
