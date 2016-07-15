@@ -82,7 +82,7 @@ def main():
                     pseudo 
                 """)
     parser.add_argument("suffix")
-    parser.add_argument("dest_file")
+    parser.add_argument("temp_dir")
     parser.add_argument("--runquery_script","-rq",default="IndriRunQuery")
     parser.add_argument("--debug","-de",action="store_true")
     
@@ -107,13 +107,13 @@ def main():
     do_simulation(args.index_para_dir,args.index_method,
                   args.query_para_dir,expansion_method,
                   args.runquery_script,args.suffix,
-                  args.dest_file,args.debug,time_stamps)
+                  args.temp_dir,args.debug,time_stamps)
 
     end = show_time_now()
     time_stamps.append(end)
     print "end"
 
-    avergae_time_diff, max_time_diff = 
+    avergae_time_diff, max_time_diff = \
             compute_all_time_diff(time_stamps)
     print "average time used: %f minutes" 
                 %(avergae_time_diff)
