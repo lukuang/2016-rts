@@ -33,7 +33,7 @@ class CrawledTweet(Tweet):
     """
     def __init__(self,tweet_data):
         if "delete" in tweet_data:
-            return None
+            self = None
         if "retweeted_status" in tweet_data:
             timestamp_ms = tweet_data["timestamp_ms"]
             tweet_data = tweet_data["retweeted_status"]
