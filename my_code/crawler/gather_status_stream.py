@@ -72,11 +72,7 @@ if __name__ == '__main__':
   consumer_secret = auth_info["consumer_secret"]
   access_token = auth_info["access_token"]
   access_token_secret = auth_info["access_token_secret"]
-  # consumer_key="bvsvVBNM35hsEa8XaqzGuuzbI"
-  # consumer_secret="MpN0WHzy8SD8Y7ezU3IshrEA8HwzG0gs1KMXzb1qrOsCqfQJ9w"
 
-  # access_token="612441285-TSCNbkWoaVsSJaGhohA5VQnJ55r9doFQPeuA9usu"
-  # access_token_secret="waJfdnHEGboeyQLT87ePapAZTOS0jGjDDgW8M9r4VuPi3"
 
   auth = OAuthHandler(consumer_key,consumer_secret)
   auth.set_access_token(access_token,access_token_secret)
