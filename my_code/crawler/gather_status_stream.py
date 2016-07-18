@@ -81,7 +81,8 @@ class TweetListener(StreamListener):
                                     tweet.tid,tweet.text,
                                     tweet.extra_fields,
                                     tweet.field_data)
-              self.text_logger.info(single_document_text)
+              if single_document_text is not None:
+                self.text_logger.info(single_document_text)
 
     return True
 
