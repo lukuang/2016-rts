@@ -118,8 +118,8 @@ def main():
                 %(avergae_time_diff)
     print "maximun time used: %f minutes" \
                 %(max_time_diff)    
-    print "total time used: %f minnutes" \
-        %compute_time_diff(start,time_stamps[-1]) 
+    print "total time used: %f minnutes for %d queries" \
+        %(compute_time_diff(start,time_stamps[-1]), len(time_stamps)-1 ) 
 
 
 
