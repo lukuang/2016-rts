@@ -50,6 +50,8 @@ class TweetListener(StreamListener):
     textHandler = logging.handlers.TimedRotatingFileHandler(os.path.join(self._text_dir,'status.log'),when='M',encoding='utf-8',utc=True)
     textHandler.setLevel(logging.INFO)
     self.text_logger.addHandler(textHandler)
+    self.text_logger.setLevel(logging.INFO)
+
 
     warningHandler = logging.handlers.TimedRotatingFileHandler(os.path.join(self._log_dir,'warning.log'),when='H',encoding='bz2',utc=True)
     warningHandler.setLevel(logging.WARN)
