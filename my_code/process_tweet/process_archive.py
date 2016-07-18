@@ -144,9 +144,11 @@ class ArchiveTweetProcessor(TweetProcessor):
         tweet = json.loads(tweet_string)
         if "delete" not in tweet:
             if "retweeted_status" in tweet:
+                created_at = tweet_data["created_at"]
                 timestamp_ms = tweet_data["timestamp_ms"]
                 tweet_data = tweet_data["retweeted_status"]
                 tweet_data["timestamp_ms"] = timestamp_ms
+                tweet_data["created_at"] = created_at
             t_time = int(tweet["timestamp_ms"])
             created_at = tweet["created_at"]
             t_time_sec = t_time/1000
@@ -282,10 +284,12 @@ class ArchiveReorganizaer(ArchiveTrecTextBuilder):
         tweet = json.loads(tweet_string)
         if "delete" not in tweet:
             if "retweeted_status" in tweet:
+                created_at = tweet_data["created_at"]
                 timestamp_ms = tweet_data["timestamp_ms"]
                 tweet_data = tweet_data["retweeted_status"]
                 tweet_data["timestamp_ms"] = timestamp_ms
-
+                tweet_data["created_at"] = created_at
+                
             t_time = int(tweet["timestamp_ms"])
             created_at = tweet["created_at"]
             t_time_sec = t_time/1000
