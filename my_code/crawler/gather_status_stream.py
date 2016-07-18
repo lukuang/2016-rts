@@ -67,7 +67,7 @@ if __name__ == '__main__':
   args=parser.parse_args()
 
   listener = TweetListener(args.text_dir)
-  auth_info = json.load(args.auth_file)
+  auth_info = json.load(open(args.auth_file))
   consumer_key = auth_info["consumer_key"]
   consumer_secret = auth_info["consumer_secret"]
   access_token = auth_info["access_token"]
