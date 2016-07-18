@@ -76,11 +76,12 @@ class TweetListener(StreamListener):
         data = json.loads(data)
         if "delete" not in data:
             tweet = CrawledTweet(data)
-            single_document_text = gene_single_indri_text(
-                                  tweet.tid,tweet.text,
-                                  tweet.extra_fields,
-                                  tweet.field_data)
-            self.text_logger.info(single_document_text)
+            if tweet is not None:
+              single_document_text = gene_single_indri_text(
+                                    tweet.tid,tweet.text,
+                                    tweet.extra_fields,
+                                    tweet.field_data)
+              self.text_logger.info(single_document_text)
 
     return True
 
