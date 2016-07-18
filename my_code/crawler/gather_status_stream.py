@@ -43,11 +43,11 @@ class TweetListener(StreamListener):
     self._log_dir,self._text_dir = log_dir,text_dir
 
     now = datetime.utcnow()
-    statusHandler = logging.handlers.TimedRotatingFileHandler(os.path.join(self._log_dir,'status.log'),when='M',encoding='utf-8',utc=True)
+    statusHandler = logging.handlers.TimedRotatingFileHandler(os.path.join(self._log_dir,'status.log'),when='H',encoding='utf-8',utc=True)
     statusHandler.setLevel(logging.INFO)
     self.logger.addHandler(statusHandler)
     
-    textHandler = logging.handlers.TimedRotatingFileHandler(os.path.join(self._text_dir,'status.log'),when='M',encoding='utf-8',utc=True)
+    textHandler = logging.handlers.TimedRotatingFileHandler(os.path.join(self._text_dir,'status.log'),when='H',encoding='utf-8',utc=True)
     textHandler.setLevel(logging.INFO)
     self.text_logger.addHandler(textHandler)
     self.text_logger.setLevel(logging.INFO)
