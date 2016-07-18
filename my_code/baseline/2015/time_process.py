@@ -50,7 +50,7 @@ def do_simulation(index_para_dir,index_method,query_para_dir,
             with open(index_para_file,"r") as f:
                 for line in f:
                     if re.search("<index>.+</index>",line):
-                        line = "<index>%s</index>\n" %temp_index_dir
+                        line = "<index>%s</index>\n" %os.path.join(temp_index_dir,str(date))
                     of.write(line)
 
 
