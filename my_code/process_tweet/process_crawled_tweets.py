@@ -35,11 +35,13 @@ class CrawledTweet(Tweet):
         if "delete" in tweet_data:
             self = None
         if "retweeted_status" in tweet_data:
+            tid = tweet_data["id_str"]
             created_at = tweet_data["created_at"]
             timestamp_ms = tweet_data["timestamp_ms"]
             tweet_data = tweet_data["retweeted_status"]
             tweet_data["timestamp_ms"] = timestamp_ms
             tweet_data["created_at"] = created_at
+            tweet_data["id_str"] = tid
             
         timestamp_ms = tweet_data["timestamp_ms"]
         created_at = tweet_data["created_at"]
