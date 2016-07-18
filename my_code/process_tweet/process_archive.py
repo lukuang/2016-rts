@@ -143,10 +143,14 @@ class ArchiveTweetProcessor(TweetProcessor):
     def process_line(self,tweet_string):
         tweet = json.loads(tweet_string)
         if "delete" not in tweet:
+            if "retweeted_status" in tweet:
+                tweet = tweet["retweeted_status"]
             t_time = int(tweet["timestamp_ms"])
             created_at = tweet["created_at"]
             t_time_sec = t_time/1000
             if self.check_time(t_time):
+                if "retweeted_status" in tweet:
+                    tweet = tweet["retweeted_status"]
                 tid = tweet["id_str"]
                 text = tweet["text"]
                 day, hour = self.get_hour_day_from_epoch_time(t_time_sec)
@@ -275,6 +279,8 @@ class ArchiveReorganizaer(ArchiveTrecTextBuilder):
             return 
         tweet = json.loads(tweet_string)
         if "delete" not in tweet:
+            if "retweeted_status" in tweet:
+                tweet = tweet["retweeted_status"]
             t_time = int(tweet["timestamp_ms"])
             created_at = tweet["created_at"]
             t_time_sec = t_time/1000

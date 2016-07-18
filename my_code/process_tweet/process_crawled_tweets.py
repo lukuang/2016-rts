@@ -32,6 +32,8 @@ class CrawledTweet(Tweet):
         timestamp_ms
     """
     def __init__(self,tweet_data):
+        if "retweeted_status" in tweet_data:
+            tweet_data = tweet_data["retweeted_status"]
         timestamp_ms = tweet_data["timestamp_ms"]
         created_at = tweet_data["created_at"]
         tid = tweet_data["id_str"]
