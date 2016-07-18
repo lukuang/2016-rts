@@ -282,7 +282,7 @@ def main():
 
                 original_queries = process_original_qid(original_queries)
                 
-                snippet_index = os.path.join(args.snippet_expand_dir,"index")
+                snippet_index = os.path.join(args.snippet_expand_dir,"no_stem_index")
                 snippet_query_dir = os.path.join(args.snippet_expand_dir,"para","query_para")
                 snippet_result_dir = os.path.join(args.snippet_expand_dir,"result")
                 index_list = os.path.join(args.snippet_expand_dir,"index_list")
@@ -332,6 +332,7 @@ def main():
                             add_filter_time = add_filter_time_wrapper(date_when_str)
                         
                         with open(tune_query_file,'w') as of:
+                            print "write to %s" %tune_query_file,
                             with open(temp_expanded_query_file) as f:
 
                                 text_finder = re.compile("<text>(.+?)</text>")
