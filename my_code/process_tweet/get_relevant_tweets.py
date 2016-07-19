@@ -78,7 +78,7 @@ def main():
         print "process file %s" %(hour_file)
         m = re.search("(\d+-\d+)$",hour_file)
         if m is not None:
-            file_suffix
+            file_suffix = m.group(1)
             hour_file = os.path.join(args.raw_dir,hour_file)
             relevant_tweets = get_rel_tweets(hour_file,relevant_ids)
             write_relevant_tweets(relevant_tweets,args.dest_dir,file_suffix)
