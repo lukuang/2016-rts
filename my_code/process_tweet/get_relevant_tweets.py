@@ -33,6 +33,8 @@ def get_rel_tweets(hour_file,relevant_ids):
     with open(hour_file) as f:
         for line in f:
             line = line.rstrip()
+            if len(line) == 0:
+                continue
             tweet_data = json.loads(line)
             if "delete" not in tweet_data:
                 try:
