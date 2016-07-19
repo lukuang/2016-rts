@@ -102,7 +102,7 @@ def main():
 
     if args.show_cluster:
         cluster_info = read_cluster_file(args.cluster_file)
-
+        show_usr_cluster_corr(cluster_info,args.relevent_tweet_dir,args.qid)
     else:
         show_usr_tweet_corr(args.relevent_tweet_dir,args.qid)
 
