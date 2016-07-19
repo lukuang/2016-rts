@@ -104,7 +104,7 @@ def main():
         cluster_info = read_cluster_file(args.cluster_file)
 
     else:
-        show_usr_tweet_corr(args.relevent_tweet_dir,qid)
+        show_usr_tweet_corr(args.relevent_tweet_dir,args.qid)
 
 if __name__=="__main__":
     main()
