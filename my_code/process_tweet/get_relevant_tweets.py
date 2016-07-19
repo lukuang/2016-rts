@@ -15,16 +15,16 @@ def get_rel_ids(qrel_file):
     with open(qrel_file)  as f:
         for line in f:
             line = line.rstrip()
-                parts = line.split()
-                
-                qid = parts[0]
-                tid = parts[2]
-                score = int(parts[3])
+            parts = line.split()
+            
+            qid = parts[0]
+            tid = parts[2]
+            score = int(parts[3])
 
-                if "MB" not in parts[0]:
-                    qid = "MB%s" %qid
-                if score > 0:
-                    relevant_ids[tid] = qid
+            if "MB" not in parts[0]:
+                qid = "MB%s" %qid
+            if score > 0:
+                relevant_ids[tid] = qid
     return relevant_ids
 
 
