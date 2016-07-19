@@ -64,14 +64,15 @@ def show_usr_cluster_corr(cluster_info,relevent_tweet_dir,qid):
             if len(line)!=0:
                 tweet = json.loads(line)
                 try:
-                    uid = tweet["user"]["id"]
+                    uid = tweet["user"]["id_str"]
+                    tid = tweet["id_str"]
                 except KeyError:
                     message = "mal-formated tweet for query:%s\n"%qid
                     message += "The tweet is:\n%s" %(line)
                     raise RuntimeError(message)
                 else:
                     for i in range(len(cluster_info[qid]) ):
-                        if uid in cluster_info[qid][i]:
+                        if tid in cluster_info[qid][i]:
                             if i not in users:
                                 users[i] = {}
                             if uid not in users[i]:
