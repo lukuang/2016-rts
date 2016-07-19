@@ -97,9 +97,10 @@ def main():
     parser.add_argument("--relevent_tweet_dir","-rd",
                         default="/infolab/node4/lukuang/2015-RTS/2015-data/collection/relevant_tweets")
     parser.add_argument("qid")
+    parser.add_argument("--show_cluster","-sc",action='store_true')
     args=parser.parse_args()
 
-    if args.cluster_file:
+    if args.show_cluster:
         cluster_info = read_cluster_file(args.cluster_file)
 
     else:
