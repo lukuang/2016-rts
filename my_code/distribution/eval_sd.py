@@ -12,11 +12,11 @@ import subprocess
 from scipy.stats import pearsonr, kendalltau
 
 
-def get_real_ap(data_dir,result_file):
+def get_real_ap(code_file,qrel_file,result_file):
     real_ap = {}
-    script = os.path.join(data_dir,"trec_eval.8.1","trec_eval")
-    qrel_file = os.path.join(data_dir,"small_web.qrels")
-    run_command = "%s -q %s %s | grep map" %(script,qrel_file,result_file)
+    # script = os.path.join(data_dir,"trec_eval.8.1","trec_eval")
+    # qrel_file = os.path.join(data_dir,"small_web.qrels")
+    run_command = "%s -q %s %s | grep map" %(code_file,qrel_file,result_file)
     p = subprocess.Popen(run_command,stdout=subprocess.PIPE,shell=True)
     while True:
         line = p.stdout.readline()
@@ -75,7 +75,9 @@ def get_kendall_tau(estimated_aupr,real_ap,method):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("aupr_file")
-    parser.add_argument("data_dir")
+    parser.add_argument("code_file")
+    parser.add_argument("qrel_file")
+    # parser.add_argument("data_dir")
     parser.add_argument("result_file")
     parser.add_argument("--method","-m",type=int,choices=[0,1,2],default=0)
     args=parser.parse_args()
@@ -95,7 +97,7 @@ def main():
     method =  methods[method_name]
 
     estimated_aupr = get_aupr(args.aupr_file)
-    real_ap = get_real_ap(args.data_dir,args.result_file)
+    real_ap = get_real_ap(args.code_file,args.qrel_file,args.result_file)
     qids = real_ap.keys()
     real_ap_list = to_list(qids,real_ap)
     print real_ap_list
