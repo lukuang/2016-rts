@@ -23,12 +23,11 @@ import logging.handlers
 
 from myUtility.misc import gene_single_indri_text
 
-_current_dir = os.path.dirname(os.path.abspath(__file__))
-_module_dir = os.path.dirname(os.path.abspath(_current_dir))
-import sys
-sys.path.append(_module_dir)
 
-from process_tweet  import CrawledTweet
+import sys
+sys.path.append("/infolab/node4/lukuang/2015-RTS/src")
+
+from my_code.process_tweet  import CrawledTweet
 
 
 
