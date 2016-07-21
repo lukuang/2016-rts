@@ -38,11 +38,11 @@ def process_query(original_query_file,stopword_handler=None):
     return queries 
 
 
-def get_real_ap(data_dir,result_file):
+def get_real_ap(code_file,qrel_file,result_file):
     real_ap = {}
-    script = os.path.join(data_dir,"trec_eval.8.1","trec_eval")
-    qrel_file = os.path.join(data_dir,"small_web.qrels")
-    run_command = "%s -q %s %s | grep map" %(script,qrel_file,result_file)
+    # script = os.path.join(data_dir,"trec_eval.8.1","trec_eval")
+    # qrel_file = os.path.join(data_dir,"small_web.qrels")
+    run_command = "%s -q %s %s | grep map" %(code_file,qrel_file,result_file)
     p = subprocess.Popen(run_command,stdout=subprocess.PIPE,shell=True)
     while True:
         line = p.stdout.readline()
@@ -73,7 +73,10 @@ def get_linear_correlations(estimated_aupr,real_ap):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("data_dir")
+    # parser.add_argument("data_dir")
+    parser.add_argument("stat_dir")
+    parser.add_argument("code_file")
+    parser.add_argument("qrel_file")
     parser.add_argument("original_query_file")
     parser.add_argument("result_file")
     parser.add_argument("ap_store_file")
@@ -87,10 +90,10 @@ def main():
     method = all_methods[args.method]
     
     #qrel = Qrel(args.qrel_file)
-    stat_dir = os.path.join(args.data_dir,"stat")
-    index_stats = IndexStats(stat_dir)
+    #stat_dir = os.path.join(args.data_dir,"stat")
+    index_stats = IndexStats(args.stat_dir)
     run = Run(args.result_file)
-    real_ap = get_real_ap(args.data_dir,args.result_file)
+    real_ap = get_real_ap(args.code_file,args.qrel_file,args.result_file)
     print real_ap
 
     if args.no_stopwords:
