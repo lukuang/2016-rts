@@ -1,0 +1,4 @@
+run crawler first:
+    python crawl.py ../twitter_auth/auth1 /infolab/headnode2/lukuang/2016-rts/data/raw/first/
+
+    (Note that you probably need to run a secondary crawler just to be safe)
