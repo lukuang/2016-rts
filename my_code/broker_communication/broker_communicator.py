@@ -24,7 +24,7 @@ class BrokerCommunicator(object):
             run_name_file,topic_file,debug
         
         self.runids = self.process_run_name_file(run_name_file)
-        self.topics = self.process_topic_file(topic_file)
+        self._topics = self.process_topic_file(topic_file)
         self.base_end_point = "http://%s:%s" %(self.hostname,self.port)
         self.register_end_point = "%s/register/system" %(self.base_end_point)
         
@@ -95,12 +95,12 @@ class BrokerCommunicator(object):
         print "poll topics at %s" %(now())
         if r.status_code == requests.codes.ok:
             topics = r.json()
-            if len(topics)!=self.topics:
+            if len(topics)!=self._topics:
                 for t in topics:
-                    if t not in self.topics:
-                        self.topics.append(t)
+                    if t not in self._topics:
+                        self._topics.append(t)
                 with open(self.topic_file,"w") as f:
-                    f.write(json.dumps(self.topics,indent=4))
+                    f.write(json.dumps(self._topics,indent=4))
 
         else:
             raise RuntimeError("get error when requesting %s with error code %s" 
@@ -108,6 +108,10 @@ class BrokerCommunicator(object):
                                 )
 
 
+    
+    @property
+    def topics(self):
+        return self._topics
     
 
     def post_tweet(self,topic_id,tweet_id):
