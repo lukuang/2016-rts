@@ -98,7 +98,7 @@ class BingSearchAPI():
 
 
 class snippets_crawler():
-    def __init__(self, query_id, query):
+    def __init__(self, query_id, query,dest_dir):
         self.query_id = query_id
         self.query = query
         self.results_limit = 100
@@ -108,7 +108,7 @@ class snippets_crawler():
         self.parameters = {}
         self.url_list = []
         self.results = []
-        self.output_root = os.path.join('./snippets/', str(query_id))
+        self.output_root = os.path.join(dest_dir, str(query_id))
         
         if not os.path.exists(self.output_root):
             os.makedirs(self.output_root)   
