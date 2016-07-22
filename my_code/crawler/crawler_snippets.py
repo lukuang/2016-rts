@@ -383,5 +383,5 @@ if __name__ == '__main__':
     queries = load_queries()
 
     for q in queries:
-        snippets_crawler(q[0],q[1]).start_crawl()
+        snippets_crawler(q[0],q[1],"./raw").start_crawl()
 
