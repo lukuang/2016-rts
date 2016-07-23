@@ -8,3 +8,5 @@ topics
 histogram/
 *.png
 additional_data/
+my_code/distribution/indri_code/Makefile.app
+my_code/distribution/indri_code/get_statistics
