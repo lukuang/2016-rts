@@ -1,4 +1,4 @@
-from broker_communicatior import BrokerCommunicator
+from broker_communicator import BrokerCommunicator
 
 __all__=[
     "BrokerCommunicator"

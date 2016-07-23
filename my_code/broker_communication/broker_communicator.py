@@ -96,9 +96,8 @@ class BrokerCommunicator(object):
         if r.status_code == requests.codes.ok:
             topics = r.json()
             if len(topics)!=self._topics:
-                for t in topics:
-                    if t not in self._topics:
-                        self._topics.append(t)
+                self._topics = topics
+            
                 with open(self.topic_file,"w") as f:
                     f.write(json.dumps(self._topics,indent=4))
 
