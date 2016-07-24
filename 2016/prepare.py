@@ -11,6 +11,8 @@ import codecs
 import time
 from datetime import timedelta
 from abc import ABCMeta,abstractmethod
+import logging
+import logging.handlers
 
 from myUtility.indri import IndriQueryFactory
 
@@ -28,9 +30,10 @@ def need_wait():
     # queries
     time_struct =  time.gmtime() 
     wait_hours = 23 - time_struct.tm_hour
-    wait_secs = 60 - time_struct.tm_min
-    total_secs = timedelta(hours=wait_hours,seconds=wait_secs).total_seconds()
-    print "need to wait %d hours %d secs, which is %f seconds" %(wait_hours,wait_secs,total_secs)
+    wait_minutes = 60 - time_struct.tm_min
+    total_secs = timedelta(hours=wait_hours,minutes=wait_minutes).total_seconds()
+    print "now is %s" %(now())
+    print "need to wait %d hours %d minutes, which is %f seconds" %(wait_hours,wait_minutes,total_secs)
     return int(total_secs)
 
 
@@ -259,7 +262,7 @@ def main():
     parser.add_argument(
         "--communication_dir","-cr",
         default="/infolab/headnode2/lukuang/2016-rts/data/communication")
-    parser.add_argument("--tweet_index_dir","-tr")
+    parser.add_argument("--index_dir","-ir")
     parser.add_argument("--query_dir","-qr")
     parser.add_argument("--beta","-b",type=float,default=2.4)
     # parser.add_argument(
@@ -279,6 +282,7 @@ def main():
     
     args=parser.parse_args()
 
+    #prepare communication 
     basic_file = os.path.join(args.communication_dir,"basic")
     run_name_file = os.path.join(args.communication_dir,"runs")
     topic_file = os.path.join(args.communication_dir,"topics")
@@ -291,6 +295,20 @@ def main():
     communicator = BrokerCommunicator(basic_file,
                         run_name_file,topic_file)
     
+    # prepare warning log
+    logger = logging.getLogger('prepareLogger')
+    warningHandler = logging.FileHandler('prepare_warning.log')
+    warningHandler.setLevel(logging.WARN)
+    logger.addHandler(warningHandler)
+    logging.captureWarnings(True);
+
+    consoleHandler = logging.StreamHandler()
+    consoleHandler.setLevel(logging.WARN)
+    logger.addHandler(consoleHandler)
+
+    logger.setLevel(logging.WARN)
+
+
     print "Start at %s" %now()
     print "register runs:"
     for name in runs:
@@ -298,35 +316,40 @@ def main():
 
 
     print "initialize preparator"
-    original_preparator = OriginalPreparator(args.query_dir,args.tweet_index_dir,"UDInfoORI")
-    snippet_preparator = SnippetPreparator(args.query_dir,args.tweet_index_dir,
+    original_preparator = OriginalPreparator(args.query_dir,args.index_dir,"UDInfoORI")
+    snippet_preparator = SnippetPreparator(args.query_dir,args.index_dir,
                                               "UDInfoSNI",args.snippets_dir,args.beta)
 
     old_topics = {}
 
     while True:
-        new_queries = {}
-        communicator.poll_topics()
-        topics = communicator.topics
-        for a_topic in topics:
-            qid = a_topic["topid"]
-            q_string = a_topic['title']
-            q_string = re.sub("\&"," ",q_string)
-            if qid not in old_topics:
-                new_queries[qid] = q_string
-                old_topics[qid] = q_string
+        try:
+            new_queries = {}
+            communicator.poll_topics()
+            topics = communicator.topics
+            for a_topic in topics:
+                qid = a_topic["topid"]
+                q_string = a_topic['title']
+                q_string = re.sub("\&"," ",q_string)
+                if qid not in old_topics:
+                    new_queries[qid] = q_string
+                    old_topics[qid] = q_string
 
 
-        date = str(time.gmtime().tm_mday)
-        original_preparator.prepare(new_queries,date)
-        snippet_preparator.prepare(new_queries,date)
+            date = str(time.gmtime().tm_mday)
+            original_preparator.prepare(new_queries,date)
+            snippet_preparator.prepare(new_queries,date)
+            
+
+
+
+            total_secs = need_wait()    
+            time.sleep(total_secs)
+        except Exception as ex:
+            now_time = now()
+            logger.warn("%s: %s\n" %(now_time,str(ex)) )
+
         
-
-
-
-        total_secs = need_wait()    
-        time.sleep(total_secs)
-
 
 
 if __name__=="__main__":
