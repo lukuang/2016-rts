@@ -102,7 +102,7 @@ def find_query_files(query_dir,date):
     return query_list
 
 
-def run_query(query_dir,result_dir,date,communicator):
+def run_query(query_dir,result_dir,date,communicator,logger):
     query_list = find_query_files(query_dir,date)
 
     for f in query_list:
@@ -140,8 +140,9 @@ def run_query(query_dir,result_dir,date,communicator):
         print "post %d tweets for run %s" %(count,run_name)
         if rejected:
             for e_code in rejected:
-                print "rejected %d with error code: %s" %(e_code,rejected[e_code])
-
+                error_message = "%s:\nrejected %d with error code: %s" %(now(),e_code,rejected[e_code])
+                print error_message
+                logger.warn(error_message+"\n")
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -199,7 +200,7 @@ def main():
             print "build index"
             build_index(args.index_dir,args.para_dir,args.text_dir,date)
             print "run queries"
-            run_query(args.query_dir,args.result_dir,date,communicator)
+            run_query(args.query_dir,args.result_dir,date,communicator,logger)
             total_secs = need_wait()    
             time.sleep(total_secs)
         except Exception as ex:
