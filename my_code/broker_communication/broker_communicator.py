@@ -23,11 +23,12 @@ class BrokerCommunicator(object):
         self.run_name_file,self.topic_file,self.debug = \
             run_name_file,topic_file,debug
         
-        self.runids = self.process_run_name_file(run_name_file)
+        self.runid_clientid = self.process_run_name_file(run_name_file)
         self._topics = self.process_topic_file(topic_file)
         self.base_end_point = "http://%s:%s" %(self.hostname,self.port)
         self.register_end_point = "%s/register/system" %(self.base_end_point)
-        
+        self._clientids = {}
+        self._poll_topic_end_point = ""
 
         
 
@@ -52,10 +53,10 @@ class BrokerCommunicator(object):
 
     
     def process_run_name_file(self,run_name_file):
-        runids = self.load_json(run_name_file)
-        if runids is None:
-            runids = {}
-        return runids
+        runid_clientid = self.load_json(run_name_file)
+        if runid_clientid is None:
+            runid_clientid = {}
+        return runid_clientid
         
 
     
@@ -66,7 +67,8 @@ class BrokerCommunicator(object):
         return 
 
     def register_run(self,run_name):
-        if run_name not in self.runids:
+        new_client_id = ""
+        if run_name not in self.runid_clientid:
             print "Register new run",run_name
             r = requests.post(self.register_end_point,
                      json = {'groupid':self.groupid,
@@ -74,24 +76,26 @@ class BrokerCommunicator(object):
                             }
                 )
             if r.status_code == requests.codes.ok:
-                self.clientid = r.json()["clientid"]
-                print "clientid: %s" %(self.clientid)
-                self.runids[run_name] = self.clientid
+                new_client_id = r.json()["clientid"]
+                #self.clientid = r.json()["clientid"]
+                print "clientid: %s" %(new_client_id)
+                self.runid_clientid[run_name] = new_client_id
                 with open(self.run_name_file,"w") as f:
-                    f.write(json.dumps(self.runids,indent=4))
+                    f.write(json.dumps(self.runid_clientid,indent=4))
             else:
                 raise RuntimeError("get error when requesting %s with error code %s" 
                                     %(r.url, r.status_code)
                                     )
         else:
-            self.clientid = self.runids[run_name]
-            print "run already exists with id %s" %(self.clientid)
+            new_client_id = self.runid_clientid[run_name]
+            print "run already exists with id %s" %(new_client_id)
 
-        self.poll_topic_end_point = "%s/topics/%s" %(self.base_end_point,
-                                                     self.clientid)
+        if not self._poll_topic_end_point:  
+            self._poll_topic_end_point = "%s/topics/%s" %(self.base_end_point,
+                                                         new_client_id)
 
     def poll_topics(self):
-        r = requests.get(self.poll_topic_end_point)
+        r = requests.get(self._poll_topic_end_point)
         print "poll topics at %s" %(now())
         if r.status_code == requests.codes.ok:
             topics = r.json()
@@ -113,20 +117,21 @@ class BrokerCommunicator(object):
         return self._topics
     
 
-    def post_tweet(self,topic_id,tweet_id):
+    def post_tweet(self,run_name,topic_id,tweet_id):
         post_tweet_end_point = "%s/tweet/%s/%s/%s" %(self.base_end_point,
                                                      topic_id,
                                                      tweet_id,
-                                                     self.clientid)
+                                                     self.runid_clientid[run_name])
 
         r = requests.post(post_tweet_end_point) 
         if r.status_code == requests.codes.no_content:
             if self.debug:
                 print "Successfully post tweet %s for topic %s" %(tweet_id,topic_id)
         else:
-            raise RuntimeError("get error when requesting %s with error code %s" 
+            if self.debug:
+                "get error when requesting %s with error code %s"\
                                 %(r.url, r.status_code)
-                                )
+        return r.url, r.status_code
 
 
 
