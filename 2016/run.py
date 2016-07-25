@@ -140,7 +140,7 @@ def run_query(query_dir,result_dir,date,communicator,logger):
         print "post %d tweets for run %s" %(count,run_name)
         if rejected:
             for e_code in rejected:
-                error_message = "%s:\nrejected %d with error code: %s" %(now(),e_code,rejected[e_code])
+                error_message = "%s:\nrejected %d tweets with error code: %s for run %s" %(now(),rejected[e_code],e_code,run_name)
                 print error_message
                 logger.warn(error_message+"\n")
 
