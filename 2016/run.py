@@ -21,6 +21,41 @@ from myUtility.misc import gene_indri_index_para_file
 sys.path.append("/infolab/node4/lukuang/2015-RTS/src")
 from my_code.broker_communication import BrokerCommunicator
 
+
+
+class PreviousResults(object):
+    """class used to store previously post
+    tweets for each run and query, as well as
+    check novalty of the tweet
+    """
+
+    def __init__(self,previous_result_file):
+        self._previous_result_file = previous_result_file
+        self._load_previous_results()
+
+
+    def _load_previous_results(self):
+        self._previous_results = {}
+        if os.path.exists(self._previous_result_file):
+            f_size = os.stat(self._previous_result_file).st_size
+            if f_size!=0:
+                self._previous_results =\
+                    json.load(open(self._previous_result_file))
+
+
+    def _store_tweet(self,tweet,run_name,qid):
+        pass
+
+    def is_redundant(self,tweet,run_name,qid):
+        self._store_tweet(tweet,run_name,qid)
+        return False
+
+
+    def store_previous(self):
+        with open(self._previous_result_file,'w') as f:
+            f.write(json.dumps(self._previous_results))
+
+
 def now():
     return time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) 
 
@@ -55,7 +90,7 @@ def get_day_hour_from_file_name(hour_text_file):
 def check_file_time(hour_text_file,date):
 
     file_date,file_hour = get_day_hour_from_file_name(hour_text_file)
-    print file_date,date
+    #print file_date,date
     if file_date == date:
         return True
     return False
@@ -65,7 +100,7 @@ def get_file_list(text_dir,date):
     all_files.sort() # solely for debuging purpose
     file_list = []
     for hour_text_file in all_files:
-        print hour_text_file
+        #print hour_text_file
         if check_file_time(hour_text_file,date):
             
             file_list.append(os.path.join(text_dir,hour_text_file))
@@ -75,10 +110,10 @@ def get_file_list(text_dir,date):
 
 
 def build_index(index_dir,para_dir,text_dir,date):
-    # file_list = get_file_list(text_dir,date)
-    # if len(file_list)!= 23:
-    #     print "wait 10 miniutes since the text files are not all ready(probably missing 22)"
-    #     time.sleep(600)
+    file_list = get_file_list(text_dir,date)
+    if len(file_list)!= 23:
+        print "wait 10 miniutes since the text files are not all ready(probably missing 22)"
+        time.sleep(600)
     file_list = get_file_list(text_dir,date)
     if len(file_list)!= 23:
         print "Warning: there are still %d files!" %(len(file_list))
