@@ -152,7 +152,7 @@ class SnippetPreparator(Preparator):
 
 
     def prepare(self,new_queries,date):
-        new_queries = self.process_original_qid(new_queries)
+        new_queries = self._process_original_qid(new_queries)
         for qid in new_queries:
             q_string = new_queries[qid]
             snippets_crawler(qid,q_string,self._raw_dir).start_crawl()
@@ -183,12 +183,20 @@ class SnippetPreparator(Preparator):
 
 
 
-    def process_original_qid(self,original_queries):
+    def _process_original_qid(self,original_queries):
         processed_queries= {}
-        for qid in original_queries:
-            q_data = original_queries[qid]
-            qid = re.sub("MB","",qid)
+        self._query_mapping = {}
+
+        for original_qid in original_queries:
+            q_data = original_queries[original_qid]
+            m = re.search("^([a-zA-Z]+)?(\d+)$",original_qid)
+            if m is not None:
+                qid = m.group(2)
+            else:
+                raise ValueError("the qid %s is malformated!" %original_qid)
+            # qid = re.sub("MB","",qid)
             processed_queries[qid] = q_data
+            self._query_mapping[qid] = original_qid 
 
         return processed_queries
 
@@ -232,8 +240,8 @@ class SnippetPreparator(Preparator):
                         if qid_finder.search(line):
                             m = re.search("<number>(\d+)",line)
                             qid = m.group(1)
-                            line = qid_finder.sub("<number>MB",line)
-                                            
+                            #line = qid_finder.sub("<number>MB",line)
+                            line = "<number>%s</number>\n" %(self._query_mapping[qid])               
                           
                         elif index_finder.search(line):
                             line = "<index>%s</index>\n"%date_index_dir
