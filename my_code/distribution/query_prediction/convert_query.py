@@ -27,6 +27,7 @@ def main():
     parser.add_argument("dest_file")
     parser.add_argument("--qrel_file","-qf",
         default="/infolab/node4/lukuang/2015-RTS/2015-data/new_qrels.txt")
+    parser.add_argument("--with_weight",'-w',action='store_true')
     args=parser.parse_args()
 
 
@@ -43,21 +44,64 @@ def main():
             m2 = re.search("<text>(.+?)</text>",line)
             if m2:
                 query_string = m2.group(1)
-                m3 = re.search("\#combine\((.+?)\)",line)
-                if m3:
-                    query_string = m3.group(1)
-                m3 = re.search("\#weight\((.+?)\)",line)
-                if m3:
-                    query_string = m3.group(1)
-                    query_string = re.sub("[^a-zA-z\_\s]","",query_string)
-                query_string = re.sub("\s+"," ",query_string)
-                query_string = query_string.strip()
-                if qid in judged_qids:
-                    queries[qid] = query_string
+                
+                if args.with_weight:
+                    query_model = {}
+                    m3 = re.search("\#combine\((.+?)\)",line)
+                    if m3:
+                        query_string = m3.group(1)
+                        print query_string
+                        words = re.findall("\w+",query_string)
+                        for w in words:
+                            query_model[w] = 1
+                    else:
+                        m3 = re.search("\#weight\((.+?)\)",line)
+                        if m3:
+                            query_string = m3.group(1)
+                            weight_word_pair = re.compile("^\s*?([0-9\.]+)\s+(\w+)")
+                            m4 = weight_word_pair.search(query_string)
+                            while m4:
+                                weight = float(m4.group(1))
+                                word = m4.group(2)
+                                query_model[word] = weight
+                                query_string = weight_word_pair.sub("",query_string,count=1)
+                                m4 = weight_word_pair.search(query_string)
+                        else:
+                            words = re.findall("\w+",query_string)
+                            size = len(words)
+                            for w in words:
+                                query_model[w] = 1
+
+
+                    if qid in judged_qids:
+                        queries[qid] = query_model 
+                        print sum(queries[qid].values())  
+                        #print query_model
+
+                else:
+                
+                    m3 = re.search("\#combine\((.+?)\)",line)
+                    if m3:
+                        query_string = m3.group(1)
+                    m3 = re.search("\#weight\((.+?)\)",line)
+                    if m3:
+                        query_string = m3.group(1)
+                        query_string = re.sub("[^a-zA-z\_\s]","",query_string)
+                    query_string = re.sub("\s+"," ",query_string)
+                    query_string = query_string.strip()
+                    if qid in judged_qids:
+                        queries[qid] = query_string
+                        
 
     with open(args.dest_file, 'w') as f:
         for qid in queries:
-            f.write("%s:%s\n" %(qid, queries[qid]))
+            if args.with_weight:
+                f.write("%s:" %(qid))
+                for w in queries[qid]:
+                    f.write("%s,%f;"%(w,queries[qid][w]))
+                f.write("\n")
+            else:
+                f.write("%s:%s\n" %(qid, queries[qid]))
 
 
 
