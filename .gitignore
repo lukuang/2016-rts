@@ -1,6 +1,7 @@
 trecrts-eval
 twitter_auth
 twitter-tools
+*test
 *.pyc
 *.sh.o*
 *.log
@@ -11,3 +12,7 @@ histogram/
 additional_data/
 my_code/distribution/indri_code/Makefile.app
 my_code/distribution/indri_code/get_statistics
+my_code/distribution/query_prediction/clarity/*
+data
+!get_condidate_query.cpp
+!show_clarity.cpp
