@@ -152,16 +152,17 @@ class SnippetPreparator(Preparator):
 
 
     def prepare(self,new_queries,date):
-        new_queries = self._process_original_qid(new_queries)
-        for qid in new_queries:
-            q_string = new_queries[qid]
-            snippets_crawler(qid,q_string,self._raw_dir).start_crawl()
-            create_snippet_single_trec_file(self._raw_dir,self._trec_dir,qid)
-            self._queries[qid] = q_string
+        if new_queries:
+            new_queries = self._process_original_qid(new_queries)
+            for qid in new_queries:
+                q_string = new_queries[qid]
+                snippets_crawler(qid,q_string,self._raw_dir).start_crawl()
+                create_snippet_single_trec_file(self._raw_dir,self._trec_dir,qid)
+                self._queries[qid] = q_string
 
-        self._cleanup()
+            self._cleanup()
 
-        self._build_snippet_index()
+            self._build_snippet_index()
 
         self._generate_query(date)
 
@@ -354,6 +355,7 @@ def main():
             total_secs = need_wait()    
             time.sleep(total_secs)
         except Exception as ex:
+            print type(ex)
             now_time = now()
             logger.warn("%s: %s\n" %(now_time,str(ex)) )
 
