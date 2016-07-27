@@ -11,6 +11,11 @@ import argparse
 import codecs
 import subprocess
 from scipy.stats import pearsonr, kendalltau
+import matplotlib 
+matplotlib.use('agg') 
+import matplotlib.pyplot as plt
+
+
 
 from myUtility.misc import Stopword_Handler
 
@@ -168,6 +173,23 @@ def pearson_r(estimated_aupr,real_ap_list):
 def rmse(estimated_aupr,real_ap_list):
     raise NotImplementedError("rmse not implemented!")
 
+def plot_corr(all_performance,all_estimates,plot_dir,prediction_method,qids):
+    """Plot the correlation between the real performance and the
+    prediction
+    """
+    for date in all_performance:
+        dest_file = os.path.join(plot_dir,date)
+        queries = range(len(all_performance[date]))
+        plt.plot(queries, all_performance[date], 'ro',queries,all_estimates[date],'bo')
+        plt.xticks(queries, qids, rotation='vertical')
+        plt.title("Performance %s Correlation" %(prediction_method))
+        plt.xlabel("Queries")
+        plt.ylabel("Performance")
+        plt.legend()
+        plt.savefig("%s.png" %(dest_file))
+        plt.clf()
+
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -185,11 +207,12 @@ def main():
     parser.add_argument("--predict_method","-pmt",type=int,choices=[0,1,2,3],default=0,
             help="""
                 choose query predict method:
-                    0: average idf
+                    0: average_idf
                     1: clarity
                     2: std
                     3: NDEV
             """)
+    parser.add_argument("--plot_dir","-pr")
     args=parser.parse_args()
 
     method_names = [
@@ -209,6 +232,9 @@ def main():
     method =  methods[method_name]
 
     eval_value = 0.0
+    all_performance = {}
+    all_estimates = {}
+    qids = []
     for date in range(20,30):
         date = str(date)
         stat_dir = os.path.join(args.stat_dir,date)
@@ -223,9 +249,9 @@ def main():
             print "index dir %s" %index_dir
 
         real_perfromance = get_real_perfromance(args.code_file,args.qrel_file,result_file,args.performance_measure,args.debug)
-        qids = real_perfromance.keys()
+        if not qids:
+            qids = real_perfromance.keys()
         real_perfromance_list = to_list(qids,real_perfromance)
-
         if args.no_stopwords:
 
             stopword_handler = Stopword_Handler()
@@ -244,10 +270,22 @@ def main():
     
 
         estimated = to_list(qids,estimated_value)
+        all_estimates[date] = estimated
+        all_performance[date] = real_perfromance_list
         eval_value += method(real_perfromance_list, estimated)/10.0
 
     print "\tFor %s: %f" %(method_name,eval_value)
 
+    if args.plot_dir:
+        print "plot!"
+        all_prediction_methods = {
+                    0: 'average_idf',
+                    1: 'clarity',
+                    2: 'std',
+                    3: 'NDEV'
+                }
+        prediction_method = all_prediction_methods[args.predict_method]
+        plot_corr(all_performance,all_estimates,args.plot_dir,prediction_method,qids)
 
 
 
