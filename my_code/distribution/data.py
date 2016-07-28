@@ -81,6 +81,7 @@ class Qrel(object):
     
     def __init__(self, qrel_file):
         self._judgement = {}
+        self._qids = []
         with open(qrel_file) as f:
             for line in f:
                 line = line.rstrip()
@@ -91,11 +92,70 @@ class Qrel(object):
                 jud = (jud != "0")
                 if qid not in self._judgement:
                     self._judgement[qid] = {}
-                self._judgement[qid][docid] = jud   
-                
+                    self._qids.append(qid)
+                self._judgement[qid][docid] = jud
+
+    
+    def num_of_relevant(qid):
+        return len(self._judgement[qid])
+
     def is_relevant(self,qid,docid):
         try:
             return  self._judgement[qid][docid]
         except KeyError:
             return False
+
+    def precision(self,results):
+        return self._compute_performance(results,"precision")
+
+    def recall(self,results):
+        return self._compute_performance(results,"recall")
+
+    def f1(self,results):
+        return self._compute_performance(results,"f1")
+
+
+
+    def _compute_performance(self,results,method):
+        performance = .0
+        for qid in results:
+            num_of_rel = 0
+            for docid in results[qid]:
+                if self.is_relevant(qid,docid):
+                    num_of_rel += 1
+
+            q_result_size = len(results[qid])
+            try:
+                if method == "precision":
+                    performance += num_of_rel*1.0/q_result_size
+                elif method == "recall":
+                    query_rel_num = 0
+                    for judge in self._judgement[qid].values():
+                        if judge:
+                            query_rel_num += 1
+                    performance += num_of_rel*1.0/query_rel_num
+                  
+                elif method == "f1":
+                    query_rel_num = 0
+                    for judge in self._judgement[qid].values():
+                        if judge:
+                            query_rel_num += 1
+
+                    q_percision = num_of_rel*1.0/q_result_size
+                    q_recall = num_of_rel*1.0/query_rel_num
+                    f1 = 2.0*q_percision*q_recall/(q_percision+q_recall)
+                    performance += f1
+
+            except ZeroDivisionError:
+                performance += .0
+
+        num_of_q = len(results)
+
+        return performance*1.0/num_of_q
+
+
+    @property
+    def qids(self):
+        return self._qids
+    
                 
