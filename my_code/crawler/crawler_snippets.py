@@ -98,10 +98,10 @@ class BingSearchAPI():
 
 
 class snippets_crawler():
-    def __init__(self, query_id, query,dest_dir):
+    def __init__(self, query_id, query,dest_dir,limit):
         self.query_id = query_id
         self.query = query
-        self.results_limit = 100
+        self.results_limit = limit
         self.pages_cnt = 1
         self.crawl_idx = 1
         self.url_base = ''
