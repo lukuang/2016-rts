@@ -43,9 +43,10 @@ class Preparator(object):
     different type of runs
     """
     __metaclass__ = ABCMeta
-    def __init__(self,dest_query_dir,index_dir,runid):
-        self._dest_query_dir, self._index_dir, self._runid\
-            =  dest_query_dir, index_dir, runid
+    def __init__(self,dest_query_dir,index_dir,runid,crawl_limit,clarity_query_dir):
+        self._dest_query_dir, self._index_dir, self._runid, self._crawl_limit, self._clarity_query_dir\
+            =  dest_query_dir, index_dir, runid,crawl_limit,clarity_query_dir
+
         self._retrieval_method = "method:f2exp,s:0.1"
 
 
@@ -58,82 +59,54 @@ class Preparator(object):
         pass
 
 
-class OriginalPreparator(Preparator):
-    """class used for generate original queries
+class StaticPreparator(Preparator):
+    """class used for generate Static queries
     """
 
-    def __init__(self,dest_query_dir,index_dir,runid):
-        super(OriginalPreparator,self).__init__(dest_query_dir,index_dir,runid)
-        self._setup()
-
-
-    def _setup(self):
-        self._query_builder = IndriQueryFactory(count=10,
-                                    rule=self._retrieval_method)
-        self._queries = {}
-
-
-
-    def prepare(self,new_queries,date):
-        for qid in new_queries:
-            self._queries[qid] = new_queries[qid]
-
-        self._generate_query(date)
-
-
-    def _generate_query(self,date):
-        output_file = os.path.join(self._dest_query_dir,"original_%s"%date)
-
-        date_index_dir = os.path.join(self._index_dir,date)
-        self._query_builder.gene_normal_query(output_file,
-                                self._queries,date_index_dir,run_id=self._runid)
-
-
-class SnippetPreparator(Preparator):
-    """class used for snippet expansion data
-    crawling and query generation
-    """
-    def __init__(self,dest_query_dir,index_dir,runid,snippets_dir,beta):
-        super(SnippetPreparator,self).__init__(dest_query_dir,index_dir,runid)
+    def __init__(self,dest_query_dir,index_dir,runid,snippets_dir,beta,crawl_limit,clarity_query_dir):
+        super(StaticPreparator,self).__init__(dest_query_dir,index_dir,runid,crawl_limit,clarity_query_dir)
         self._snippets_dir,self._beta = snippets_dir,beta
-        self._queries = {}
-
+        self._mb_queries = {}
+        self._rts_queries = {}
+        self._clarity_queries = {}
         self._setup()
-        
+
 
     def _setup(self):
         """set up the paths
         """
-        self._raw_dir = os.path.join(self._snippets_dir,"raw")
+        self._raw_dir = os.path.join(self._snippets_dir,"raw","static")
         if not os.path.exists(self._raw_dir):
             os.mkdir(self._raw_dir)
 
-        self._trec_dir = os.path.join(self._snippets_dir,"trec")
+        self._trec_dir = os.path.join(self._snippets_dir,"trec","static")
         if not os.path.exists(self._trec_dir):
             os.mkdir(self._trec_dir)
 
-        self._temp_dir = os.path.join(self._snippets_dir,"temp")
+        self._temp_dir = os.path.join(self._snippets_dir,"temp","static")
         if not os.path.exists(self._temp_dir):
             os.mkdir(self._temp_dir)
 
-        self._snippet_result_dir = os.path.join(self._snippets_dir,"result")
+        self._para_dir = os.path.join(self._snippets_dir,"para","static")
+        if not os.path.exists(self._para_dir):
+            os.mkdir(self._para_dir)
+
+        self._snippet_result_dir = os.path.join(self._snippets_dir,"result","static")
         if not os.path.exists(self._snippet_result_dir):
             os.mkdir(self._snippet_result_dir)
 
-        self._snippet_index_dir = os.path.join(self._snippets_dir,"index")
+        self._snippet_index_dir = os.path.join(self._snippets_dir,"index","static")
         if not os.path.exists(self._snippet_index_dir):
             os.mkdir(self._snippet_index_dir)
 
-        self._para_dir = os.path.join(self._snippets_dir,"para")
-        if not os.path.exists(self._para_dir):
-            os.mkdir(self._para_dir)
+        
 
 
         self._index_para = os.path.join(self._para_dir,"index_para")
 
         self._temp_query_para = os.path.join(self._para_dir,"temp_query_para")
 
-        self._index_list = os.path.join(self._snippets_dir,"index_list")
+        self._index_list = os.path.join(self._para_dir,"static_index_list")
         
         self._orf = os.path.join(self._snippet_result_dir,"orf")
 
@@ -151,18 +124,232 @@ class SnippetPreparator(Preparator):
                             rule=self._retrieval_method)
 
 
-    def prepare(self,new_queries,date):
+
+    def prepare(self,new_queries,dates):
         if new_queries:
             new_queries = self._process_original_qid(new_queries)
             for qid in new_queries:
                 q_string = new_queries[qid]
-                snippets_crawler(qid,q_string,self._raw_dir).start_crawl()
+                snippets_crawler(qid,q_string,self._raw_dir,self._crawl_limit).start_crawl()
                 create_snippet_single_trec_file(self._raw_dir,self._trec_dir,qid)
-                self._queries[qid] = q_string
-
-            self._cleanup()
+                if qid in self._mb_query_mapping:
+                    self._mb_queries[qid] = q_string
+                else:
+                    self._rts_queries[qid] = q_string
+            #self._cleanup()
 
             self._build_snippet_index()
+
+        self._generate_query(dates)
+
+
+    def _process_original_qid(self,original_queries):
+        processed_queries= {}
+        self._query_mapping = {}
+        self._mb_query_mapping = {}
+
+        for original_qid in original_queries:
+            q_data = original_queries[original_qid]
+            m = re.search("^([a-zA-Z]+)?(\d+)$",original_qid)
+            if m is not None:
+                qid = m.group(2)
+                
+
+            else:
+                raise ValueError("the qid %s is malformated!" %original_qid)
+            # qid = re.sub("MB","",qid)
+            processed_queries[qid] = q_data
+            self._query_mapping[qid] = original_qid 
+
+            if "MB" in original_qid:
+                #print "found static query:%s" %original_qid
+                self._mb_query_mapping[qid] = original_qid
+
+        return processed_queries
+
+    def _build_snippet_index(self):
+        snippet_build_index(self._trec_dir,self._snippet_index_dir,self._index_para)
+        os.system("IndriBuildIndex %s" %self._index_para)
+
+
+
+    def _generate_query(self,dates):
+        self._gene_part_queries(dates,self._mb_queries,"MB_static")
+        self._gene_part_queries(dates,self._rts_queries,"RTS_static")
+
+    def _gene_part_queries(self,dates,queries,prefix):
+        self._temp_query_builder.gene_normal_query(self._temp_query_para,
+                            queries,self._snippet_index_dir)
+        
+        self._oqf_builder.gene_normal_query(self._oqf,
+                            queries,self._snippet_index_dir,run_id=self._runid )
+
+        os.system("IndriRunQuery %s > %s" %(self._temp_query_para,self._orf))
+
+        os.system("axio_expansion -oqf=%s -output=%s -index_list=%s -orf=%s -beta=%f" 
+                  %(self._oqf,self._temp_output,self._index_list,
+                    self._orf,self._beta))
+
+        
+
+        for date in dates:
+            output_file = os.path.join(self._dest_query_dir,"%s_%s" %(prefix,date) )
+
+            date_index_dir = os.path.join(self._index_dir,date)
+
+            date_clarity_query_file = os.path.join(self._clarity_query_dir,"static_%s"%date)
+            cf = open(date_clarity_query_file,"a")
+
+            with open(output_file,'w') as of:
+                print "write to %s\n" %output_file,
+                with open(self._temp_output) as f:
+
+                    text_finder = re.compile("<text>(.+?)</text>")
+                    qid_finder = re.compile("<number>")
+                    index_finder = re.compile("<index>(.+?)</index>")
+                    query_words_finder = re.compile("<text>#weight\((.+?)\)</text>")
+                    qid = ""
+                    for line in f:
+                        found_expanding_tag = re.search("(<beta>)|(<index_list>)|(<oqf>)|(<orf>)|(<output>)",line)
+                        #remove expanding tag generated by axiomatic expanding code    
+                        
+                        if found_expanding_tag is not None:
+                            #print "skip line:",line
+                            continue
+
+
+                        else:
+                            #add MB prefix back
+                            if qid_finder.search(line):
+                                m = re.search("<number>(\d+)",line)
+                                qid = m.group(1)
+                                #line = qid_finder.sub("<number>MB",line)
+                                line = "<number>%s</number>\n" %(self._query_mapping[qid])               
+                              
+                            elif index_finder.search(line):
+                                line = "<index>%s</index>\n"%date_index_dir
+
+                            elif query_words_finder.search(line):
+                                m = query_words_finder.search(line)
+                                query_words = m.group(1)
+                                all_words = re.findall("(?<=\s)[a-zA-z]+(?=\s)",query_words)
+                                cf.write("%s:%s\n" %(self._query_mapping[qid]," ".join(all_words)))
+                                # if not re.search("\w",query_words):
+                                #     line = "<text>%s</text>\n" %(self._queries[qid])
+
+                            of.write(line)
+            cf.close()
+
+
+class DynamicPreparator(Preparator):
+    """class used for snippet expansion data
+    crawling and query generation
+    """
+    def __init__(self,dest_query_dir,index_dir,runid,snippets_dir,beta,crawl_limit,queries,clarity_query_dir):
+        super(DynamicPreparator,self).__init__(dest_query_dir,index_dir,runid,crawl_limit,clarity_query_dir)
+        self._snippets_dir,self._beta = snippets_dir,beta
+        self._queries = {}
+        
+        queries = self._process_original_qid(queries)
+        for qid in queries:
+            q_string = queries[qid]    
+            self._queries[qid] = q_string
+        
+        self._setup()
+
+        
+
+    def _setup(self):
+        """set up the paths
+        """
+        self._raw_top_dir = os.path.join(self._snippets_dir,"raw","dynamic")
+        if not os.path.exists(self._raw_top_dir):
+            os.mkdir(self._raw_top_dir)
+
+        self._trec_top_dir = os.path.join(self._snippets_dir,"trec","dynamic")
+        if not os.path.exists(self._trec_top_dir):
+            os.mkdir(self._trec_top_dir)
+
+        self._temp_top_dir = os.path.join(self._snippets_dir,"temp","dynamic")
+        if not os.path.exists(self._temp_top_dir):
+            os.mkdir(self._temp_top_dir)
+
+        self._snippet_result_top_dir = os.path.join(self._snippets_dir,"result","dynamic")
+        if not os.path.exists(self._snippet_result_top_dir):
+            os.mkdir(self._snippet_result_top_dir)
+
+        self._snippet_index_top_dir = os.path.join(self._snippets_dir,"index","dynamic")
+        if not os.path.exists(self._snippet_index_top_dir):
+            os.mkdir(self._snippet_index_top_dir)
+
+        self._para_top_dir = os.path.join(self._snippets_dir,"para","dynamic")
+        if not os.path.exists(self._para_top_dir):
+            os.mkdir(self._para_top_dir)
+
+
+        
+
+
+    def _setup_date(self,date):
+
+        self._raw_dir = os.path.join(self._raw_top_dir,date)
+        if not os.path.exists(self._raw_dir):
+            os.mkdir(self._raw_dir)
+
+        self._trec_dir = os.path.join(self._trec_top_dir,date)
+        if not os.path.exists(self._trec_dir):
+            os.mkdir(self._trec_dir)
+
+        self._temp_dir = os.path.join(self._temp_top_dir,date)
+        if not os.path.exists(self._temp_dir):
+            os.mkdir(self._temp_dir)
+
+        self._snippet_result_dir = os.path.join(self._snippet_result_top_dir,date)
+        if not os.path.exists(self._snippet_result_dir):
+            os.mkdir(self._snippet_result_dir)
+
+        self._snippet_index_dir = os.path.join(self._snippet_index_top_dir,date)
+        if not os.path.exists(self._snippet_index_dir):
+            os.mkdir(self._snippet_index_dir)
+
+        self._para_dir = os.path.join(self._para_top_dir,date)
+        if not os.path.exists(self._para_dir):
+            os.mkdir(self._para_dir)
+
+
+        self._index_para = os.path.join(self._para_dir,"index_para")
+
+        self._temp_query_para = os.path.join(self._para_dir,"temp_query_para")
+
+        self._index_list = os.path.join(self._para_dir,"index_list")
+        
+        self._orf = os.path.join(self._snippet_result_dir,"orf")
+
+        self._oqf = os.path.join(self._temp_dir,"oqf")
+        
+        self._temp_output = os.path.join(self._temp_dir,"temp_output")
+
+        with open(self._index_list,"w") as f:
+            f.write(self._snippet_index_dir+"\n")
+
+        self._temp_query_builder = IndriQueryFactory(count=10000,
+                                    rule=self._retrieval_method)
+
+        self._oqf_builder = IndriQueryFactory(count=10,
+                            rule=self._retrieval_method)
+
+
+    def prepare(self,date):
+        self._setup_date(date)
+
+
+            
+        for qid in self._queries:
+            q_string = self._queries[qid]
+            snippets_crawler(qid,q_string,self._raw_dir,self._crawl_limit).start_crawl()
+            create_snippet_single_trec_file(self._raw_dir,self._trec_dir,qid)
+
+        self._build_snippet_index()
 
         self._generate_query(date)
 
@@ -189,6 +376,8 @@ class SnippetPreparator(Preparator):
         self._query_mapping = {}
 
         for original_qid in original_queries:
+            if "MB" in original_qid:
+                continue
             q_data = original_queries[original_qid]
             m = re.search("^([a-zA-Z]+)?(\d+)$",original_qid)
             if m is not None:
@@ -202,10 +391,17 @@ class SnippetPreparator(Preparator):
         return processed_queries
 
     def _generate_query(self,date):
+        output_file = os.path.join(self._dest_query_dir,"RTS_dynamic_%s" %( date) )
+
+        date_index_dir = os.path.join(self._index_dir,date)
+
+        date_clarity_query_file = os.path.join(self._clarity_query_dir,"dynamic_%s" %date)
+
+
+
         self._temp_query_builder.gene_normal_query(self._temp_query_para,
                             self._queries,self._snippet_index_dir)
         
-        date_index_dir = os.path.join(self._index_dir,date)
         self._oqf_builder.gene_normal_query(self._oqf,
                             self._queries,date_index_dir,run_id=self._runid )
 
@@ -215,8 +411,18 @@ class SnippetPreparator(Preparator):
                   %(self._oqf,self._temp_output,self._index_list,
                     self._orf,self._beta))
 
-        output_file = os.path.join(self._dest_query_dir,"snippet_%s" %(date) )
+        
 
+        
+        cf = open(date_clarity_query_file,"w")
+
+        #add the queries from static clarity query file first
+        static_clarity_query_file = os.path.join(self._clarity_query_dir,"static_%s" %date)
+        with open(static_clarity_query_file) as f:
+            for line in f:
+                m = re.search("^MB",line)
+                if m:
+                    cf.write(line)
 
         with open(output_file,'w') as of:
             print "write to %s" %output_file,
@@ -250,10 +456,13 @@ class SnippetPreparator(Preparator):
                         elif query_words_finder.search(line):
                             m = query_words_finder.search(line)
                             query_words = m.group(1)
-                            if not re.search("\w",query_words):
-                                line = "<text>%s</text>\n" %(self._queries[qid])
+                            all_words = re.findall("(?<=\s)[a-zA-z]+(?=\s)",query_words)
+                            cf.write("%s:%s\n" %(self._query_mapping[qid]," ".join(all_words)))
+                            # if not re.search("\w",query_words):
+                            #     line = "<text>%s</text>\n" %(self._queries[qid])
 
                         of.write(line)
+        cf.close()    
 
 
 def prepare_snippet(qid,snippets_dir):
@@ -271,8 +480,9 @@ def main():
     parser.add_argument(
         "--communication_dir","-cr",
         default="/infolab/headnode2/lukuang/2016-rts/data/communication")
-    parser.add_argument("--index_dir","-ir")
-    parser.add_argument("--query_dir","-qr")
+    parser.add_argument("--index_dir","-ir",default="/infolab/headnode2/lukuang/2016-rts/data/index")
+    parser.add_argument("--query_dir","-qr",default="/infolab/headnode2/lukuang/2016-rts/data/queries")
+    parser.add_argument("--clarity_query_dir","-cqr",default="/infolab/headnode2/lukuang/2016-rts/data/clarity_queries")
     parser.add_argument("--beta","-b",type=float,default=2.4)
     # parser.add_argument(
     #     "--trec_tex_dir","-tr",
@@ -292,17 +502,16 @@ def main():
     args=parser.parse_args()
 
     #prepare communication 
-    basic_file = os.path.join(args.communication_dir,"basic")
-    run_name_file = os.path.join(args.communication_dir,"runs")
+    # basic_file = os.path.join(args.communication_dir,"basic")
+    # run_name_file = os.path.join(args.communication_dir,"runs")
     topic_file = os.path.join(args.communication_dir,"topics")
 
-    runs = [
-        "UDInfoORI",
-        "UDInfoSNI"
-    ]
+    # runs = [
+    #     "UDInfoSPP"
+    # ]
 
-    communicator = BrokerCommunicator(basic_file,
-                        run_name_file,topic_file)
+    # communicator = BrokerCommunicator(basic_file,
+    #                     run_name_file,topic_file)
     
     # prepare warning log
     logger = logging.getLogger('prepareLogger')
@@ -319,45 +528,53 @@ def main():
 
 
     print "Start at %s" %now()
-    print "register runs:"
-    for name in runs:
-        communicator.register_run(name)
+    # print "register runs:"
+    # for name in runs:
+    #     communicator.register_run(name)
 
 
     print "initialize preparator"
-    original_preparator = OriginalPreparator(args.query_dir,args.index_dir,"UDInfoORI")
-    snippet_preparator = SnippetPreparator(args.query_dir,args.index_dir,
-                                              "UDInfoSNI",args.snippets_dir,args.beta)
+    
 
-    old_topics = {}
+    queries = {}
+    #communicator.poll_topics()
+    topics = json.load(open(topic_file))
+    for a_topic in topics:
+        qid = a_topic["topid"]
+        q_string = a_topic['title']
+        q_string = re.sub("\&"," ",q_string)
+        
+        queries[qid] = q_string
 
+    static_preparator = StaticPreparator(args.query_dir,args.index_dir,
+                                              "UDInfoSPP",args.snippets_dir,args.beta,100,
+                                              args.clarity_query_dir)
+
+    dynamic_preparator = DynamicPreparator(args.query_dir,args.index_dir,
+                                              "UDInfoDFP",args.snippets_dir,args.beta,20,
+                                              queries,args.clarity_query_dir)
+
+    date = str(time.gmtime().tm_mday)
+    dates = ["31",'1','2','3','4','5','6','7','8','9','10','11']
+    dates.append(date)
+    static_preparator.prepare(queries,dates)
+    
     while True:
-        try:
-            new_queries = {}
-            communicator.poll_topics()
-            topics = communicator.topics
-            for a_topic in topics:
-                qid = a_topic["topid"]
-                q_string = a_topic['title']
-                q_string = re.sub("\&"," ",q_string)
-                if qid not in old_topics:
-                    new_queries[qid] = q_string
-                    old_topics[qid] = q_string
+        #try:
+        date = str(time.gmtime().tm_mday)
 
-
-            date = str(time.gmtime().tm_mday)
-            original_preparator.prepare(new_queries,date)
-            snippet_preparator.prepare(new_queries,date)
+        dynamic_preparator.prepare(date)
+            
             
 
 
 
-            total_secs = need_wait()    
-            time.sleep(total_secs)
-        except Exception as ex:
-            print type(ex)
-            now_time = now()
-            logger.warn("%s: %s\n" %(now_time,str(ex)) )
+        total_secs = need_wait()    
+        time.sleep(total_secs)
+        # except Exception as ex:
+        #     print type(ex)
+        #     now_time = now()
+        #     logger.warn("%s: %s\n" %(now_time,str(ex)) )
 
         
 
