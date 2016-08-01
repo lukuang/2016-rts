@@ -15,5 +15,6 @@ my_code/distribution/indri_code/get_statistics
 my_code/distribution/query_prediction/clarity/*
 !my_code/distribution/query_prediction/clarity/*.cpp
 data/
+*_coeff
 #!get_condidate_query.cpp
 #!show_clarity.cpp
