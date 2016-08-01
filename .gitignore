@@ -14,6 +14,7 @@ my_code/distribution/indri_code/Makefile.app
 my_code/distribution/indri_code/get_statistics
 my_code/distribution/query_prediction/clarity/*
 !my_code/distribution/query_prediction/clarity/*.cpp
+my_code/distribution/query_prediction/threshold/results/
 data/
 *_coeff
 #!get_condidate_query.cpp
