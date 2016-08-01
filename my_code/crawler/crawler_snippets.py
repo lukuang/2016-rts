@@ -350,10 +350,12 @@ class snippets_crawler():
 
   
     def start_crawl(self):
-        print 'Crawl Query %s: %s' %(self.query_id,self.query)
         if not self.need:
-            print "already crawled, go next!"
+            pass
+            #print "already crawled, go next!"
         else:
+            print 'Crawl Query %s: %s' %(self.query_id,self.query)
+
             self.google_crawl()
             self.yahoo_crawl()
             self.bing_crawl()
