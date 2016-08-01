@@ -144,12 +144,13 @@ def generate_new_results(temp_result_dir,
                 threshold[next_date][qid] = coeff[0]*clarities[date][qid]
                 threshold[next_date][qid] += coeff[1]*scores[date][qid][0]
                 #for i in range(len(scores[date][qid])):
-                for i in range(len(scores[date][qid])-1):
+                for i in range(limit-1):
                     try:
                         threshold[next_date][qid] += coeff[i+2]*(scores[date][qid][i+1]-scores[date][qid][i])
                     except IndexError:
                         print i,len(coeff),len(scores[date][qid])
                         sys.exit(0)
+                        
             else:   
                 threshold[next_date][qid] = coeff[0]*clarities[date][qid]
                 #for i in range(len(scores[date][qid])):
@@ -159,6 +160,7 @@ def generate_new_results(temp_result_dir,
                     except IndexError:
                         print i,len(coeff),len(scores[date][qid])
                         sys.exit(0)
+                        
 
 
         for qid in num_return[date]:
