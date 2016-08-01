@@ -7,6 +7,7 @@ twitter-tools
 *.log
 auth_info/
 topics
+show_clarity
 histogram/
 *.png
 additional_data/
