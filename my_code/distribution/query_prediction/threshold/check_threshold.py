@@ -73,7 +73,8 @@ def compute_clarity(show_clarity_file,index_dir,original_query_file):
 
 def generate_new_results(temp_result_dir,
                          original_result_dir,
-                         clarities,coeff,judged_qids,limit):
+                         clarities,coeff,judged_qids,limit,
+                         use_diff):
     
     first = True
     threshold = {}
@@ -139,14 +140,26 @@ def generate_new_results(temp_result_dir,
 
                         
         for qid in scores[date]:
-            threshold[next_date][qid] = coeff[0]*clarities[date][qid]
-            #for i in range(len(scores[date][qid])):
-            for i in range(len(coeff)-1):
-                try:
-                    threshold[next_date][qid] += coeff[i+1]*scores[date][qid][i]
-                except IndexError:
-                    print i,len(coeff),len(scores[date][qid])
-                    sys.exit(0)
+            if use_diff:
+                threshold[next_date][qid] = coeff[0]*clarities[date][qid]
+                threshold[next_date][qid] += coeff[1]*scores[date][qid][0]
+                #for i in range(len(scores[date][qid])):
+                for i in range(len(scores[date][qid])-1):
+                    try:
+                        threshold[next_date][qid] += coeff[i+2]*(scores[date][qid][i+1]-scores[date][qid][i])
+                    except IndexError:
+                        print i,len(coeff),len(scores[date][qid])
+                        sys.exit(0)
+            else:   
+                threshold[next_date][qid] = coeff[0]*clarities[date][qid]
+                #for i in range(len(scores[date][qid])):
+                for i in range(len(coeff)-1):
+                    try:
+                        threshold[next_date][qid] += coeff[i+1]*scores[date][qid][i]
+                    except IndexError:
+                        print i,len(coeff),len(scores[date][qid])
+                        sys.exit(0)
+
 
         for qid in num_return[date]:
             print "return %d for %s" %(num_return[date][qid],qid)
@@ -205,6 +218,7 @@ def main():
     parser.add_argument("--clarity_file","-clf")
     #parser.add_argument("--debug","-de",action='store_true')
     parser.add_argument("--limit","-lm",type=int,default=10)
+    parser.add_argument("--use_diff","-ud",action="store_true")
     parser.add_argument("--test","-t",action='store_true')
     #parser.add_argument("--performance_measure","-pms",default="P100")
     parser.add_argument("original_result_dir")
@@ -226,7 +240,8 @@ def main():
     temp_result,new_result = generate_new_results(
                                 args.temp_result_dir,
                                 args.original_result_dir,
-                                clarities,coeff,judged_qids,args.limit)
+                                clarities,coeff,judged_qids,args.limit,
+                                args.use_diff)
 
     print "compare performances"
     compare_new_results(qrels,temp_result,new_result)
