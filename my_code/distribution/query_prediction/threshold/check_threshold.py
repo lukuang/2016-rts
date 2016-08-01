@@ -18,7 +18,11 @@ def load_data(training_data_dir,qrel_file,test):
     qrels = Qrel(qrel_file)
     coeff = json.load(open(os.path.join(training_data_dir,"coeff")))
     if test:
-        judged_qids = json.load(open(os.path.join(training_data_dir,"query_ids")))
+        training_qids = json.load(open(os.path.join(training_data_dir,"query_ids")))
+        judged_qids = []
+        for qid in qrels.qids:
+            if qid not in training_qids:
+                judged_qids.append(qid)
     else:
         judged_qids = qrels.qids
     return judged_qids,qrels,coeff
@@ -69,16 +73,19 @@ def compute_clarity(show_clarity_file,index_dir,original_query_file):
 
 def generate_new_results(temp_result_dir,
                          original_result_dir,
-                         clarities,coeff):
+                         clarities,coeff,judged_qids,limit):
     
     first = True
     threshold = {}
     scores = {}
-    temp_result_file = os.path.join(temp_result_dir,"temp_result")
-    new_result_file = os.path.join(temp_result_dir,"new_resul")
-    print 
-    tf = open(temp_result_file, "w")
-    nf = open(new_result_file,"w")
+    temp_result = {} 
+    new_result = {}
+    num_return = {}
+    temp_result_file = os.path.join(temp_result_dir,'temp_result')
+    new_result_file = os.path.join(temp_result_dir,'new_result')
+
+    tf = open(temp_result_file,'w')
+    nf = open(new_result_file,'w')
 
     for date in sorted(os.walk(original_result_dir).next()[2]):
         
@@ -88,40 +95,69 @@ def generate_new_results(temp_result_dir,
         next_date = str(int(date)+1)
         threshold[next_date] = {}
         
+        num_return[date] = {}
 
         with open(date_result_file) as f:
             for line in f:
                 parts = line.split()
                 qid = parts[0]
-                if qid not in clarities[date]:
+                if qid not in judged_qids:
                     continue
                 else:
                     #print "good qid %s" %qid
                     #print "write %sto temp" %(line)
-                    tf.write(line)
+                    if qid not in temp_result:
+                        temp_result[qid] = []
+                        new_result[qid] = []
+                    
+                    if qid not in num_return[date]:
+                        num_return[date][qid] = 0
+
+
+                    docid = parts[2]
                     score = float(parts[4])
+                    temp_result[qid].append(docid)
+                    tf.write(line)
                     if qid not in scores[date]:
                         scores[date][qid] = []
+                    
                     scores[date][qid].append(score)
                     if first:
+                        if num_return[date][qid] == limit:
+                            continue
+                        new_result[qid].append(docid)
+
                         nf.write(line)
+                        num_return[date][qid] += 1
                     else:
                         if score > threshold[date][qid]:
+                            if num_return[date][qid]==limit:
+                                continue
+                            new_result[qid].append(docid)
                             nf.write(line)
+                            num_return[date][qid] += 1
 
                         
         for qid in scores[date]:
             threshold[next_date][qid] = coeff[0]*clarities[date][qid]
-            for i in range(len(scores[date][qid])):
-                threshold[next_date][qid] += coeff[i+1]*scores[date][qid][i]
+            #for i in range(len(scores[date][qid])):
+            for i in range(len(coeff)-1):
+                try:
+                    threshold[next_date][qid] += coeff[i+1]*scores[date][qid][i]
+                except IndexError:
+                    print i,len(coeff),len(scores[date][qid])
+                    sys.exit(0)
 
+        for qid in num_return[date]:
+            print "return %d for %s" %(num_return[date][qid],qid)
 
         
         first = False
 
     tf.close()
-    nf.close()
+    nf.close() 
 
+    return temp_result,new_result
 
 
 def get_real_perfromance(code_file,qrel_file,
@@ -149,24 +185,12 @@ def get_real_perfromance(code_file,qrel_file,
             break
     return real_perfromance
 
-def compare_new_results(code_file,qrel_file,
-                        temp_result_dir,
-                        performance_measure,debug):
+def compare_new_results(qrels,temp_result,new_result):
     
-    temp_result_file = os.path.join(temp_result_dir,"temp_result")
-    new_result_file = os.path.join(temp_result_dir,"new_resul")
-    temp_performance = get_real_perfromance(
-                            code_file,qrel_file,
-                            temp_result_file,
-                            performance_measure,debug)
+    
 
-    new_performance = get_real_perfromance(
-                            code_file,qrel_file,
-                            new_result_file,
-                            performance_measure,debug)
-
-    new_eval = sum(new_performance.values())*1.0/len(new_performance)
-    temp_eval = sum(temp_performance.values())*1.0/len(temp_performance)
+    new_eval = qrels.precision(new_result)
+    temp_eval = qrels.precision(temp_result)
     print "the performances are:"
     print "original: %f" %temp_eval
     print "new: %f" %new_eval
@@ -179,7 +203,8 @@ def main():
     parser.add_argument("--index_dir","-id",default="/infolab/node4/lukuang/2015-RTS/2015-data/collection/simulation/index/individual")
     parser.add_argument("--qrel_file","-qf",default="/infolab/node4/lukuang/2015-RTS/2015-data/new_qrels.txt")
     parser.add_argument("--clarity_file","-clf")
-    parser.add_argument("--debug","-de",action='store_true')
+    #parser.add_argument("--debug","-de",action='store_true')
+    parser.add_argument("--limit","-lm",type=int,default=10)
     parser.add_argument("--test","-t",action='store_true')
     #parser.add_argument("--performance_measure","-pms",default="P100")
     parser.add_argument("original_result_dir")
@@ -198,14 +223,13 @@ def main():
                             args.clarity_file)
 
     print "generate result files"
-    generate_new_results(args.temp_result_dir,
-                         args.original_result_dir,
-                         clarities,coeff)
+    temp_result,new_result = generate_new_results(
+                                args.temp_result_dir,
+                                args.original_result_dir,
+                                clarities,coeff,judged_qids,args.limit)
 
     print "compare performances"
-    compare_new_results(args.code_file,args.qrel_file,
-                        args.temp_result_dir,
-                        args.performance_measure,args.debug)
+    compare_new_results(qrels,temp_result,new_result)
     
     #real_perfromance = get_real_perfromance(args.code_file,args.qrel_file,args.temp_result_file,args.performance_measure,args.debug)
 

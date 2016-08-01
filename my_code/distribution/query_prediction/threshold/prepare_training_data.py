@@ -14,13 +14,20 @@ import subprocess
 from myUtility.misc import Stopword_Handler
 
 sys.path.append("/infolab/node4/lukuang/2015-RTS/src")
-from my_code.distribution.data import Qrel
+from my_code.distribution.data import Qrel,T2Day,SemaCluster
 
 
-def f_point_five(recall,precision):
+def get_f_point_five(recall,precision):
     if recall == .0:
         return .0
     return (0.5*0.5 + 1)*precision*recall / (0.5*0.5*precision + recall)
+
+def get_f1(recall,precision):
+    if recall == .0:
+        return .0
+    return 2.0*precision*recall / (precision + recall)
+
+
 
 def read_simple_queries(original_query_file,stopword_handler=None):
     simple_queries = {}
@@ -74,9 +81,28 @@ def compute_clarity(show_clarity_file,index_dir,original_query_file):
             break 
     return clarity
 
+def compute_performance(results,date,qrel,sema_cluster,performance_method):
+    precision = qrel.precision(results)
+    if precision <= 0.2:
+        return .0
+    if performance_method == "precision":
+        return precision
+    elif performance_method == "f0.5":
+        recall = sema_cluster.day_cluster_recall(results,date)
+        f_point_five = get_f_point_five(recall,precision)
+        return f_point_five
+    elif performance_method == "f1":
+        recall = sema_cluster.day_cluster_recall(results,date)
+        f1 = get_f1(recall,precision)
+        return f1
+    else:
+        raise NotImplementedError("The performance method %s is not implemented!"
+                %performance_method)
 
 
-def get_date_info(date_result_file,qrel,judged_qids,limit):
+def get_date_info(date_result_file,date,
+                  qrel,sema_cluster,judged_qids,
+                  limit,performance_method,use_diff):
     date_threshold = {}
     docids = {}
     date_score_list = {}
@@ -126,9 +152,9 @@ def get_date_info(date_result_file,qrel,judged_qids,limit):
                         else:
                             num_of_rel[qid].append(0)
                         
-    max_precision = {}
+    max_performance = {}
     for qid in docids:
-        max_precision[qid] = .0
+        max_performance[qid] = .0
         pos = 0
         for i in range(len(docids[qid])-1):
             score_now = date_score_list[qid][i]
@@ -138,29 +164,56 @@ def get_date_info(date_result_file,qrel,judged_qids,limit):
                     score_next -= 0.001
                 else:
                     continue
-            precision_now = num_of_rel[qid][i]*1.0/(i+1)
-            if precision_now >= max_precision[qid] and precision_now!=0:
+            #precision_now = num_of_rel[qid][i]*1.0/(i+1)
+            
+            temp_doc = {
+                qid: docids[qid][:i+1]
+            } 
+            performance_now = compute_performance(temp_doc,date,qrel,sema_cluster,performance_method)
+            # if performance_now != precision_now:
+            #     print "didnt agree for %s %s: %f, %f" %(date,qid,performance_now, precision_now)
+            #     sys.exit(0)
+            # else:
+            #     print "Good!"
+            if performance_now >= max_performance[qid] and performance_now!=0:
                 
-                max_precision[qid] = precision_now
+                max_performance[qid] = performance_now
                 
                 date_threshold[qid] = score_next
                 pos = i
         
-        if max_precision[qid] == .0:
+        if max_performance[qid] == .0:
             date_threshold[qid] =  date_score_list[qid][0]
             pos = 0
         print "pos is %d for query %s" %(pos,qid)
-                    
-                    
-    return date_threshold , date_score_list            
+    if use_diff:
+        score_diff = {}
+        for qid in date_score_list:
+            score_diff[qid] = []
+            score_diff[qid].append(date_score_list[qid][0])
+            for i in range(len(date_score_list[qid])-1):
+                score_now = date_score_list[qid][i]
+                score_next = date_score_list[qid][i+1]
+                score_diff[qid].append(score_next-score_now)
+
+        return date_threshold , score_diff           
+    else:                
+        return date_threshold , date_score_list            
 
 
-def get_features(result_dir,qrel,judged_qids,limit):
+def get_features(result_dir,qrel,sema_cluster,
+                 judged_qids,limit,performance_method,
+                 use_diff):
+
     thresholds = {}
     score_lists = {}
     for date in os.walk(result_dir).next()[2]:
         date_result_file = os.path.join(result_dir,date)
-        date_threshold,date_score_list = get_date_info(date_result_file,qrel,judged_qids,limit)
+        date_threshold,date_score_list = get_date_info(date_result_file,
+                                            date,qrel,sema_cluster,
+                                            judged_qids,limit,
+                                            performance_method,use_diff)
+
         thresholds[date] = date_threshold
         score_lists[date] = date_score_list
 
@@ -184,13 +237,16 @@ def write_to_disk(feature_vector,threshold_vector,dest_dir,judged_qids,test):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--code_file",'-cf',default="/infolab/node4/lukuang/2015-RTS/src/my_code/distribution/additional_data/trec_eval.8.1/trec_eval")
+    parser.add_argument("--cluster_file","-cf",default="/infolab/node4/lukuang/2015-RTS/2015-data/clusters-2015.json")
     parser.add_argument("--qrel_file","-qf",default="/infolab/node4/lukuang/2015-RTS/2015-data/new_qrels.txt")
     parser.add_argument("--show_clarity_file","-scf",default="/infolab/headnode2/lukuang/2016-rts/code/my_code/distribution/query_prediction/clarity/show_clarity")
     parser.add_argument("--index_dir","-id",default="/infolab/node4/lukuang/2015-RTS/2015-data/collection/simulation/index/individual")
+    parser.add_argument("--tweet2day_file","-tf",default="/infolab/node4/lukuang/2015-RTS/2015-data/tweet2dayepoch.txt")
     parser.add_argument("--no_stopwords","-ns",action='store_true')
     parser.add_argument("--test","-t",action='store_true')
     parser.add_argument("--limit","-lm",type=int,default=10)
+    parser.add_argument("--performance_method","-pm",choices=["precision","f0.5","f1"])
+    parser.add_argument("--use_diff","-ud",action="store_true")
     parser.add_argument("original_query_file")
     parser.add_argument("result_dir")
     parser.add_argument("dest_dir")
@@ -205,14 +261,19 @@ def main():
     #     else:
     #         simple_queries = read_simple_queries(args.original_query_file)
     
+    t2day = T2Day(args.tweet2day_file)
+    sema_cluster = SemaCluster(args.cluster_file,t2day)
     qrel = Qrel(args.qrel_file)
+    
+    
+
     judged_qids = qrel.qids
     if args.test:
-        import random
-        size = len(judged_qids)/2
+        # import random
+        # size = len(judged_qids)/2
 
-        judged_qids = random.sample(judged_qids,size)
-
+        # judged_qids = random.sample(judged_qids,size)
+        judged_qids = json.load(open("/infolab/node4/lukuang/2015-RTS/src/my_code/distribution/query_prediction/data/threshold/precision_oriented/query_ids"))
     print "get clarity for each query/index"
     clarities = get_clarity(args.show_clarity_file,
                             args.original_query_file,
@@ -220,7 +281,11 @@ def main():
     
     
     print "get score list and thresholds"
-    thresholds,score_lists = get_features(args.result_dir,qrel,judged_qids,args.limit)
+    thresholds,score_lists = get_features(args.result_dir,
+                                qrel,sema_cluster,
+                                judged_qids,args.limit,
+                                args.performance_method,
+                                args.use_diff)
 
     feature_vector = []
     threshold_vector = []
