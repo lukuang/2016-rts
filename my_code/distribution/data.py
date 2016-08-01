@@ -3,7 +3,8 @@ get some necessary data
 """
 from __future__ import division
 import collections
-import os
+import os,re
+import json
 
 DocScorePair  = collections.namedtuple('DocScorePair', ['scores', 'docids'])
 
@@ -74,6 +75,121 @@ class IndexStats(object):
                     continue
                 parts = line.split()
                 self.cf[parts[0]] = float(parts[1])
+
+
+class  T2Day(object):
+    """store t2day mapping for tweets 
+    """
+    def __init__(self,t2day_file):
+        self._t2day_file = t2day_file
+
+        self._read_t2day_file()
+
+
+    def _read_t2day_file(self):
+        self._t2day_map = {}
+        self._t2epoch_map = {}
+        with open(self._t2day_file) as f:
+            for line in f:
+                parts = line.split()
+                tid = parts[0]
+                day_info = parts[1] 
+                epoch_sec = parts[2] 
+                m = re.match("201507(\d+)",day_info)
+                if m:
+                    date = m.group(1)
+                    self._t2day_map[tid] = date
+                    self._t2epoch_map[tid] = epoch_sec
+                else:
+                    raise RuntimeError("mal t2day file line:\n%s",line)
+
+    def get_date(self,tid):
+        try:
+            return self._t2day_map[tid]
+        except KeyError:
+            return None
+
+    def get_epoch(self,tid):
+        try:
+            return self._t2epoch_map[tid]
+        except KeyError:
+            return None
+
+
+class SemaCluster(object):
+    """store semantic cluster
+    """
+    def __init__(self,cluster_file,t2day):
+        self._cluster_file = cluster_file
+
+        self._read_cluster_file(t2day)
+
+
+
+    def _read_cluster_file(self,t2day):
+        self._cluster = {}
+        self._day_cluster = {}
+        all_data = json.load(open(self._cluster_file))["topics"]
+        for qid in all_data:
+            self._cluster[qid] = {}
+            for i in range(len(all_data[qid]["clusters"])):
+                cluster_id = i
+                self._cluster[qid][cluster_id] = all_data[qid]["clusters"][i]
+                
+                for tid in all_data[qid]["clusters"][i]:
+                    date = t2day.get_date(tid)
+                    if date not in self._day_cluster:
+                        self._day_cluster[date] = {}
+                    if qid not in self._day_cluster[date]:
+                        self._day_cluster[date][qid] = {}
+                    if cluster_id not in self._day_cluster[date][qid]:
+                        self._day_cluster[date][qid][cluster_id] = []
+
+                    self._day_cluster[date][qid][cluster_id].append(tid)
+
+
+    def same_cluster(self,qid,docid1,docid2):
+        for cluster_id in self._cluster[qid]:
+            cluster = self._cluster[qid][cluster_id]
+            #print cluster,docid1,docid2
+            if (docid1 in cluster) and (docid2 in cluster):
+                return True
+        return False
+
+    def all_cluster_recall(self,results):
+        return self._compute_cluster_precision(
+                        results,self._cluster)
+
+    def day_cluster_recall(self,results,date):
+        return self._compute_cluster_recall(
+                        results,self._day_cluster[date])
+
+        
+
+    def _compute_cluster_recall(self,results,cluster_info):
+        cluster_covered = {}
+        cluster_recall = .0
+        for qid in results:
+            # if not cluster for this query, skip it
+            if qid not in cluster_info:
+                continue
+            if qid not in cluster_covered:
+                cluster_covered[qid] = set()
+            for tid in results[qid]:
+                #print "for tid: %s" %tid
+                for cluster_id in cluster_info[qid]:
+                    if  tid in cluster_info[qid][cluster_id]:
+                        #print "found tid in cluster %s" %cluster_id
+                        cluster_covered[qid].add(cluster_id)
+            try:
+                cluster_recall += len(cluster_covered[qid])*1.0/len(cluster_info[qid])
+            except ZeroDivisionError:
+                pass
+
+        return cluster_recall*1.0/len(results)
+
+    
+
 
 class Qrel(object):
     """class to store qrel info
