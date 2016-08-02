@@ -412,7 +412,7 @@ def generate_output(query_dir,result_dir,date,communicator,logger,runs,previous_
                         rejected[error_code] = 0
                     rejected[error_code] += 1
 
-        print "post %d tweets for run %s" %(len(posted_results[qid]),run_name)
+        print "post %d tweets for run %s" %(count,run_name)
         runs[run_name].store_posted_results(posted_results,date)
         if rejected:
             for e_code in rejected:
