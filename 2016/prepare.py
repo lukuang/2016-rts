@@ -120,7 +120,7 @@ class StaticPreparator(Preparator):
         self._temp_query_builder = IndriQueryFactory(count=10000,
                                     rule=self._retrieval_method)
 
-        self._oqf_builder = IndriQueryFactory(count=10,
+        self._oqf_builder = IndriQueryFactory(count=30,
                             rule=self._retrieval_method)
 
 
@@ -232,7 +232,7 @@ class StaticPreparator(Preparator):
                             elif query_words_finder.search(line):
                                 m = query_words_finder.search(line)
                                 query_words = m.group(1)
-                                all_words = re.findall("(?<=\s)[a-zA-z]+(?=\s)",query_words)
+                                all_words = re.findall("(?<=\s)[a-zA-z0-9]+(?=\s)",query_words)
                                 cf.write("%s:%s\n" %(self._query_mapping[qid]," ".join(all_words)))
                                 # if not re.search("\w",query_words):
                                 #     line = "<text>%s</text>\n" %(self._queries[qid])
@@ -335,7 +335,7 @@ class DynamicPreparator(Preparator):
         self._temp_query_builder = IndriQueryFactory(count=10000,
                                     rule=self._retrieval_method)
 
-        self._oqf_builder = IndriQueryFactory(count=10,
+        self._oqf_builder = IndriQueryFactory(count=30,
                             rule=self._retrieval_method)
 
 
