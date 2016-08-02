@@ -401,6 +401,10 @@ def generate_output(query_dir,result_dir,date,communicator,logger,runs,previous_
 
                     count += 1
                     posted_results[qid].append(tid)
+                    #stop posting tweets for a query if 10 tweets already
+                    #posted
+                    if len(posted_results[qid]) == 10:
+                        break
                 else:
                     error_code = status_code
                     if error_code not in rejected:
