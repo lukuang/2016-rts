@@ -111,7 +111,23 @@ class BrokerCommunicator(object):
                                 )
 
 
-    
+    def poll_submission_log(self,run_name):
+        #pull the submission log from the api
+        try:
+            clientid = self.runid_clientid[run_name]
+        except KeyError:
+            print "The run name %s is not registered" %(run_name)
+            return None
+        else:
+            submission_log_end_point = "%s/log/%s" %(self.base_end_point,
+                                                         clientid)
+            r = requests.get(submission_log_end_point)
+            if r.status_code == requests.codes.ok:
+                return r.json()
+
+
+
+
     @property
     def topics(self):
         return self._topics
