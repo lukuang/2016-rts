@@ -104,7 +104,7 @@ class Run(object):
         for qid in day_clarities:
             self._threshold[date][qid] = day_clarities[qid]*self._coeff[0]
             self._threshold[date][qid] += self._scores[date][qid][0]*self._coeff[1]
-            for i in range(len(self._scores[date][qid])-1):
+            for i in range(len(self._coeff)-2):
                 try:
                     self._threshold[date][qid] += self._coeff[i+2]*(self._scores[date][qid][i+1] - self._scores[date][qid][i]) 
                 except IndexError:
@@ -270,7 +270,7 @@ def check_file_time(hour_text_file,date):
 
     file_date,file_hour = get_day_hour_from_file_name(hour_text_file)
     #print file_date,date
-    if file_date == date:
+    if int(file_date) == int(date):
         return True
     return False
 
@@ -407,7 +407,7 @@ def generate_output(query_dir,result_dir,date,communicator,logger,runs,previous_
                         rejected[error_code] = 0
                     rejected[error_code] += 1
 
-        print "post %d tweets for run %s" %(count,run_name)
+        print "post %d tweets for run %s" %(len(posted_results[qid]),run_name)
         runs[run_name].store_posted_results(posted_results,date)
         if rejected:
             for e_code in rejected:
