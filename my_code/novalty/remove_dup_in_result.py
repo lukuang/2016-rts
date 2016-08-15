@@ -97,26 +97,47 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("src_file")
     parser.add_argument("dest_file")
+    parser.add_argument("--tweet_text_file","-ttf",default="/infolab/node4/lukuang/2015-RTS/2015-data/tweet_text_file")
     parser.add_argument("--debug","-de",action="store_true")
+    parser.add_argument("--senario_b","-b",action="store_true")
     parser.add_argument("--index_dir","-ir",default="/infolab/node4/lukuang/2015-RTS/2015-data/collection/simulation/index/incremental/29")
     args=parser.parse_args()
 
     previous_result_file = "./previous_result"
     previous_results = PreviousResults(previous_result_file,args.debug)
+    tweet_text_map = {}
+    if os.path.exists(args.tweet_text_file):
+        if os.stat(args.tweet_text_file).st_size!=0:
+            tweet_text_map = json.load(open(args.tweet_text_file))
+
     with open(args.dest_file,'w') as of:
         with open(args.src_file) as f:
             for line in f:
                 parts = line.split()
-                qid = parts[0]
-                tid = parts[1]
-                run_name = parts[3] 
-                tweet_text = get_text(args.index_dir,tid)
+                if args.senario_b:
+                    qid = parts[1]
+                    tid = parts[3]
+                    run_name = parts[6]
+                else:
+                    qid = parts[0]
+                    tid = parts[1]
+                    run_name = parts[3] 
+                try:
+                    tweet_text = tweet_text_map[tid]
+                except KeyError:
+                    print "need to fetch text for %s" %tid
+                    tweet_text = get_text(args.index_dir,tid)
+
+                    tweet_text_map[tid] = tweet_text
+
                 if tweet_text is None:
                     raise RuntimeError("the tweet id %s does not have text!" %tid)
                 else:
                     if not previous_results.is_redundant(tweet_text,run_name,qid):
                         of.write(line)
 
+    with open(args.tweet_text_file,"w") as f:
+        f.write(json.dumps(tweet_text_map))
 
 if __name__=="__main__":
     main()
