@@ -1,0 +1,4 @@
+threshold was the thresholding using clarity score, highest score,
+and the score differences between top tweets as features to determine
+thresholds. new_threshold is the thresholding used for senario B. 
+Language model differences are used as extrac features
