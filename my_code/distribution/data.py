@@ -5,6 +5,7 @@ from __future__ import division
 import collections
 import os,re
 import json
+import math
 
 DocScorePair  = collections.namedtuple('DocScorePair', ['scores', 'docids'])
 
@@ -147,6 +148,24 @@ class SemaCluster(object):
 
                     self._day_cluster[date][qid][cluster_id].append(tid)
 
+    @property
+    def cluster(self):
+        return self._cluster
+
+    @property
+    def day_cluster(self):
+        return self._day_cluster
+    
+    
+
+    def cluster_4_day_qid(self,day,qid):
+        """return a list of cluster_ids that occur
+        in this day for the qid
+        """
+        try:
+            return self._day_cluster[day][qid].keys()
+        except KeyError:
+            return []
 
     def same_cluster(self,qid,docid1,docid2):
         for cluster_id in self._cluster[qid]:
@@ -164,7 +183,11 @@ class SemaCluster(object):
         return self._compute_cluster_recall(
                         results,self._day_cluster[date])
 
-        
+    def get_cluster_id(self,qid,tid):
+        for cluster_id in self._cluster[qid]:
+            if tid in self._cluster[qid][cluster_id]:
+                return cluster_id
+        return None
 
     def _compute_cluster_recall(self,results,cluster_info):
         cluster_covered = {}
@@ -198,19 +221,33 @@ class Qrel(object):
     def __init__(self, qrel_file):
         self._judgement = {}
         self._qids = []
+        self._days = []
+        for i in range(20,30):
+            self._days.append(str(i))
+
+        self._qrels_dt = {}
         with open(qrel_file) as f:
             for line in f:
                 line = line.rstrip()
                 parts = line.split()
                 qid = parts[0]
                 docid = parts[2]
-                jud = parts[3]
-                jud = (jud != "0")
+                score = int(parts[3])
+                if score == -1:
+                    score = 0
+                else:
+                    if score == 3:
+                        score = 1
+                    elif score ==4:
+                        score = 2
+
+                jud = (score != 0)
                 if qid not in self._judgement:
                     self._judgement[qid] = {}
+                    self._qrels_dt[qid] = {}
                     self._qids.append(qid)
                 self._judgement[qid][docid] = jud
-
+                self._qrels_dt[qid][docid] = score*1.0/2
     
     def num_of_relevant(qid):
         return len(self._judgement[qid])
@@ -229,6 +266,90 @@ class Qrel(object):
 
     def f1(self,results):
         return self._compute_performance(results,"f1")
+
+
+    def ndcg10(self,results,sema_cluster):
+        existed_clusters = {}
+        total_score = .0
+        for day in self._days:
+            if day in results:
+                day_results = results[day]
+            else:
+                day_results = {}
+            total_score += self.day_dcg10(day,day_results,existed_clusters,sema_cluster)
+
+        return total_score *1.0/ len(self._days)
+
+
+    def day_dcg10_no_pre(self,day,day_results,sema_cluster):
+        #compute day ndcg while not considering results retrieved
+        #previously
+        existed_clusters = {}
+        return self.day_dcg10(day,day_results,existed_clusters,sema_cluster)
+
+    def day_dcg10(self,day,day_results,existed_clusters,sema_cluster):
+        limit = 10
+        result_size = {}
+        total_score = .0
+        for qid in self._qids:
+            if qid not in existed_clusters:
+                existed_clusters[qid] = set()
+            interesting = False
+            
+            max_gain_dt = {}
+            if qid in sema_cluster.day_cluster[day]:
+                for cluster_id in sema_cluster.day_cluster[day][qid]:
+                    if cluster_id not in existed_clusters[qid]:
+                        interesting = True
+                        max_gain_dt[cluster_id] = .0
+                        for tid in sema_cluster.day_cluster[day][qid][cluster_id]:
+                            max_gain_dt[cluster_id] = max(max_gain_dt[cluster_id],self._qrels_dt[qid][tid])
+    
+            if interesting:
+                if qid in day_results:
+                    ndcg = .0
+                    gains = []
+                    result_size[qid] = 0
+                    for tid in day_results[qid]:
+                        if result_size[qid] == limit:
+                            break
+                        gain = 0
+                        cluster_id = sema_cluster.get_cluster_id(qid,tid)
+                        if cluster_id:
+                            if cluster_id not in existed_clusters[qid]:
+                                existed_clusters[qid].add(cluster_id)
+                                gain = self._qrels_dt[qid][tid]
+                                if cluster_id in max_gain_dt:
+                                    gain = max_gain_dt[cluster_id]
+                        gains.append(gain)
+                        result_size[qid] += 1
+                    dcg = .0
+                    for i in range(len(gains)):
+                        gain  = gains[i]
+                        dcg += (pow(2, gain) - 1) * 1.0 / math.log(i + 2, 2)
+
+                    top_gains = max_gain_dt.values()
+                    top_gains.sort(reverse = True)
+                    rank_cut = min(len(top_gains), limit)
+                    idcg = 0.0
+                    top_gains = top_gains[:rank_cut]
+                    for i in range(rank_cut):
+                        gain = top_gains[i]
+                        idcg = idcg + (pow(2, gain) - 1) * 1.0 / math.log(i + 2, 2)
+                    
+                    if idcg != 0:
+                        ndcg = dcg / idcg
+                    
+                    total_score += ndcg
+            
+            else:
+                if qid not in day_results or len(day_results[qid]) == 0:
+                    total_score += 1
+
+        total_score = total_score*1.0/len(self._qids)
+        #if total_score!=0:
+        #    print "return %f" %total_score
+        return total_score
 
 
 
