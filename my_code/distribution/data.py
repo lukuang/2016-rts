@@ -291,7 +291,7 @@ class Qrel(object):
         limit = 10
         result_size = {}
         total_score = .0
-        for qid in self._qids:
+        for qid in day_results:
             if qid not in existed_clusters:
                 existed_clusters[qid] = set()
             interesting = False
@@ -315,7 +315,7 @@ class Qrel(object):
                             break
                         gain = 0
                         cluster_id = sema_cluster.get_cluster_id(qid,tid)
-                        if cluster_id:
+                        if cluster_id is not None:
                             if cluster_id not in existed_clusters[qid]:
                                 existed_clusters[qid].add(cluster_id)
                                 gain = self._qrels_dt[qid][tid]
@@ -339,14 +339,13 @@ class Qrel(object):
                     
                     if idcg != 0:
                         ndcg = dcg / idcg
-                    
                     total_score += ndcg
             
             else:
                 if qid not in day_results or len(day_results[qid]) == 0:
                     total_score += 1
 
-        total_score = total_score*1.0/len(self._qids)
+        total_score = total_score*1.0/len(day_results)
         #if total_score!=0:
         #    print "return %f" %total_score
         return total_score
