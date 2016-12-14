@@ -51,6 +51,8 @@ def read_simple_queries(original_query_file,stopword_handler=None):
 def get_clarity(show_clarity_file,original_query_file ,index_dir,judged_qids):
     clarities = {}
     for date in os.walk(index_dir).next()[1]:
+        if date == '19':
+            continue
         clarities[date] = {}
         date_index_dir = os.path.join(index_dir,date)
         date_clarity = compute_clarity(show_clarity_file,date_index_dir,original_query_file)
