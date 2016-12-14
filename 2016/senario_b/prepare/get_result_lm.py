@@ -79,7 +79,7 @@ def get_models(results,index_dir):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("result_dir")
-    parser.add_argument("--index_dir","-id",default="/infolab/headnode2/lukuang/2016-rts/data/full_index/")
+    parser.add_argument("--index_dir","-id",default="/infolab/headnode2/lukuang/2016-rts/data/incremental_index")
     parser.add_argument("--num_of_results","-n",type=int,default=100)
     parser.add_argument("--pattern","-p",default="(\d+)")
     parser.add_argument("dest_file")
