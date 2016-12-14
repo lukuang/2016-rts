@@ -1,0 +1,11 @@
+How to generate the coeff originally:
+
+Run A:
+
+python code/task_a/original_prepare_training_data.py -pm precision -ud ../../distribution/query_prediction/data/queries/for_clarity/snippet  ../../distribution/query_prediction/data/results/snippet/10 -clf ../../distribution/query_prediction/data/clarity  data/task_a/precision/training/
+
+Run B:
+
+python code/task_b/original_prepare_training_data.py ../../distribution/query_prediction/threshold_with_lm_difference/data/results/original/ ../../distribution/query_prediction/threshold_with_lm_difference/data/clarity/original/ data/task_b/models/no_lm_difference/training_data/
+
+python ../../../../../../2016/senario_b/threshold/check_threshold.py  ../../../../../../2016/senario_b/data/results/static/ ../../../../../../2016/senario_b/data/clarity/static/ ../models/no_lm_difference/trained_models/
