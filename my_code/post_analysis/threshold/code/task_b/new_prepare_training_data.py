@@ -50,8 +50,8 @@ def get_clarity(clarity_dir,judged_qids):
 def compute_performance(results,date,qrel,sema_cluster,
                         performance_method,existed_clusters):
     precision = qrel.precision(results)
-    if precision <= 0.2:
-        return .0
+    # if precision <= 0.2:
+    #     return .0
     if performance_method == "precision":
         return precision
     elif performance_method == "f0.5":
@@ -63,8 +63,8 @@ def compute_performance(results,date,qrel,sema_cluster,
         f1 = get_f1(recall,precision)
         return f1
     elif performance_method == "ndcg10":
-        ndcg10 = qrel.day_dcg10(date,results,existed_clusters,sema_cluster)
-
+        ndcg10 = qrel.day_dcg10_no_pre(date,results,sema_cluster)
+        return ndcg10
     else:
         raise NotImplementedError("The performance method %s is not implemented!"
                 %performance_method)
@@ -74,6 +74,7 @@ def get_date_info(date_result_file,date,
                   qrel,sema_cluster,judged_qids,
                   limit,performance_method,existed_clusters):
     date_threshold = {}
+    date_silent_qids = {}
     docids = {}
     date_score_list = {}
     num_of_docs = {}
@@ -150,6 +151,10 @@ def get_date_info(date_result_file,date,
                 qid: docids[qid][:i+1]
             } 
             performance_now = compute_performance(temp_doc,date,qrel,sema_cluster,performance_method,existed_clusters)
+            # if date == '20' and qid == 'MB324':
+            #     performance_now = compute_performance(temp_doc,date,qrel,sema_cluster,performance_method,existed_clusters)
+
+            #     print "performance now is %s" %performance_now
             # if performance_now != precision_now:
             #     print "didnt agree for %s %s: %f, %f" %(date,qid,performance_now, precision_now)
             #     sys.exit(0)
@@ -162,20 +167,29 @@ def get_date_info(date_result_file,date,
                 date_threshold[qid] = score_next
                 pos = i
         if max_performance[qid] == .0:
-            date_threshold[qid] =  date_score_list[qid][0]
+            date_threshold.pop(qid,None)
+            date_silent_qids[qid] = 0
             pos = -1
-        #print "pos is %d for query %s" %(pos,qid)
+        # else:
+        #     print "query %s is not silent!" %(qid)
+        print "pos is %d for query %s" %(pos,qid)
 
-    score_diff = {}
+    threshold_score_diff = {}
+    silent_score_diff = {}
     for qid in date_score_list:
-        score_diff[qid] = []
-        score_diff[qid].append(date_score_list[qid][0])
+        score_diff = []
+        score_diff.append(date_score_list[qid][0])
         for i in range(len(date_score_list[qid])-1):
             score_now = date_score_list[qid][i]
             score_next = date_score_list[qid][i+1]
-            score_diff[qid].append(score_next-score_now)
+            score_diff.append(score_next-score_now)
+        if qid in date_threshold:
+            threshold_score_diff[qid] = score_diff
+        else:
+            silent_score_diff[qid] = score_diff
 
-    return date_threshold , score_diff           
+
+    return date_threshold ,date_silent_qids, threshold_score_diff, silent_score_diff          
            
 
 
@@ -184,11 +198,14 @@ def get_features(result_dir,qrel,sema_cluster,
                  performance_method,days):
 
     thresholds = {}
-    score_lists = {}
+    silent_qids = {}
+    threshold_score_lists = {}
+    silent_score_lists = {}
     existed_clusters = {}
     for date in days:
         date_result_file = os.path.join(result_dir,date)
-        date_threshold,date_score_list = get_date_info(
+        date_threshold ,date_silent_qids, date_threshold_score_diff, date_silent_score_diff\
+                             = get_date_info(
                                             date_result_file,
                                             date,qrel,sema_cluster,
                                             judged_qids,limit,
@@ -196,9 +213,11 @@ def get_features(result_dir,qrel,sema_cluster,
                                             existed_clusters)
 
         thresholds[date] = date_threshold
-        score_lists[date] = date_score_list
+        silent_qids[date] = date_silent_qids
+        threshold_score_lists[date] = date_threshold_score_diff
+        silent_score_lists[date] = date_silent_score_diff
 
-    return thresholds,score_lists
+    return thresholds,silent_qids,threshold_score_lists,silent_score_lists
 
 def get_lm_differences(difference_files):
     difference_features = {}
@@ -214,13 +233,19 @@ def get_lm_differences(difference_files):
     return difference_features
 
 
-def write_to_disk(feature_vector,threshold_vector,dest_dir,judged_qids,test_qid_file):
-    with open(os.path.join(dest_dir,"features"),'w') as f:
-        f.write(json.dumps(feature_vector))
+def write_to_disk(silent_feature_vector,threshold_feature_vector,threshold_vector,silent_classification_vector,dest_dir,judged_qids,test_qid_file):
+    with open(os.path.join(dest_dir,"silent_feature_vector"),'w') as f:
+        f.write(json.dumps(silent_feature_vector))
 
+    with open(os.path.join(dest_dir,"threshold_feature_vector"),'w') as f:
+        f.write(json.dumps(threshold_feature_vector))
 
-    with open(os.path.join(dest_dir,"thresholds"),'w') as f:
+    with open(os.path.join(dest_dir,"threshold_vector"),'w') as f:
         f.write(json.dumps(threshold_vector))
+
+
+    with open(os.path.join(dest_dir,"silent_classification_vector"),'w') as f:
+        f.write(json.dumps(silent_classification_vector))
 
     if test_qid_file:
         with open(os.path.join(dest_dir,"query_ids"),'w') as f:
@@ -282,35 +307,48 @@ def main():
     
     
     print "get score features, thresholds"
-    thresholds,score_lists = get_features(args.result_dir,
-                                qrel,sema_cluster,
-                                judged_qids,args.limit,
-                                args.performance_method,days)
+    thresholds,silent_qids,threshold_score_lists,silent_score_lists\
+                = get_features(args.result_dir,
+                               qrel,sema_cluster,
+                               judged_qids,args.limit,
+                               args.performance_method,days)
 
     if args.difference_files:
         print "get language model difference fearures"
         difference_features = get_lm_differences(args.difference_files)
         #print difference_features
 
-    feature_vector = []
+    silent_feature_vector = []
+    threshold_feature_vector = []
     threshold_vector = []
+    silent_classification_vector = []
 
     for date in days:
         for qid in clarities[date]:
             single_feature_vector = []
             single_feature_vector.append(clarities[date][qid])
-            single_feature_vector += score_lists[date][qid]
+            if qid in silent_qids[date]:
+                single_feature_vector += silent_score_lists[date][qid]
+            else:
+                single_feature_vector += threshold_score_lists[date][qid]
             
             if args.difference_files:
                 try:
                     single_feature_vector += difference_features[qid][date]
                 except KeyError:
                     single_feature_vector += [.0]*len(args.difference_files)
-            feature_vector.append(single_feature_vector)
-            threshold_vector.append(thresholds[date][qid])
+
+            silent_feature_vector.append(single_feature_vector)
+            if qid in silent_qids[date]:
+                silent_classification_vector.append(1)
+            else:
+                silent_classification_vector.append(0)
+                threshold_feature_vector.append(single_feature_vector)
+                threshold_vector.append(thresholds[date][qid])
+
 
     print "write data"
-    write_to_disk(feature_vector,threshold_vector,args.dest_dir,judged_qids,args.test_qid_file)
+    write_to_disk(silent_feature_vector,threshold_feature_vector,threshold_vector,silent_classification_vector,args.dest_dir,judged_qids,args.test_qid_file)
 
 
 if __name__=="__main__":
