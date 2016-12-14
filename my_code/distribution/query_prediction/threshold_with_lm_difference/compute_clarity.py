@@ -37,7 +37,7 @@ def main():
     parser.add_argument("dest_dir")
     args=parser.parse_args()
 
-    for day in os.walk(args.clarity_query_dir).next()[2]:
+    for day in sorted(os.walk(args.clarity_query_dir).next()[2]):
         day_index_dir = os.path.join(args.top_index_dir,day)
         day_query_file = os.path.join(args.clarity_query_dir,day)
         day_clarity = compute_clarity(args.show_clarity_file,day_index_dir,day_query_file)       
