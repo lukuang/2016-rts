@@ -32,14 +32,17 @@ class BackGround(object):
 
     def get_smoothed_model(self,input_model):
         output_model = {}
-        for w in self._model:
-            try:
-                p = input_model[w]
-            except KeyError:
-                p = .0
-            output_model[w] = self._para_lambda*p\
-                                + (1-self._para_lambda)*self._model[w]
-        return output_model
+        if self._para_lambda == 1.0:
+            return input_model
+        else:
+            for w in self._model:
+                try:
+                    p = input_model[w]
+                except KeyError:
+                    p = .0
+                output_model[w] = self._para_lambda*p\
+                                    + (1-self._para_lambda)*self._model[w]
+            return output_model
 
     @property
     def model(self):
@@ -83,8 +86,13 @@ def load_models(model_file,background,measure):
     return models            
 
 
-def compute_differences(models,measure,background):
-    dates = range(2,12)
+def compute_differences(models,measure,background,year):
+    if year == 2016:
+        dates = range(2,12)
+    elif year == 2015:
+        dates = range(20,30)
+    else:
+        raise RuntimeError("incorrect year %d" %(year))
     differences = {}
     for qid in models.keys():
         print "process query %s" %qid
@@ -120,8 +128,13 @@ def compute_differences(models,measure,background):
         models.pop(qid,None) 
     return differences
 
-def compute_all_differences(models,measure,background):
-    dates = range(20,30)
+def compute_all_differences(models,measure,background,year):
+    if year == 2016:
+        dates = range(2,12)
+    elif year == 2015:
+        dates = range(20,30)
+    else:
+        raise RuntimeError("incorrect year %d" %(year))
     differences = {}
     for qid in models.keys():
         print "process query %s" %qid
@@ -171,6 +184,7 @@ def main():
     parser.add_argument("dest_file")
     parser.add_argument("background_file")
     parser.add_argument("--para_lambda","-p",type=float,default=0.4)
+    parser.add_argument("--year","-y",type=int,default=2016)
     parser.add_argument("--compute_all","-a",action="store_true",
                         help="if specified, compute difference between any two days")
     parser.add_argument("--measure","-m",
@@ -185,10 +199,10 @@ def main():
     models = load_models(args.model_file,background,args.measure)
 
     if args.compute_all:
-        differences = compute_all_differences(models,args.measure,background)
+        differences = compute_all_differences(models,args.measure,background,args.year)
 
     else:
-        differences = compute_differences(models,args.measure,background)
+        differences = compute_differences(models,args.measure,background,args.year)
 
     with open(args.dest_file,"w") as f:
         f.write(json.dumps(differences))
