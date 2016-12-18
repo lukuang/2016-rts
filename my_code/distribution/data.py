@@ -287,6 +287,58 @@ class Qrel(object):
         existed_clusters = {}
         return self.day_dcg10(day,day_results,existed_clusters,sema_cluster)
 
+    def raw_ndcg10(self,day,day_results,sema_cluster):
+        limit = 10
+        result_size = {}
+        total_score = .0
+        for qid in day_results:
+        
+            
+            top_gains = []
+            if qid in sema_cluster.day_cluster[day]:
+                for cluster_id in sema_cluster.day_cluster[day][qid]:
+                    for tid in sema_cluster.day_cluster[day][qid][cluster_id]:
+                        top_gains.append(self._qrels_dt[qid][tid])
+    
+            ndcg = .0
+            gains = []
+            result_size[qid] = 0
+            for tid in day_results[qid]:
+                if result_size[qid] == limit:
+                    break
+                gain = .0
+                cluster_id = sema_cluster.get_cluster_id(qid,tid)
+                if cluster_id is not None:
+                    gain = self._qrels_dt[qid][tid]
+                    
+                gains.append(gain)
+                result_size[qid] += 1
+
+            dcg = .0
+            for i in range(len(gains)):
+                gain  = gains[i]
+                dcg += (pow(2, gain) - 1) * 1.0 / math.log(i + 2, 2)
+
+            
+            top_gains.sort(reverse = True)
+            rank_cut = min(len(top_gains), limit)
+            idcg = 0.0
+            top_gains = top_gains[:rank_cut]
+            for i in range(rank_cut):
+                gain = top_gains[i]
+                idcg = idcg + (pow(2, gain) - 1) * 1.0 / math.log(i + 2, 2)
+            
+            if idcg != 0:
+                ndcg = dcg / idcg
+            total_score += ndcg
+            
+           
+
+        total_score = total_score*1.0/len(day_results)
+        #if total_score!=0:
+        #    print "return %f" %total_score
+        return total_score
+
     def day_dcg10(self,day,day_results,existed_clusters,sema_cluster):
         limit = 10
         result_size = {}
@@ -321,6 +373,7 @@ class Qrel(object):
                                 gain = self._qrels_dt[qid][tid]
                                 if cluster_id in max_gain_dt:
                                     gain = max_gain_dt[cluster_id]
+                        print "add gain %f for tid %s cid %s" %(gain,tid,cluster_id)
                         gains.append(gain)
                         result_size[qid] += 1
                     dcg = .0
