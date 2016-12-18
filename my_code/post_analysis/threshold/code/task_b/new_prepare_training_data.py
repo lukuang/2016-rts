@@ -64,8 +64,17 @@ def compute_performance(results,date,qrel,sema_cluster,
         return f1
     elif performance_method == "ndcg10":
         # ndcg10 = qrel.day_dcg10_no_pre(date,results,sema_cluster)
-        ndcg10 = qrel.raw_ndcg10(date,results,sema_cluster)
-        return ndcg10
+        raw_ndcg10 = qrel.raw_ndcg10(date,results,sema_cluster)
+        # if ndcg10 ==.0 or raw_ndcg10 == .0:
+        #     if ndcg10 != raw_ndcg10:
+        #         qid = results.keys()[0]
+        #         print "ndcg does not agree!"
+        #         print "ndcg10: %f, raw_ndcg10 %f" %(ndcg10,raw_ndcg10)
+        #         print "date %s, qid: %s" %(date,qid)
+        #         print sema_cluster._day_cluster[date][qid]
+        #         print results
+        #         sys.exit(-1)
+        return raw_ndcg10
     else:
         raise NotImplementedError("The performance method %s is not implemented!"
                 %performance_method)
@@ -134,18 +143,18 @@ def get_date_info(date_result_file,date,
         temp_doc = {
                 qid: []
         }
-        max_performance[qid] = compute_performance(temp_doc,date,qrel,sema_cluster,performance_method,existed_clusters)
+        max_performance[qid] = .0
         date_threshold[qid] = date_score_list[qid][0]
         #print "silent performance: %.04f" %(max_performance[qid])
         # result number != 0
-        for i in range(len(docids[qid])-1):
+        for i in range(len(docids[qid])):
             score_now = date_score_list[qid][i]
-            score_next = date_score_list[qid][i+1]
-            if score_next == score_now:
-                if i+1 == limit:
-                    score_next -= 0.001
-                else:
-                    continue
+            # score_next = date_score_list[qid][i+1]
+            # if score_next == score_now:
+            #     if i+1 == limit:
+            #         score_next -= 0.001
+            #     else:
+            #         continue
             #precision_now = num_of_rel[qid][i]*1.0/(i+1)
             
             temp_doc = {
@@ -165,12 +174,19 @@ def get_date_info(date_result_file,date,
 
                 max_performance[qid] = performance_now
                 
-                date_threshold[qid] = score_next
+                date_threshold[qid] = score_now
                 pos = i
         if max_performance[qid] == .0:
             date_threshold.pop(qid,None)
             date_silent_qids[qid] = 0
             pos = -1
+            if sema_cluster.day_cluster_recall({qid: docids[qid][:10]},date)!=0:
+                print "ndcg is 0 but recall is not!"
+                print "date %s, qid: %s" %(date,qid)
+                print sema_cluster._day_cluster[date][qid]
+                print docids[qid][:10]
+                print i
+                sys.exit(-1)
         # else:
         #     print "query %s is not silent!" %(qid)
         print "pos is %d for query %s" %(pos,qid)
