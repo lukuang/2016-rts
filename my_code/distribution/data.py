@@ -373,7 +373,7 @@ class Qrel(object):
                                 gain = self._qrels_dt[qid][tid]
                                 if cluster_id in max_gain_dt:
                                     gain = max_gain_dt[cluster_id]
-                        print "add gain %f for tid %s cid %s" %(gain,tid,cluster_id)
+                        #print "add gain %f for tid %s cid %s" %(gain,tid,cluster_id)
                         gains.append(gain)
                         result_size[qid] += 1
                     dcg = .0
