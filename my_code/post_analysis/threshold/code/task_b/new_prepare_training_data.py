@@ -63,7 +63,8 @@ def compute_performance(results,date,qrel,sema_cluster,
         f1 = get_f1(recall,precision)
         return f1
     elif performance_method == "ndcg10":
-        ndcg10 = qrel.day_dcg10_no_pre(date,results,sema_cluster)
+        # ndcg10 = qrel.day_dcg10_no_pre(date,results,sema_cluster)
+        ndcg10 = qrel.raw_ndcg10(date,results,sema_cluster)
         return ndcg10
     else:
         raise NotImplementedError("The performance method %s is not implemented!"
