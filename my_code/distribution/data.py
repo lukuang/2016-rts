@@ -120,14 +120,16 @@ class  T2Day(object):
 class SemaCluster(object):
     """store semantic cluster
     """
-    def __init__(self,cluster_file,t2day):
+    def __init__(self,cluster_file,t2day,is_16=False):
         self._cluster_file = cluster_file
+        if not is_16:
+            self._read_cluster_file_15(t2day)
+        else:
+            self._read_cluster_file_16(t2day)
 
-        self._read_cluster_file(t2day)
 
 
-
-    def _read_cluster_file(self,t2day):
+    def _read_cluster_file_15(self,t2day):
         self._cluster = {}
         self._day_cluster = {}
         all_data = json.load(open(self._cluster_file))["topics"]
@@ -147,6 +149,28 @@ class SemaCluster(object):
                         self._day_cluster[date][qid][cluster_id] = []
 
                     self._day_cluster[date][qid][cluster_id].append(tid)
+
+    def _read_cluster_file_16(self,t2day):
+        self._cluster = {}
+        self._day_cluster = {}
+        all_data = json.load(open(self._cluster_file))["topics"]
+        for qid in all_data:
+            self._cluster[qid] = {}
+            for cluster_id in all_data[qid]["clusters"]:
+                self._cluster[qid][cluster_id] = all_data[qid]["clusters"][cluster_id]
+                
+                for tid in all_data[qid]["clusters"][cluster_id]:
+                    date = t2day.get_date(tid)
+                    if date not in self._day_cluster:
+                        self._day_cluster[date] = {}
+                    if qid not in self._day_cluster[date]:
+                        self._day_cluster[date][qid] = {}
+                    if cluster_id not in self._day_cluster[date][qid]:
+                        self._day_cluster[date][qid][cluster_id] = []
+
+                    self._day_cluster[date][qid][cluster_id].append(tid)
+
+
 
     @property
     def cluster(self):
