@@ -427,7 +427,7 @@ class Qrel(object):
         #    print "return %f" %total_score
         return total_score
 
-    def check_redundant_day(self,qid,day,existed_clusters,sema_cluster):
+    def is_redundant_day(self,qid,day,existed_clusters,sema_cluster):
         """check whether a days is a redundant day
         based on the existed_clusters and semantic 
         cluster information
