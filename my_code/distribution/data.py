@@ -242,12 +242,16 @@ class Qrel(object):
     """class to store qrel info
     """
     
-    def __init__(self, qrel_file):
+    def __init__(self, qrel_file,is_16=False):
         self._judgement = {}
         self._qids = []
         self._days = []
-        for i in range(20,30):
-            self._days.append(str(i))
+        if is_16:
+            for i in range(2,12):
+                self._days.append(str(i))
+        else:
+            for i in range(20,30):
+                self._days.append(str(i))
 
         self._qrels_dt = {}
         with open(qrel_file) as f:
