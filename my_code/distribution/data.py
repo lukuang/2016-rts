@@ -403,6 +403,91 @@ class Qrel(object):
         #    print "return %f" %total_score
         return total_score
 
+    def check_redundant_day(self,qid,day,existed_clusters,sema_cluster):
+        """check whether a days is a redundant day
+        based on the existed_clusters and semantic 
+        cluster information
+        """
+        if qid not in sema_cluster.day_cluster[day]:
+            # if it is a silent day, it is not a redundant day
+            return False
+        else:
+            # if there is any cluster not covered previously,
+            # it is not a redundant day. Set interesting to True
+            for cluster_id in sema_cluster.day_cluster[day][qid]:
+                if cluster_id not in existed_clusters[qid]:
+                    return True
+
+            return False
+
+
+
+
+    def get_redundant_days(self,results,sema_cluster):
+        """get redundant day based on whether the
+        clusters in a day of a topic is covered 
+        by the result of previous dat
+        """
+        limit = 10
+        result_size = {}
+        redundant_days = {}
+        existed_clusters = {}
+        for day in results:
+            for qid in results[day]:
+                if qid not in existed_clusters:
+                    existed_clusters[qid] = set()
+                    redundant_days[qid] = set()
+
+                interesting = False
+                
+                if qid not in sema_cluster.day_cluster[day]:
+                    # if it is a silent day, it is not a redundant day
+                    continue
+                else:
+                    # if there is any cluster not covered previously,
+                    # it is not a redundant day. Set interesting to True
+                    for cluster_id in sema_cluster.day_cluster[day][qid]:
+                        if cluster_id not in existed_clusters[qid]:
+                            interesting = True
+                            break
+
+                    if not interesting:
+                        redundant_days[qid].add(day)
+
+                    else:
+                        # update existed_clusters from results
+                        result_size[qid] = 0
+                        for tid in results[day]:
+                            if result_size[qid] == limit:
+                                break
+                            cluster_id = sema_cluster.get_cluster_id(qid,tid)
+                            if cluster_id is not None:
+                                if cluster_id not in existed_clusters[qid]:
+                                    existed_clusters[qid].add(cluster_id)
+                    
+                            result_size[qid] += 1
+
+        return redundant_days
+                            
+
+    def get_irrelevant_days(self,results,sema_cluster):
+        """get all irrelevant days depending on
+        whether there are relevant tweets on the
+        day
+        """
+        limit = 10
+        irrelevant_days = {}
+        for day in sema_cluster.day_cluster:
+            for qid in sema_cluster.cluster:
+                if qid not in irrelevant_days:
+                    irrelevant_days[qid] = set()
+
+                
+                if qid not in sema_cluster.day_cluster[day]:
+                    irrelevant_days[qid].add(day)
+
+        return irrelevant_days
+
 
 
     def _compute_performance(self,results,method):
