@@ -81,22 +81,27 @@ class IndexStats(object):
 class  T2Day(object):
     """store t2day mapping for tweets 
     """
-    def __init__(self,t2day_file):
+    def __init__(self,t2day_file,is_16=False):
         self._t2day_file = t2day_file
 
-        self._read_t2day_file()
+        self._read_t2day_file(is_16)
 
 
-    def _read_t2day_file(self):
+    def _read_t2day_file(self,is_16):
         self._t2day_map = {}
         self._t2epoch_map = {}
+        if is_16:
+            date_finder = re.compile("201608(\d+)")
+        else:
+            date_finder = re.compile("201507(\d+)")
+
         with open(self._t2day_file) as f:
             for line in f:
                 parts = line.split()
                 tid = parts[0]
                 day_info = parts[1] 
                 epoch_sec = parts[2] 
-                m = re.match("201507(\d+)",day_info)
+                m = date_finder.match(day_info)
                 if m:
                     date = m.group(1)
                     self._t2day_map[tid] = date
@@ -208,6 +213,9 @@ class SemaCluster(object):
                         results,self._day_cluster[date])
 
     def get_cluster_id(self,qid,tid):
+        # for query without any relevant tweet, return None
+        if qid not in self._cluster:
+            return None
         for cluster_id in self._cluster[qid]:
             if tid in self._cluster[qid][cluster_id]:
                 return cluster_id
@@ -431,6 +439,42 @@ class Qrel(object):
         #    print "return %f" %total_score
         return total_score
 
+    def is_silent_day(self,qid,day,existed_clusters,sema_cluster,results):
+        """check whether a days is a silent day
+        based on the existed_clusters and semantic 
+        cluster information
+        """
+
+        # if it is a irrelevant day, it is a silent day
+        if self.is_irrelevant_day(qid,day,sema_cluster,results):
+            return True
+
+        else:
+            # if there is any cluster not covered previously,
+            # it is not a redundant day. 
+            for cluster_id in sema_cluster.day_cluster[day][qid]:
+                if qid not in existed_clusters:
+                    existed_clusters[qid] = set()
+                if cluster_id not in existed_clusters[qid]:
+
+                    return False
+            return True
+
+    def is_irrelevant_day(self,qid,day,sema_cluster,results):
+        """check whether a days is a irrelevant day
+        based on semantic cluster information of the day
+        """
+        if qid not in sema_cluster.day_cluster[day]:
+            #print "no cluster"
+            return True
+        elif self.recall(results) == .0:
+            #print "no relevant"
+
+            return True    
+        else:
+
+            return False
+
     def is_redundant_day(self,qid,day,existed_clusters,sema_cluster):
         """check whether a days is a redundant day
         based on the existed_clusters and semantic 
@@ -443,10 +487,12 @@ class Qrel(object):
             # if there is any cluster not covered previously,
             # it is not a redundant day. Set interesting to True
             for cluster_id in sema_cluster.day_cluster[day][qid]:
+                if qid not in existed_clusters:
+                    existed_clusters[qid] = set()
                 if cluster_id not in existed_clusters[qid]:
-                    return True
+                    return False
 
-            return False
+            return True
 
 
 
