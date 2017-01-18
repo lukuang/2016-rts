@@ -48,7 +48,7 @@ def get_clarity(clarity_dir,judged_qids):
 
 
 def compute_performance(results,date,qrel,sema_cluster,
-                        performance_method,existed_clusters):
+                        performance_method,existed_cluster):
     precision = qrel.precision(results)
     # if precision <= 0.2:
     #     return .0
@@ -80,9 +80,24 @@ def compute_performance(results,date,qrel,sema_cluster,
                 %performance_method)
 
 
+def update_existed_cluster(existed_cluster,sema_cluster,qid,returned_result):
+    """update the existed cluster
+    """
+    if qid not in existed_cluster:
+        existed_cluster[qid] = set()
+
+    for tid in returned_result:
+        cluster_id = sema_cluster.get_cluster_id(qid,tid)
+        if cluster_id is not None:
+            if cluster_id not in existed_cluster[qid]:
+                 existed_cluster[qid].add(cluster_id)
+
+
+
 def get_date_info(date_result_file,date,
                   qrel,sema_cluster,judged_qids,
-                  limit,performance_method,existed_clusters):
+                  limit,performance_method,existed_cluster,
+                  silent_day_choice):
     date_threshold = {}
     date_silent_qids = {}
     docids = {}
@@ -160,9 +175,9 @@ def get_date_info(date_result_file,date,
             temp_doc = {
                 qid: docids[qid][:i+1]
             } 
-            performance_now = compute_performance(temp_doc,date,qrel,sema_cluster,performance_method,existed_clusters)
+            performance_now = compute_performance(temp_doc,date,qrel,sema_cluster,performance_method,existed_cluster)
             # if date == '20' and qid == 'MB324':
-            #     performance_now = compute_performance(temp_doc,date,qrel,sema_cluster,performance_method,existed_clusters)
+            #     performance_now = compute_performance(temp_doc,date,qrel,sema_cluster,performance_method,existed_cluster)
 
             #     print "performance now is %s" %performance_now
             # if performance_now != precision_now:
@@ -176,19 +191,45 @@ def get_date_info(date_result_file,date,
                 
                 date_threshold[qid] = score_now
                 pos = i
-        if max_performance[qid] == .0:
+        # if max_performance[qid] == .0:
+        #     date_threshold.pop(qid,None)
+        #     date_silent_qids[qid] = 0
+        #     pos = -1
+        #     if sema_cluster.day_cluster_recall({qid: docids[qid][:10]},date)!=0:
+        #         print "ndcg is 0 but recall is not!"
+        #         print "date %s, qid: %s" %(date,qid)
+        #         print sema_cluster._day_cluster[date][qid]
+        #         print docids[qid][:10]
+        #         print i
+        #         sys.exit(-1)
+        # else:
+        #     print "query %s is not silent!" %(qid)
+        is_silent_day = False
+        if silent_day_choice == 0:
+            is_silent_day = qrel.is_irrelevant_day(qid,date,sema_cluster,{qid:docids[qid][:10]})
+            # if the initial result does not contain any relevant tweets
+            # it is still considered as a irrelevant day
+            is_silent_day = (is_silent_day or max_performance[qid] == .0)
+            
+        elif silent_day_choice == 1:
+            is_silent_day = qrel.is_redundant_day(qid,date,existed_cluster,sema_cluster)
+        elif silent_day_choice == 2:
+            is_silent_day = qrel.is_silent_day(qid,date,existed_cluster,sema_cluster,{qid:docids[qid][:10]})
+        else:
+            raise NotImplementedError("Did not implement %d silent day choice" %(silent_day_choice))
+            
+        if is_silent_day:
             date_threshold.pop(qid,None)
             date_silent_qids[qid] = 0
             pos = -1
-            if sema_cluster.day_cluster_recall({qid: docids[qid][:10]},date)!=0:
-                print "ndcg is 0 but recall is not!"
-                print "date %s, qid: %s" %(date,qid)
-                print sema_cluster._day_cluster[date][qid]
-                print docids[qid][:10]
-                print i
-                sys.exit(-1)
-        # else:
-        #     print "query %s is not silent!" %(qid)
+        
+        #update the existed_cluster
+        else:
+            #the result after thresholding
+            returned_result = docids[qid][:pos+1]
+            update_existed_cluster(existed_cluster,sema_cluster,qid,returned_result)
+
+        
         print "pos is %d for query %s" %(pos,qid)
 
     threshold_score_diff = {}
@@ -212,13 +253,14 @@ def get_date_info(date_result_file,date,
 
 def get_features(result_dir,qrel,sema_cluster,
                  judged_qids,limit,
-                 performance_method,days):
+                 performance_method,days,
+                 silent_day_choice):
 
     thresholds = {}
     silent_qids = {}
     threshold_score_lists = {}
     silent_score_lists = {}
-    existed_clusters = {}
+    existed_cluster = {}
     for date in days:
         date_result_file = os.path.join(result_dir,date)
         date_threshold ,date_silent_qids, date_threshold_score_diff, date_silent_score_diff\
@@ -227,7 +269,7 @@ def get_features(result_dir,qrel,sema_cluster,
                                             date,qrel,sema_cluster,
                                             judged_qids,limit,
                                             performance_method,
-                                            existed_clusters)
+                                            existed_cluster,silent_day_choice)
 
         thresholds[date] = date_threshold
         silent_qids[date] = date_silent_qids
@@ -279,8 +321,16 @@ def main():
     parser.add_argument("--index_dir","-id",default="/infolab/node4/lukuang/2015-RTS/2015-data/collection/simulation/index/individual")
     parser.add_argument("--tweet2day_file","-tf",default="/infolab/node4/lukuang/2015-RTS/2015-data/tweet2dayepoch.txt")
     parser.add_argument("--test_qid_file","-t",action="store_const",const="/infolab/node4/lukuang/2015-RTS/src/my_code/distribution/query_prediction/threshold_with_lm_difference/data/test_qids")
+    parser.add_argument("--use_days","-ud",action="store_true", help="use # of days to first day as a feature")
     parser.add_argument("--limit","-lm",type=int,default=10)
     parser.add_argument("--performance_method","-pm",choices=["precision","f0.5","f1","ndcg10"],default="ndcg10")
+    parser.add_argument("--silent_day_choice","-sc",choices=[0,1,2],type=int,
+            help="""
+                Choose what the classification should include:
+                    0: only irrelevant day
+                    1: only redundant day
+                    2: both
+            """)
     parser.add_argument("--difference_files","-df",nargs="*")
     parser.add_argument("result_dir")
     parser.add_argument("clarity_dir")
@@ -324,11 +374,13 @@ def main():
     
     
     print "get score features, thresholds"
+    print args.silent_day_choice
     thresholds,silent_qids,threshold_score_lists,silent_score_lists\
                 = get_features(args.result_dir,
                                qrel,sema_cluster,
                                judged_qids,args.limit,
-                               args.performance_method,days)
+                               args.performance_method,days,
+                               args.silent_day_choice)
 
     if args.difference_files:
         print "get language model difference fearures"
@@ -354,6 +406,10 @@ def main():
                     single_feature_vector += difference_features[qid][date]
                 except KeyError:
                     single_feature_vector += [.0]*len(args.difference_files)
+
+            if args.use_days:
+                days_to_first = int(date) - int(days[0])
+                single_feature_vector.append(days_to_first)
 
             silent_feature_vector.append(single_feature_vector)
             if qid in silent_qids[date]:
