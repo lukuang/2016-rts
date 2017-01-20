@@ -77,6 +77,7 @@ def test_accuracy(
     total_count = {}
     predicted = {}
     threshold = {}
+    
 
     for qid in silent_days:
         true_count[qid] = 0
@@ -92,7 +93,7 @@ def test_accuracy(
         threshold[date] = {}
         
         num_return[date] = {}
-
+        tids = {}
         
         with open(date_result_file) as f:
             for line in f:
@@ -102,8 +103,12 @@ def test_accuracy(
                 score = float(parts[4])
                  
                 if qid not in scores[date]:
+                    tids[qid] = []
                     scores[date][qid] = [] 
                 scores[date][qid].append(score)
+                now_tid = parts[2]
+                tids[qid].append(now_tid)
+
 
         for qid in scores[date]:
             #if a qid does not exists in qrels, ignore it
@@ -183,7 +188,7 @@ def test_accuracy(
 
         for qid in temp_result:
             if silent_day_choice == 0:
-                if qrel.is_irrelevant_day(qid,date.zfill(2),sema_cluster,{qid:temp_result[qid]}):
+                if qrel.is_irrelevant_day(qid,date.zfill(2),sema_cluster,{qid:tids[qid][:10]}):
                     total_count[qid] += 1
                     if predicted[date][qid]:
                         true_count[qid] += 1
@@ -196,12 +201,13 @@ def test_accuracy(
 
             elif silent_day_choice == 2:
                 total_count[qid] += 1
-                if qrel.is_silent_day(qid,date.zfill(2),existed_cluster,sema_cluster,{qid:temp_result[qid]}) == predicted[date][qid]:
+                if qrel.is_silent_day(qid,date.zfill(2),existed_cluster,sema_cluster,{qid:tids[qid][:10]}) == predicted[date][qid]:
                     true_count[qid] += 1
+                
 
             elif silent_day_choice == 3:
                 total_count[qid] += 1
-                if qrel.is_irrelevant_day(qid,date.zfill(2),sema_cluster,{qid:temp_result[qid]}):
+                if qrel.is_irrelevant_day(qid,date.zfill(2),sema_cluster,{qid:tids[qid][:10]}):
                     if predicted[date][qid]:
                         true_count[qid] += 1
                 else:
