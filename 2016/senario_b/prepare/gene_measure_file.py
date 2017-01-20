@@ -75,10 +75,11 @@ def load_models(model_file,background,measure):
     for qid in model_data:
         models[qid] = {}
         for day in model_data[qid]:
-            if measure == "kl-divergence" or measure == "cosine-dis":
-                day_model = background.get_smoothed_model(model_data[qid][day])
-            else:
-                day_model = model_data[qid][day]
+            # if measure == "kl-divergence" or measure == "cosine-dis":
+            #     day_model = background.get_smoothed_model(model_data[qid][day])
+            # else:
+            #     day_model = model_data[qid][day]
+            day_model = model_data[qid][day]
                 
             models[qid][day] = Model(True,need_stem=True,
                                      input_stemmed=True,
