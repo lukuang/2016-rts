@@ -147,8 +147,8 @@ def test_accuracy(
             predicted[date][qid] = False
 
             if clf.predict(X)[0] == 0:
-
-                threshold[date][qid] = regr.predict(X)[0]
+                threshold[date][qid] = -10000
+                # threshold[date][qid] = regr.predict(X)[0]
             else:
                 predicted[date][qid] = True
                 threshold[date][qid] = 10000
