@@ -145,7 +145,8 @@ def test_accuracy(
             X = [single_feature_vector]
 
             predicted[date][qid] = False
-            if clf.predict(X) != 0:
+
+            if clf.predict(X)[0] == 0:
 
                 threshold[date][qid] = regr.predict(X)[0]
             else:
@@ -203,10 +204,12 @@ def test_accuracy(
                 total_count[qid] += 1
                 if qrel.is_silent_day(qid,date.zfill(2),existed_cluster,sema_cluster,{qid:tids[qid][:10]}) == predicted[date][qid]:
                     true_count[qid] += 1
+
                 
 
             elif silent_day_choice == 3:
                 total_count[qid] += 1
+                
                 if qrel.is_irrelevant_day(qid,date.zfill(2),sema_cluster,{qid:tids[qid][:10]}):
                     if predicted[date][qid]:
                         true_count[qid] += 1
@@ -228,7 +231,7 @@ def test_accuracy(
         except ZeroDivisionError:
             q_accuracy = .0
             qid_count -= 1
-        #print "True count: %d, Total count: %d" %(true_count[qid], total_count[qid])
+        print "True count: %d, Total count: %d" %(true_count[qid], total_count[qid])
         print "for %s, accuracy is %f" %(qid, q_accuracy)
         accuracy += q_accuracy
     print qid_count

@@ -110,8 +110,8 @@ def generate_oracle_results(test_result_dir,
                         #single_feature_vector.append(.0)
             X = [single_feature_vector]
             if date not in silent_days[qid]:
-
-                threshold[date][qid] = regr.predict(X)[0]
+                threshold[date][qid] = -10000
+                #threshold[date][qid] = regr.predict(X)[0]
             else:
                 threshold[date][qid] = 10000
         
