@@ -292,7 +292,7 @@ def get_lm_differences(difference_files):
     
     return difference_features
 
-def load_silent_day(eval_dir,days,prefix):
+def load_silent_day(eval_dir,days,prefix,query_choice):
     silent_days = {}
     non_silent_days = {}
     tweet2day_dt = {}
@@ -325,6 +325,17 @@ def load_silent_day(eval_dir,days,prefix):
             if day_string not in non_silent_days[qid]:
                 silent_days[qid].append(date)
 
+    
+
+    if query_choice == 0:
+        for qid in silent_days.keys():
+            if "RTS" in qid:
+                silent_days.pop(qid,None)
+    elif query_choice == 1:
+        for qid in silent_days.keys():
+            if "MB" in qid:
+                silent_days.pop(qid,None)
+
     print "Show silent days:"
     print silent_days
     print "There are %d queries judged" %(len(silent_days))
@@ -349,6 +360,13 @@ def main():
                     2: both
                     3: only consider irrelevant day and include both negative/positive examples
             """)
+    parser.add_argument("--query_choice","-qc",choices=[0,1,2],type=int,default=2,
+            help="""
+                Choose what the queries should include:
+                    0: only old queries (2015)
+                    1: only new queries (2016)
+                    2: both
+            """)
     parser.add_argument("--use_days","-ud",action="store_true", help="use # of days to first day as a feature")
    
     parser.add_argument("--difference_files","-df",nargs="*")
@@ -370,7 +388,7 @@ def main():
 
     prefix = "201608"
     print "load silent days"
-    silent_days = load_silent_day(args.eval_dir,days,prefix)
+    silent_days = load_silent_day(args.eval_dir,days,prefix,args.query_choice)
 
     print "load cluster info"
     tweet2day_file = os.path.join(args.eval_dir,"rts2016-batch-tweets2dayepoch.txt")
