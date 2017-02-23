@@ -605,5 +605,9 @@ class Qrel(object):
     @property
     def qids(self):
         return self._qids
+
+    @property
+    def days(self):
+        return self._days
     
                 
