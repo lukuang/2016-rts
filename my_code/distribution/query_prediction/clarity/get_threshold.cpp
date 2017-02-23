@@ -76,10 +76,10 @@ int main(int argc, char** argv){
     r.close();
 
     /*compute the clarity threshold(higher than 80% of the single term queries)*/
-    int documents = 100;
-    int terms = 100;
+    int documents = 5;
+    int terms = 10;
     int maxGrams = 1;
-    string rmSmoothing = "method:jm,lambda,0.5";
+    string rmSmoothing = "method:f2exp,s:0.1";
     indri::api::QueryEnvironment environment;
     open_index(environment,rep_name);
     for(int i=0; i<candidate_terms.size();i++){

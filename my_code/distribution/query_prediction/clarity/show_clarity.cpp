@@ -68,10 +68,10 @@ int main(int argc, char** argv){
     map<string, float> clarity_map;
     vector<string> result;
     char* query_file =  argv[2];
-    int documents = 100;
-    int terms = 100;
+    int documents = 5;
+    int terms = 10;
     int maxGrams = 1;
-    string rmSmoothing = "method:jm,lambda,0.5";
+    string rmSmoothing = "method:f2exp,s:0.1";
     indri::api::QueryEnvironment environment;
     open_index(environment,rep_name);
     /*get terms with DF higher than 100*/
