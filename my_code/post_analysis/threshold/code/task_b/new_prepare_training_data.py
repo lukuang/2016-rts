@@ -324,7 +324,7 @@ def main():
     parser.add_argument("--use_days","-ud",action="store_true", help="use # of days to first day as a feature")
     parser.add_argument("--limit","-lm",type=int,default=10)
     parser.add_argument("--performance_method","-pm",choices=["precision","f0.5","f1","ndcg10"],default="ndcg10")
-    parser.add_argument("--silent_day_choice","-sc",choices=[0,1,2],type=int,
+    parser.add_argument("--silent_day_choice","-sc",choices=[0,1,2],type=int,default=0,
             help="""
                 Choose what the classification should include:
                     0: only irrelevant day
