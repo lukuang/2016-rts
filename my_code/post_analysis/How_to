@@ -6,6 +6,11 @@ python code/task_a/original_prepare_training_data.py -pm precision -ud ../../dis
 
 Run B:
 
-python code/task_b/original_prepare_training_data.py ../../distribution/query_prediction/threshold_with_lm_difference/data/results/original/ ../../distribution/query_prediction/threshold_with_lm_difference/data/clarity/original/ data/task_b/models/no_lm_difference/training_data/
+python code/task_b/new_prepare_training_data.py ../../distribution/query_prediction/threshold_with_lm_difference/data/results/original/ ../../distribution/query_prediction/threshold_with_lm_difference/data/clarity/original/ data/task_b/models/with_lm_difference/training_data/static/ -df ../../distribution/query_prediction/threshold_with_lm_difference/data/difference/result/original-set ../../distribution/query_prediction/threshold_with_lm_difference/data/difference/clarity/original
 
-python ../../../../../../2016/senario_b/threshold/check_threshold.py  ../../../../../../2016/senario_b/data/results/static/ ../../../../../../2016/senario_b/data/clarity/static/ ../models/no_lm_difference/trained_models/
+
+python code/task_b/new_check_threshold.py  ../../../2016/senario_b/data/reparsed/results/dynamic/ ../../../2016/senario_b/data/reparsed/clarity/dynamic/  data/task_b/models/with_lm_difference/trained_models/static/ data/task_b/output/reparsed/with_lm/dynamic/ -df ../../../2016/senario_b/data/reparsed/difference/results/dynamic/100-set ../../../2016/senario_b/data/reparsed/difference/clarity/dynamic/diff
+
+
+python code/task_b/generate_oracle_run.py ../../../2016/senario_b/data/reparsed/results/dynamic/ ../../../2016/senario_b/data/reparsed/clarity/dynamic/ data/task_b/raw_query/models/trained_model/no_lm/ data/task_b/output/reparsed/with_lm/dynamic/
+
