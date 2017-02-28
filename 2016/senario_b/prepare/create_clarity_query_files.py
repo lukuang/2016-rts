@@ -16,7 +16,7 @@ def get_query_words_by_day(query_dir):
     """
     query_words = {}
     qid_finder = re.compile("<number>([^<]+?)<")
-    query_words_finder1 = re.compile("<text>#weight\((.+?)\)</text>")
+    query_words_finder1 = re.compile("<text>(#weight\(.+?\))</text>")
     query_words_finder2 = re.compile("<text>(.+?)</text>")
     for day in os.walk(query_dir).next()[2]:
         query_file = os.path.join(query_dir,day)
@@ -35,8 +35,9 @@ def get_query_words_by_day(query_dir):
                     
                     m = query_words_finder1.search(line)
                     query_word_string = m.group(1)
-                    all_words = re.findall("(?<=\s)[a-zA-z]+(?=\s)",query_word_string)
-                    query_words[day][qid] = " ".join(all_words)
+                    # all_words = re.findall("(?<=\s)[a-zA-z]+(?=\s)",query_word_string)
+                    # query_words[day][qid] = " ".join(all_words)
+                    query_words[day][qid] = query_word_string
                     # if qid == "MB348" and day == "21":
                     #     print query_words[qid][day]
                     #     print len(query_words[qid][day])
