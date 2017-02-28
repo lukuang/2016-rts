@@ -107,6 +107,11 @@ def test_accuracy(
         "irr": {},
         "red": {}
     }
+    
+    class_num = {
+            "irr": 0,
+            "red": 0
+    }
  
     predicted = {}
     threshold = {}
@@ -219,9 +224,10 @@ def test_accuracy(
                     num_return[date][qid] += 1
                     temp_result[qid].append(tid)
 
-
+        
         for qid in temp_result:
             if qrel.is_irrelevant_day(qid,date.zfill(2),sema_cluster,{qid:tids[qid][:10]}):
+                class_num["irr"] += 1
                 if predicted[date][qid] == 1:
                     true_count["irr"][qid] += 1
                     true_count["all"][qid] += 1
@@ -231,6 +237,8 @@ def test_accuracy(
                     
 
             if qrel.is_redundant_day(qid,date.zfill(2),existed_cluster,sema_cluster):
+                class_num["red"] += 1
+                
                 if predicted[date][qid] == 2:
                     true_count["red"][qid] += 1
                     true_count["all"][qid] += 1
@@ -260,11 +268,13 @@ def test_accuracy(
             # print "True count: %d, Total count: %d" %(true_count[t][qid],len(days))
             # print "for %s, %s accuracy is %f" %(qid, t, q_accuracy)
             accuracy += q_accuracy *1.0 / len(silent_days)
-
+        # print "%d out of %d are %s" %(sum(true_count[t].values()),total_count,t)
         print "%s accuracy is %f" %(t, accuracy)
 
         print "-"*20
 
+    for t in class_num:
+        print "There are %d %s" %(class_num[t],t)
                         
 
 
@@ -339,6 +349,7 @@ def load_silent_day(eval_dir,days,prefix,query_choice):
     print "Show silent days:"
     print silent_days
     print "There are %d queries judged" %(len(silent_days))
+    print "In total there are %d silent days" %(sum([len(silent_days[x]) for x in silent_days]))
     print "-"*20
 
     return silent_days
