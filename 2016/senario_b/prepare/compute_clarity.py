@@ -12,7 +12,7 @@ import subprocess
 
 def compute_clarity(show_clarity_file,index_dir,original_query_file):
     clarity = {}
-    run_command = "%s %s %s" %(show_clarity_file,index_dir,original_query_file)
+    run_command = "%s -index=%s -query=%s -rule=\"method:f2exp,s:0.1\"" %(show_clarity_file,index_dir,original_query_file)
     #print "command being run:\n%s" %(run_command)
     p = subprocess.Popen(run_command,stdout=subprocess.PIPE,shell=True)
     

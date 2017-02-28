@@ -72,7 +72,9 @@ int main(int argc, char** argv){
     int documents = 5;
     int terms = 10;
     int maxGrams = 1;
-    string rmSmoothing = "method:f2exp,s:0.1";
+    string rule = "method:f2exp,s:0.1";
+
+    string rmSmoothing = "method:jm,lambda,0.5";
     indri::api::QueryEnvironment environment;
     open_index(environment,rep_name);
     /*get terms with DF higher than 100*/
