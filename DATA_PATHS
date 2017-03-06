@@ -1,0 +1,40 @@
+
+2015:
+    full index: /infolab/node4/lukuang/2015-RTS/2015-data/collection/simulation/index/incremental
+
+    individual index: /infolab/node4/lukuang/2015-RTS/2015-data/collection/simulation/index/individual
+
+    eval data: /infolab/node4/lukuang/2015-RTS/2015-data/
+
+    raw clarity queries: /infolab/headnode2/lukuang/2016-rts/code/my_code/post_analysis/data/2015/raw/clarity_queries
+
+    raw results: /infolab/headnode2/lukuang/2016-rts/code/my_code/post_analysis/data/2015/raw/results
+
+    raw differences: /infolab/headnode2/lukuang/2016-rts/code/my_code/post_analysis/data/2015/raw/difference
+
+    expanded clarity queries: /infolab/headnode2/lukuang/2016-rts/code/my_code/distribution/query_prediction/threshold_with_lm_difference/data/clarity_queries/original
+
+    expanded results: /infolab/headnode2/lukuang/2016-rts/code/my_code/distribution/query_prediction/threshold_with_lm_difference/data/results/original
+
+    expanded differences: /infolab/headnode2/lukuang/2016-rts/code/my_code/distribution/query_prediction/threshold_with_lm_difference/data/difference
+
+2016:
+    full index: /infolab/headnode2/lukuang/2016-rts/data/incremental_index
+
+    indiviual index: /infolab/headnode2/lukuang/2016-rts/data/full_index_reparsed
+
+    eval data: /infolab/node4/lukuang/2015-RTS/src/2016/eval
+
+    raw clarity queries: /infolab/headnode2/lukuang/2016-rts/code/my_code/post_analysis/data/2016/raw/clarity_queries
+
+    raw results: /infolab/headnode2/lukuang/2016-rts/code/my_code/post_analysis/data/2016/raw/results
+
+    raw differences: /infolab/headnode2/lukuang/2016-rts/code/my_code/post_analysis/data/2016/raw/difference
+
+    expanded clarity queries: /infolab/headnode2/lukuang/2016-rts/code/2016/senario_b/data/reparsed/clarity_queries
+
+    expanded results: /infolab/headnode2/lukuang/2016-rts/code/2016/senario_b/data/reparsed/results
+
+    expanded differences: /infolab/headnode2/lukuang/2016-rts/code/2016/senario_b/data/reparsed/difference
+
+
