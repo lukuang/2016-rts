@@ -21,3 +21,4 @@ data/
 #!get_condidate_query.cpp
 #!show_clarity.cpp
 regr
+get_average_idf
