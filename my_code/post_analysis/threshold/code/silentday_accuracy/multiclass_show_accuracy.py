@@ -265,8 +265,9 @@ def test_accuracy(
         for qid in true_count[t]:
             q_accuracy = true_count[t][qid]*1.0 / len(days)
         
-            # print "True count: %d, Total count: %d" %(true_count[t][qid],len(days))
-            # print "for %s, %s accuracy is %f" %(qid, t, q_accuracy)
+            if (t=="irr"):
+                print "True count: %d, Total count: %d" %(true_count[t][qid],len(days))
+                print "for %s, %s accuracy is %f" %(qid, t, q_accuracy)
             accuracy += q_accuracy *1.0 / len(silent_days)
         # print "%d out of %d are %s" %(sum(true_count[t].values()),total_count,t)
         print "%s accuracy is %f" %(t, accuracy)
