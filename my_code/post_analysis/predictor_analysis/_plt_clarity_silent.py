@@ -14,7 +14,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 sys.path.append("/infolab/node4/lukuang/2015-RTS/src")
-from my_code.distribution.data import Qrel,T2Day,SemaCluster
+from my_code.distribution.data import Qrel,T2Day,SemaCluster,Year
 
 
 def get_clarity(clarity_dir,days,judged_qids):
