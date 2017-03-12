@@ -6,6 +6,15 @@ import collections
 import os,re
 import json
 import math
+import datetime
+from enum import IntEnum, unique
+
+@unique
+class Year(IntEnum):
+    y2015 = 0
+    y2016 = 1
+    y2011 = 2
+
 
 DocScorePair  = collections.namedtuple('DocScorePair', ['scores', 'docids'])
 
@@ -81,26 +90,35 @@ class IndexStats(object):
 class  T2Day(object):
     """store t2day mapping for tweets 
     """
-    def __init__(self,t2day_file,is_16=False):
+    def __init__(self,t2day_file,year=Year.y2016):
         self._t2day_file = t2day_file
 
-        self._read_t2day_file(is_16)
+        self._read_t2day_file(year)
 
 
-    def _read_t2day_file(self,is_16):
+    def _read_t2day_file(self,year):
         self._t2day_map = {}
         self._t2epoch_map = {}
-        if is_16:
+        if year == Year.y2016:
             date_finder = re.compile("201608(\d+)")
-        else:
+        elif year == Year.y2015:
             date_finder = re.compile("201507(\d+)")
+        elif year == Year.y2011:
+            date_finder = re.compile("20110[12](\d+)")
+        else:
+            raise NotImplementedError("Year %s is not implemented" %(year.name))
 
         with open(self._t2day_file) as f:
             for line in f:
                 parts = line.split()
                 tid = parts[0]
                 day_info = parts[1] 
-                epoch_sec = parts[2] 
+                try:
+                    epoch_sec = parts[2]
+                # if cannot find the epoch, it is 2011 data and
+                # give epoch as None
+                except IndexError:
+                    epoch_sec = None
                 m = date_finder.match(day_info)
                 if m:
                     date = m.group(1)
@@ -122,15 +140,95 @@ class  T2Day(object):
             return None
 
 
+def daterange(start_date, end_date):
+    for n in range(int ((end_date - start_date).days)):
+        yield start_date + datetime.timedelta(n)
+
+
+class Days(object):
+    """
+    class for days
+    """
+    def __init__(self,qrel_file,year=Year.y2016,topic_file=None):
+        self._qrel_file,self._year,self._topic_file =\
+            qrel_file,year,topic_file
+
+        self._days = {}
+
+        with open(qrel_file) as f:
+            for line in f:
+                line = line.rstrip()
+                parts = line.split()
+                qid = parts[0]
+                if qid not in self._days:
+                    self._days[qid] = []
+
+        if year == Year.y2011:
+            if not topic_file:
+                raise RuntimeError("If using 2011, there should be a topic file for geting days!")
+            else:
+                query_dates = {}
+                with open(topic_file) as f:
+                    for line in f:
+                        mq = re.search("Number:\s+(MB\d+)",line)
+                        if mq:
+                            qid = mq.group(1)
+                        mt = re.search("querytime> \w+ (\w+) (\d+)",line)
+                        if mt:
+                            day = int(mt.group(2))
+                            if (mt.group(1)=="Feb"):
+                                month = 2
+                            else:
+                                month = 1
+                            query_dates[qid] = datetime.date(2011,month,day)
+                
+                start_date = datetime.date(2011,1,23)
+
+                for qid in self._days:
+                    end_date = query_dates[qid]
+                    for single_date in daterange(start_date, end_date):
+                        self._days[qid].append( str(int(single_date.strftime("%d"))) )
+
+
+
+        if year == Year.y2016:
+            day_strings = map(str,range(2,12))
+            for qid in self._days:
+                self._days[qid] = day_strings
+            
+
+        elif year == Year.y2015:
+            day_strings = map(str,range(20,30))
+            for qid in self._days:
+                self._days[qid] = day_strings
+
+
+    @property
+    def days(self):
+        return self._days
+    
+
+
+
+
+
+
+
 class SemaCluster(object):
     """store semantic cluster
     """
-    def __init__(self,cluster_file,t2day,is_16=False):
+    def __init__(self,cluster_file,t2day,year=Year.y2016):
         self._cluster_file = cluster_file
-        if not is_16:
+        if year == Year.y2015:
             self._read_cluster_file_15(t2day)
-        else:
+        elif year == Year.y2016:
             self._read_cluster_file_16(t2day)
+        elif year == Year.y2011:
+            self._read_cluster_file_16(t2day)
+
+        else:
+            raise NotImplementedError("Year %s is not implemented" %(year.name))
+
 
 
 
@@ -243,6 +341,7 @@ class SemaCluster(object):
 
         return cluster_recall*1.0/len(results)
 
+
     
 
 
@@ -250,17 +349,13 @@ class Qrel(object):
     """class to store qrel info
     """
     
-    def __init__(self, qrel_file,is_16=False):
+    def __init__(self, qrel_file,days,year=Year.y2016):
         self._judgement = {}
         self._qids = []
-        self._days = []
-        if is_16:
-            for i in range(2,12):
-                self._days.append(str(i))
-        else:
-            for i in range(20,30):
-                self._days.append(str(i))
+        self._days = days        
 
+        if year != Year.y2011:
+            self._all_days = self._days.values()[0]
         self._qrels_dt = {}
         with open(qrel_file) as f:
             for line in f:
@@ -269,7 +364,7 @@ class Qrel(object):
                 qid = parts[0]
                 docid = parts[2]
                 score = int(parts[3])
-                if score == -1:
+                if score < 0:
                     score = 0
                 else:
                     if score == 3:
@@ -284,6 +379,8 @@ class Qrel(object):
                     self._qids.append(qid)
                 self._judgement[qid][docid] = jud
                 self._qrels_dt[qid][docid] = score*1.0/2
+
+        
     
     def num_of_relevant(qid):
         return len(self._judgement[qid])
@@ -307,14 +404,16 @@ class Qrel(object):
     def ndcg10(self,results,sema_cluster):
         existed_clusters = {}
         total_score = .0
-        for day in self._days:
+        if not self._year == Year.y2011:
+            raise NotImplementedError("ndcg10 not implemented for 2011!")
+        for day in self._all_days:
             if day in results:
                 day_results = results[day]
             else:
                 day_results = {}
             total_score += self.day_dcg10(day,day_results,existed_clusters,sema_cluster)
 
-        return total_score *1.0/ len(self._days)
+        return total_score *1.0/ len(self._all_days)
 
 
     def day_dcg10_no_pre(self,day,day_results,sema_cluster):
@@ -444,7 +543,8 @@ class Qrel(object):
         based on the existed_clusters and semantic 
         cluster information
         """
-
+        if not self._year == Year.y2011:
+            raise NotImplementedError("is_silent_day not implemented for 2011!")
         # if it is a irrelevant day, it is a silent day
         if self.is_irrelevant_day(qid,day,sema_cluster,results):
             return True
@@ -464,7 +564,9 @@ class Qrel(object):
         """check whether a days is a irrelevant day
         based on semantic cluster information of the day
         """
-        if qid not in sema_cluster.day_cluster[day]:
+        if day not in self._days[qid]:
+            raise RuntimeError("Day %s is not a valid day for query %s" %(day,qid))
+        if qid not in sema_cluster.day_cluster[day.zfill(2)]:
             #print "no cluster"
             return True
         elif self.recall(results) == .0:
@@ -480,6 +582,9 @@ class Qrel(object):
         based on the existed_clusters and semantic 
         cluster information
         """
+        if not self._year == Year.y2011:
+            raise NotImplementedError("is_redundant_day not implemented for 2011!")
+
         if qid not in sema_cluster.day_cluster[day]:
             # if it is a silent day, it is not a redundant day
             return False
@@ -502,6 +607,8 @@ class Qrel(object):
         clusters in a day of a topic is covered 
         by the result of previous dat
         """
+        if not self._year == Year.y2011:
+            raise NotImplementedError("get_redundant_days not implemented for 2011!")
         limit = 10
         result_size = {}
         redundant_days = {}
@@ -605,6 +712,10 @@ class Qrel(object):
     @property
     def qids(self):
         return self._qids
+
+    @property
+    def all_days(self):
+        return self._all_days
 
     @property
     def days(self):
