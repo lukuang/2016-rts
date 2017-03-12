@@ -11,7 +11,7 @@ import codecs
 
 from myUtility.indri import IndriQueryFactory
 
-sys.path.append("../../")
+sys.path.append("/infolab/node4/lukuang/2015-RTS/src/my_code/")
 
 from process_query import read_query_file
 
@@ -31,7 +31,7 @@ def get_judged_qid(qrel_file):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("original_query_file")
-    parser.add_argument("query_type",choices=["2015_mb","json_mb","wt2g"])
+    parser.add_argument("query_type",choices=["2015_mb","json_mb","wt2g","2011"])
     parser.add_argument("query_field",choices=["title","desc","combine"])
     parser.add_argument("index_path")
     parser.add_argument("query_para_file")

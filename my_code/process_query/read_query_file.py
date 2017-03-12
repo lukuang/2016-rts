@@ -46,6 +46,24 @@ def get_mb_queries(original_query_file):
                 in_title = False
     return title_queries,desc_queries
 
+def get_mb_queries_2011(original_file):
+    title_queries = {}
+    qid = ""
+    with open(original_file) as f:
+        for line in f:
+            line = line.rstrip()
+            mn = re.search("<num> Number: (\w+)",line)
+            
+            if mn :
+                qid = mn.group(1)
+                title_queries[qid] = ""
+            else:
+                mq = re.search("<title>(.+?)</title>",line)
+                if mq:
+                    title_queries[qid] = mq.group(1)
+    return title_queries,{}
+
+
 def get_wt2g_queries(original_query_file):
     title_queries = {}
     desc_queries = {}
@@ -95,6 +113,8 @@ def read_query_file(original_query_file,query_type,query_field):
         title_queries,desc_queries = get_mb_queries(original_query_file)
     elif query_type == "json_mb":
         title_queries,desc_queries = get_mb_json_queries(original_query_file)
+    elif query_type == "2011":
+        title_queries,desc_queries = get_mb_queries_2011(original_query_file)
     else:
         title_queries,desc_queries = get_wt2g_queries(original_query_file)
 

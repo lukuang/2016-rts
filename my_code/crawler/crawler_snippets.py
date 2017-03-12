@@ -9,9 +9,14 @@ import string
 from datetime import date, timedelta, datetime
 from bs4 import BeautifulSoup
 import json
+import argparse
 import smtplib
 from email.mime.text import MIMEText
 import requests
+
+
+sys.path.append("/infolab/node4/lukuang/2015-RTS/src")
+from my_code.distribution.data import Year
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -19,7 +24,8 @@ sys.setdefaultencoding('utf-8')
 
 
 
-def get_mb_queries(original_file):
+
+def get_mb_queries_2015(original_file):
     title_queries = {}
     desc_queries = {}
     qid = ""
@@ -37,6 +43,7 @@ def get_mb_queries(original_file):
             else:
                 mt = re.search("<title>",line)
                 if mt is not None:
+
                     in_title = True
                     continue
                 else:
@@ -55,6 +62,24 @@ def get_mb_queries(original_file):
                 title_queries[qid] = line+"\n"
                 in_title = False
     return title_queries,desc_queries
+
+
+def get_mb_queries_2011(original_file):
+    title_queries = {}
+    qid = ""
+    with open(original_file) as f:
+        for line in f:
+            line = line.rstrip()
+            mn = re.search("<num> Number: (\w+)",line)
+            
+            if mn :
+                qid = mn.group(1)
+                title_queries[qid] = ""
+            else:
+                mq = re.search("<title>(.+?)</title>",line)
+                if mq:
+                    title_queries[qid] = mq.group(1)
+    return title_queries,{}
 
 
 class BingSearchAPI():
@@ -361,11 +386,15 @@ class snippets_crawler():
             self.bing_crawl()
 
 
-def load_queries():
-    fn = '/home/lukuang/2015_RTS/2015-data/TREC2015-MB-testtopics.txt'
+def load_queries(query_file,year):
 
     queries_list = []
-    title_queries,desc_queries = get_mb_queries(fn)
+    if year == Year.y2015:
+        title_queries,desc_queries = get_mb_queries_2015(query_file)
+    elif year == Year.y2011:
+        title_queries,desc_queries = get_mb_queries_2011(query_file)
+    else:
+        raise NotImplementedError("YEar %s is not implemented")
     for qid in sorted(title_queries.keys()):
         q_string = title_queries[qid]
         q_string = re.sub("\&"," ",q_string)
@@ -376,14 +405,25 @@ def load_queries():
     #        if line:
     #            row = line.split(':')
     #            queries_list.append((row[0],row[1]))
-
     return queries_list
     
     
 if __name__ == '__main__':
-    very_start = datetime.now()
-    queries = load_queries()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--query_file","-qf",default="/home/lukuang/2015_RTS/2015-data/TREC2015-MB-testtopics.txt")
+    parser.add_argument("--year","-y",choices=list(map(int, Year)),default=0,type=int,
+        help="""
+            Choose the year:
+                0:2015
+                1:2016
+                2:2011
+        """)
+    args=parser.parse_args()
 
+    args.year = Year(args.year)
+    very_start = datetime.now()
+    queries = load_queries(args.query_file,args.year)
+    print queries
     for q in queries:
-        snippets_crawler(q[0],q[1],"./raw").start_crawl()
+        snippets_crawler(q[0],q[1],"./raw",100).start_crawl()
 
