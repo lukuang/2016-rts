@@ -37,4 +37,21 @@
 
     expanded differences: /infolab/headnode2/lukuang/2016-rts/code/2016/senario_b/data/reparsed/difference
 
+2011:
+    full index: /infolab/node4/lukuang/2015-RTS/2011-data/incremental_index
+
+    individual index: /infolab/node4/lukuang/2015-RTS/2011-data/individual_index
+
+    eval data: /infolab/node4/lukuang/2015-RTS/2011-data/raw/official_eval
+
+    raw clarity queries: /infolab/node4/lukuang/2015-RTS/2011-data/generated_data/raw/clarity_queries
+
+    raw results: /infolab/node4/lukuang/2015-RTS/2011-data/generated_data/raw/results
+
+    expanded clarity queries: /infolab/node4/lukuang/2015-RTS/2011-data/generated_data/static/clarity_queries
+
+    expanded results: /infolab/node4/lukuang/2015-RTS/2011-data/generated_data/static/results
+
+
+
 
