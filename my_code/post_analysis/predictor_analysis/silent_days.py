@@ -60,7 +60,7 @@ class SilentDays(object):
         self._days = Days(self._qrel_file,self._year,self._topic_file).days
         self._qrel = Qrel(self._qrel_file,self._days,year=self._year)
         self._judged_qids = self._qrel.qids
-         
+
     @abstractmethod
     def _get_silent_days(self):
         pass
@@ -75,6 +75,10 @@ class SilentDays(object):
     @property
     def qrel(self):
         return self._qrel
+    
+    @property
+    def all_days(self):
+        return self._days
     
 
          
@@ -116,18 +120,30 @@ class SilentDaysFromRes(SilentDays):
 
 
     def _get_silent_days_from_results(self):
-        
-        for day in self._results:
-            self._silent_days[day] = {}
-            for qid in self._results[day]:
-                if day not in self._days[qid]:
-                    continue
-                else:
-                    if self._qrel.is_irrelevant_day(qid,day,self._sema_cluster,{qid:self._results[day][qid][:10]}):
-                        self._silent_days[day][qid] = True
-                    else:
-                        self._silent_days[day][qid] = False
+        # for day in self._results:
 
+        #     for qid in self._results[day]:
+        #         if day not in self._days[qid]:
+        #             continue
+        #         else:
+        #             if day not in self._silent_days:
+        #                 self._silent_days[day] = {}
+
+        #             if self._qrel.is_irrelevant_day(qid,day,self._sema_cluster,{qid:self._results[day][qid][:10]}):
+        #                 self._silent_days[day][qid] = True
+        #             else:
+        #                 self._silent_days[day][qid] = False
+
+        for qid in self._days:
+            for day in self._days[qid]:
+                if day not in self._silent_days:
+                    self._silent_days[day] = {}
+                if day not in self._results or qid not in self._results[day]:
+                    self._silent_days[day][qid] = True
+                elif self._qrel.is_irrelevant_day(qid,day,self._sema_cluster,{qid:self._results[day][qid][:10]}):
+                    self._silent_days[day][qid] = True
+                else:
+                    self._silent_days[day][qid] = False
 
 
 class SilentDaysFromJug(SilentDays):
@@ -241,8 +257,15 @@ def main():
 
     print "%d out of %d are silent days" %(silent_day_count,total_count)
 
-        
+    true_count = 0
+    all_days = silent_day_generator.all_days
+    for qid in all_days:
+        for day in all_days[qid]:
+            if day not in silent_days or qid not in silent_days[day]:
+                print "Missing %s %s" %(day,qid)
+            true_count +=1
 
+    print "True count %d" %(true_count)
 if __name__=="__main__":
     main()
 
