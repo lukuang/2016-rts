@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from enum import IntEnum, unique
 
 from silent_days import SilentDaysFromRes,SilentDaysFromJug
-from predictor import Clarity, AverageIDF,StandardDeviation,NormalizedStandardDeviation,TopScore
+from predictor import *
 
 sys.path.append("/infolab/node4/lukuang/2015-RTS/src")
 from my_code.distribution.data import Year
@@ -29,6 +29,30 @@ class PredictorName(IntEnum):
     standard_deviation = 2
     n_standard_deviation = 3
     top_score = 4
+    coherence_binary = 5
+    coherence_average = 6
+    coherence_max = 7
+    coherence_binary_n = 8
+    coherence_average_n = 9
+    coherence_max_n = 10
+    query_length = 11
+    avg_pmi = 12
+    max_pmi = 13
+    coherence_idf_weighted_binary = 14
+    coherence_idf_weighted_average = 15
+    coherence_idf_weighted_max = 16
+    coherence_idf_weighted_binary_n = 17
+    coherence_idf_weighted_average_n = 18
+    coherence_idf_weighted_max_n = 19
+    coherence_pmi_weighted_binary = 20
+    coherence_pmi_weighted_average = 21
+    coherence_pmi_weighted_max =22
+    mst_term_relatedness = 23
+    link_term_relatedness = 24
+    scq = 25
+    var = 26
+    nqc = 27
+    wig = 28
 
 @unique
 class Expansion(IntEnum):
@@ -45,7 +69,32 @@ BIN_FILES = {
     PredictorName.average_idf: "/infolab/headnode2/lukuang/2016-rts/code/my_code/post_analysis/predictor_analysis/c_code/get_average_idf",
     PredictorName.standard_deviation:"",
     PredictorName.n_standard_deviation:"",
-    PredictorName.top_score:""
+    PredictorName.top_score:"",
+    PredictorName.coherence_binary:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_unweighted_local_coherence",
+    PredictorName.coherence_average:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_unweighted_local_coherence",
+    PredictorName.coherence_max:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_unweighted_local_coherence",
+    PredictorName.coherence_binary_n:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_unweighted_local_coherence",
+    PredictorName.coherence_average_n:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_unweighted_local_coherence",
+    PredictorName.coherence_max_n:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_unweighted_local_coherence",
+    PredictorName.query_length:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_query_length",
+    PredictorName.avg_pmi:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_term_relatedness",
+    PredictorName.max_pmi:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_term_relatedness",
+    PredictorName.coherence_idf_weighted_binary:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
+    PredictorName.coherence_idf_weighted_average:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
+    PredictorName.coherence_idf_weighted_max:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
+    PredictorName.coherence_idf_weighted_binary_n:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
+    PredictorName.coherence_idf_weighted_average_n:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
+    PredictorName.coherence_idf_weighted_max_n:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
+    PredictorName.coherence_pmi_weighted_binary:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
+    PredictorName.coherence_pmi_weighted_average:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
+    PredictorName.coherence_pmi_weighted_max:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
+    PredictorName.mst_term_relatedness:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_mst_term_relatedness",
+    PredictorName.link_term_relatedness:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_link_term_relatedness",
+    PredictorName.scq:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_scq",
+    PredictorName.var:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_var",
+    PredictorName.nqc:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_collection_f2exp_score",
+    PredictorName.wig:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_wig",
+
 }
 
 Q_DIR = {
@@ -69,6 +118,25 @@ Q_DIR[Year.y2011] = {
     Expansion.raw:"/infolab/node4/lukuang/2015-RTS/2011-data/generated_data/raw/clarity_queries",
     Expansion.static:"/infolab/node4/lukuang/2015-RTS/2011-data/generated_data/static/clarity_queries"
 }
+
+LINK_DIR = {
+    Year.y2015:{},
+    Year.y2016:{},
+    Year.y2011:{}
+}
+
+LINK_DIR[Year.y2015] = {
+    Expansion.raw:"/infolab/headnode2/lukuang/2016-rts/code/my_code/post_analysis/data/2015/raw/link_queries",
+}
+
+LINK_DIR[Year.y2016] = {
+    Expansion.raw:"/infolab/headnode2/lukuang/2016-rts/code/my_code/post_analysis/data/2016/raw/link_queries",
+}
+
+LINK_DIR[Year.y2011] = {
+    Expansion.raw:"/infolab/node4/lukuang/2015-RTS/2011-data/generated_data/raw/link_queries",
+}
+
 
 R_DIR = {
     Year.y2015:{},
@@ -98,28 +166,165 @@ IND_DIR = {
     Year.y2011: "/infolab/node4/lukuang/2015-RTS/2011-data/individual_index"
 }
 
+
+
+
 def generate_predictor_values(predictor_choice,qrel,
                               index_dir,query_dir,result_dir,
-                              bin_file,data_storage_file):
-    if predictor_choice == 0:
+                              bin_file,link_dir,data_storage_file,term_size):
+    if predictor_choice == PredictorName.clarity:
         predictor = Clarity(qrel,index_dir,query_dir,bin_file)
-    elif predictor_choice == 1:
+    elif predictor_choice == PredictorName.average_idf:
         predictor = AverageIDF(qrel,index_dir,query_dir,bin_file)
-    elif predictor_choice == 2:
+    elif predictor_choice == PredictorName.standard_deviation:
         if not result_dir:
             raise RuntimeError("Need to specify result dir when using DEV!")
         else:
             predictor = StandardDeviation(qrel,result_dir)
-    elif predictor_choice == 3:
+    elif predictor_choice == PredictorName.n_standard_deviation:
         if not result_dir:
             raise RuntimeError("Need to specify result dir when using NDEV!")
         else:
             predictor = NormalizedStandardDeviation(qrel,result_dir)
-    elif predictor_choice == 4:
+    elif predictor_choice == PredictorName.top_score:
         if not result_dir:
             raise RuntimeError("Need to specify result dir when using Top Score!")
         else:
             predictor = TopScore(qrel,result_dir)
+    
+    elif predictor_choice == PredictorName.coherence_binary:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using coherence_binary!")
+        else:
+            predictor = LocalCoherenceUnweighetedBinary(qrel,index_dir,query_dir,bin_file,result_dir)
+
+    elif predictor_choice == PredictorName.coherence_average:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using coherence_average!")
+        else:
+            predictor = LocalCoherenceUnweighetedAverage(qrel,index_dir,query_dir,bin_file,result_dir)
+
+    elif predictor_choice == PredictorName.coherence_max:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using coherence_max!")
+        else:
+            predictor = LocalCoherenceUnweighetedMax(qrel,index_dir,query_dir,bin_file,result_dir)
+    
+    elif predictor_choice == PredictorName.coherence_binary_n:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using coherence_binary_n!")
+        elif not term_size:
+            raise RuntimeError("Need to specify term size when using coherence_binary_n!")
+        else:
+            predictor = LocalCoherenceUnweighetedBinaryN(qrel,index_dir,query_dir,bin_file,result_dir,term_size)
+
+    elif predictor_choice == PredictorName.coherence_average_n:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using coherence_average_n!")
+        elif not term_size:
+            raise RuntimeError("Need to specify term size when using coherence_average_n!")
+        else:
+            predictor = LocalCoherenceUnweighetedAverageN(qrel,index_dir,query_dir,bin_file,result_dir,term_size)
+
+    elif predictor_choice == PredictorName.coherence_max_n:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using coherence_max_n!")
+        elif not term_size:
+            raise RuntimeError("Need to specify term size when using coherence_max_n!")    
+        else:
+            predictor = LocalCoherenceUnweighetedMaxN(qrel,index_dir,query_dir,bin_file,result_dir,term_size)
+
+
+    elif predictor_choice == PredictorName.query_length:
+        predictor = QueryLength(qrel,index_dir,query_dir,bin_file)
+
+    elif predictor_choice == PredictorName.avg_pmi:
+        predictor = AvgPMI(qrel,index_dir,query_dir,bin_file)
+
+    elif predictor_choice == PredictorName.max_pmi:
+        predictor = MaxPMI(qrel,index_dir,query_dir,bin_file)
+
+    elif predictor_choice == PredictorName.coherence_idf_weighted_binary:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using coherence_idf_weighted_binary!")
+        else:
+            predictor = LocalCoherenceIDFWeighetedBinary(qrel,index_dir,query_dir,bin_file,result_dir)
+    elif predictor_choice == PredictorName.coherence_idf_weighted_average:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using coherence_idf_weighted_average!")
+        else:
+            predictor = LocalCoherenceIDFWeighetedAverage(qrel,index_dir,query_dir,bin_file,result_dir)
+    elif predictor_choice == PredictorName.coherence_idf_weighted_max:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using coherence_idf_weighted_max!")
+        else:
+            predictor = LocalCoherenceIDFWeighetedMax(qrel,index_dir,query_dir,bin_file,result_dir)
+
+
+    elif predictor_choice == PredictorName.coherence_idf_weighted_binary_n:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using coherence_idf_weighted_binary_n!")
+        elif not term_size:
+            raise RuntimeError("Need to specify term size when using coherence_idf_weighted_binary_n!")
+        else:
+            predictor = LocalCoherenceIDFWeighetedBinaryN(qrel,index_dir,query_dir,bin_file,result_dir,term_size)
+
+    elif predictor_choice == PredictorName.coherence_idf_weighted_average_n:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using coherence_idf_weighted_average_n!")
+        elif not term_size:
+            raise RuntimeError("Need to specify term size when using coherence_idf_weighted_average_n!")
+        else:
+            predictor = LocalCoherenceIDFWeighetedAverageN(qrel,index_dir,query_dir,bin_file,result_dir,term_size)
+
+    elif predictor_choice == PredictorName.coherence_idf_weighted_max_n:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using coherence_idf_weighted_max_n!")
+        elif not term_size:
+            raise RuntimeError("Need to specify term size when using coherence_idf_weighted_max_n!")    
+        else:
+            predictor = LocalCoherenceIDFWeighetedMaxN(qrel,index_dir,query_dir,bin_file,result_dir,term_size)
+    
+    elif predictor_choice == PredictorName.coherence_pmi_weighted_binary:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using coherence_pmi_weighted_binary!")
+        else:
+            predictor = LocalCoherencePMIWeighetedBinary(qrel,index_dir,query_dir,bin_file,result_dir)
+    elif predictor_choice == PredictorName.coherence_pmi_weighted_average:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using coherence_pmi_weighted_average!")
+        else:
+            predictor = LocalCoherencePMIWeighetedAverage(qrel,index_dir,query_dir,bin_file,result_dir)
+    elif predictor_choice == PredictorName.coherence_pmi_weighted_max:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using coherence_pmi_weighted_max!")
+        else:
+            predictor = LocalCoherencePMIWeighetedMax(qrel,index_dir,query_dir,bin_file,result_dir)
+    
+    elif predictor_choice == PredictorName.mst_term_relatedness:
+        predictor = MSTTermRelatedness(qrel,index_dir,query_dir,bin_file)
+   
+    elif predictor_choice == PredictorName.link_term_relatedness:
+        predictor = LinkTermRelatedness(qrel,index_dir,query_dir,link_dir,bin_file)
+    
+    elif predictor_choice ==  PredictorName.scq:
+        predictor = SCQ(qrel,index_dir,query_dir,bin_file)
+
+    elif predictor_choice ==  PredictorName.var:
+        predictor = VAR(qrel,index_dir,query_dir,bin_file)
+
+    elif predictor_choice == PredictorName.nqc:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using nqc!")
+        else:
+            predictor = NQC(qrel,index_dir,query_dir,bin_file,result_dir)
+
+    elif predictor_choice == PredictorName.wig:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using wig!")
+        else:
+            predictor = WIG(qrel,index_dir,query_dir,bin_file,result_dir)
+    
 
 
     # predictor.show()
@@ -181,9 +386,38 @@ def main():
             Choose the predictor:
                 0: clarity
                 1: average idf
-                2: DEV
-                3: NDEV
-                4: Top Score
+                2: standard_deviation
+                3: n_standard_deviation
+                4: top_score
+                5: coherence_binary
+                6: coherence_average
+                7: coherence_max
+                8: coherence_binary_n
+                9: coherence_average_n
+                10: coherence_max_n 
+                11: query_length
+                12: avg_pmi
+                13: max_pmi
+                14: coherence_idf_weighted_binary
+                15: coherence_idf_weighted_average
+                16: coherence_idf_weighted_max
+                17: coherence_idf_weighted_binary_n
+                18: coherence_idf_weighted_average_n
+                19: coherence_idf_weighted_max_n 
+                20: coherence_pmi_weighted_binary
+                21: coherence_pmi_weighted_average
+                22: coherence_pmi_weighted_max
+                23: mst_term_relatedness
+                24: link_term_relatedness
+                25: scq
+                26: var
+                27: nqc
+                28: wig
+        """)
+    parser.add_argument("--term_size","-tn",type=int,
+        help="""
+            The number of terms used for generating
+            coherence feature
         """)
     args=parser.parse_args()
 
@@ -194,15 +428,20 @@ def main():
     if args.expansion == Expansion.dynamic and args.year != Year.y2016:
         raise RuntimeError("If use dynamic expansion, it cannot be year other than 2016!")
 
+    if args.expansion != Expansion.raw and args.predictor_choice == PredictorName.link_term_relatedness:
+        raise RuntimeError("If use link_term_relatedness, the expansion can only be raw!")
 
     # get bin file based on the predictor
     bin_file = BIN_FILES[args.predictor_choice]
     query_dir = Q_DIR[args.year][args.expansion]
     index_dir = IND_DIR[args.year]
+    link_dir = None
+    if args.predictor_choice == PredictorName.link_term_relatedness:
+        link_dir = LINK_DIR[args.year][args.expansion]
     # print query_dir
     # print index_dir
 
-    printing_message = "Predictor Choice:\n\t%s\n" %(args.predictor_choice.name)
+    printing_message = "Predictor Choice:\n\t%s %s\n" %(args.predictor_choice.name,args.term_size)
 
     # form the grapth file based on the data used
 
@@ -245,7 +484,7 @@ def main():
         predictor_values = generate_predictor_values(
                                 args.predictor_choice,silent_day_generator.qrel,
                                 index_dir,query_dir,result_dir,
-                                bin_file,data_storage_file)
+                                bin_file,link_dir,data_storage_file,args.term_size)
     
     else:
         predictor_values = json.load(open(data_storage_file))

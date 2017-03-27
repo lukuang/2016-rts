@@ -24,8 +24,8 @@ class PredictorClass(IntEnum):
     pre = 1
 
 
-TRAINING_YEAR = [Year.y2011, Year.y2015]
-TESTING_YEAR = [Year.y2016]
+TRAINING_YEAR = [Year.y2011]
+TESTING_YEAR = [Year.y2015,Year.y2016]
 
 # predictor class dictionary used for getting predictor class
 # from predictor name
@@ -34,7 +34,31 @@ PREDICTOR_CLASS = {
     PredictorName.standard_deviation : PredictorClass.post,
     PredictorName.n_standard_deviation : PredictorClass.post,
     PredictorName.top_score : PredictorClass.post,
-    PredictorName.average_idf : PredictorClass.pre
+    PredictorName.coherence_binary : PredictorClass.post,
+    PredictorName.coherence_average : PredictorClass.post,
+    PredictorName.coherence_max : PredictorClass.post,
+    PredictorName.coherence_binary_n : PredictorClass.post,
+    PredictorName.coherence_average_n : PredictorClass.post,
+    PredictorName.coherence_max_n : PredictorClass.post,
+    PredictorName.max_pmi : PredictorClass.pre,
+    PredictorName.avg_pmi : PredictorClass.pre,
+    PredictorName.coherence_idf_weighted_binary : PredictorClass.post,
+    PredictorName.coherence_idf_weighted_average : PredictorClass.post,
+    PredictorName.coherence_idf_weighted_max : PredictorClass.post,
+    PredictorName.coherence_idf_weighted_binary_n : PredictorClass.post,
+    PredictorName.coherence_idf_weighted_average_n : PredictorClass.post,
+    PredictorName.coherence_idf_weighted_max_n : PredictorClass.post,
+    PredictorName.coherence_pmi_weighted_binary : PredictorClass.post,
+    PredictorName.coherence_pmi_weighted_average : PredictorClass.post,
+    PredictorName.coherence_pmi_weighted_max : PredictorClass.post,
+    PredictorName.query_length : PredictorClass.pre,
+    PredictorName.average_idf : PredictorClass.pre,
+    PredictorName.mst_term_relatedness: PredictorClass.pre,
+    PredictorName.link_term_relatedness: PredictorClass.pre,
+    PredictorName.scq: PredictorClass.pre,
+    PredictorName.var: PredictorClass.pre,
+    PredictorName.nqc: PredictorClass.post,
+    PredictorName.wig: PredictorClass.post,
 
 }
 
@@ -48,6 +72,10 @@ def try_mkdir(wanted_dir):
 
 
 def convert_feature_string(feature_string):
+    detail_finder_with_tn = re.search("^(\w+):(\w+):(\d+)$",feature_string)
+    if detail_finder_with_tn:
+        feature_string = detail_finder_with_tn.group(1)[:-1]+detail_finder_with_tn.group(3)
+        feature_string += ":%s" %(detail_finder_with_tn.group(2) )
     feature_string = re.sub(":","_",feature_string)
     feature_string = feature_string[0].upper()+feature_string[1:]
     
@@ -68,6 +96,7 @@ class SingleFeature(object):
         self._year,self._feature_descrption_string, self._predictor_data_dir =\
             year, feature_descrption_string, predictor_data_dir
 
+
         self._get_feature_detail()
 
         self._get_data()
@@ -77,16 +106,47 @@ class SingleFeature(object):
         """
         get feature detail form feature_descrption_string
         """
-        detail_finder = re.search("^(\w+?):(\w+)$",self._feature_descrption_string)
         print "For year %s, the features used:" %(self._year.name)
+        detail_finder = re.search("^(\w+?):(\w+)$",self._feature_descrption_string)
         if detail_finder:
             self._predictor_choice = PredictorName[ detail_finder.group(1) ]
+            
+            if (self._predictor_choice == PredictorName.coherence_binary_n or
+               self._predictor_choice == PredictorName.coherence_average_n or
+               self._predictor_choice == PredictorName.coherence_max_n or
+               self._predictor_choice == PredictorName.coherence_idf_weighted_binary_n or
+               self._predictor_choice == PredictorName.coherence_idf_weighted_average_n or
+               self._predictor_choice == PredictorName.coherence_idf_weighted_max_n):
+                raise ValueError("Need to specify term size when using %s!" %(self._predictor_choice.name))
+
             self._predictor_class = PREDICTOR_CLASS[self._predictor_choice]
             self._expansion = Expansion[ detail_finder.group(2) ]
+            if self._year != Year.y2016 and self._expansion == Expansion.dynamic:
+                self._expansion = Expansion.static
             print "\t%s" %(" ".join([self._predictor_choice.name,self._predictor_class.name,self._expansion.name]))
 
         else:
-            raise RuntimeError("Mal format feature description %s" %(self._feature_descrption_string))
+            detail_finder_with_tn = re.search("^(\w+?):(\w+):(\d+)$",self._feature_descrption_string)
+            if detail_finder_with_tn :
+                self._predictor_choice = PredictorName[ detail_finder_with_tn.group(1) ]
+                if (self._predictor_choice == PredictorName.coherence_binary_n or
+                   self._predictor_choice == PredictorName.coherence_average_n or
+                   self._predictor_choice == PredictorName.coherence_max_n or
+                   self._predictor_choice == PredictorName.coherence_idf_weighted_binary_n or
+                   self._predictor_choice == PredictorName.coherence_idf_weighted_average_n or
+                   self._predictor_choice == PredictorName.coherence_idf_weighted_max_n):
+                    
+                    self._predictor_class = PREDICTOR_CLASS[self._predictor_choice]
+                    self._expansion = Expansion[ detail_finder_with_tn.group(2) ]
+                    if self._year != Year.y2016 and self._expansion == Expansion.dynamic:
+                        self._expansion = Expansion.static
+                    self._term_size = int(detail_finder_with_tn.group(3))
+                    print "\t%s" %(" ".join([self._predictor_choice.name,str(self._term_size),self._predictor_class.name,self._expansion.name]))
+
+                else:
+                    raise ValueError("Cannot specify term size when using %s" %(self._predictor_choice.name))
+            else:
+                raise RuntimeError("Mal format feature description %s" %(self._feature_descrption_string))
 
 
     def _get_data(self):
@@ -98,10 +158,23 @@ class SingleFeature(object):
             use_result_string = "with_result"
         else:
             use_result_string = "without_result"
-        self._data_file_path = os.path.join(
+        if (self._predictor_choice == PredictorName.coherence_binary_n or
+                   self._predictor_choice == PredictorName.coherence_average_n or
+                   self._predictor_choice == PredictorName.coherence_max_n or
+                   self._predictor_choice == PredictorName.coherence_idf_weighted_binary_n or
+                   self._predictor_choice == PredictorName.coherence_idf_weighted_average_n or
+                   self._predictor_choice == PredictorName.coherence_idf_weighted_max_n):
+            self._data_file_path = os.path.join(
+                            self._predictor_data_dir,self._predictor_class.name,
+                            self._predictor_choice.name[:-1]+"%d" %(self._term_size),
+                            self._year.name,
+                            self._expansion.name,use_result_string,"data")
+        else:
+            self._data_file_path = os.path.join(
                             self._predictor_data_dir,self._predictor_class.name,
                             self._predictor_choice.name,self._year.name,
                             self._expansion.name,use_result_string,"data")
+        print "Data path:%s" %(self._data_file_path)
         self._feature_data = json.load(open(self._data_file_path))
 
     @property
@@ -142,6 +215,7 @@ class DataPreparor(object):
 
         self._top_dest_dir = top_dest_dir
 
+
     def prepare_data(self):
 
         # get training data
@@ -175,8 +249,8 @@ class DataPreparor(object):
                 single_feature = SingleFeature(year,feature_descrption_string,self._predictor_data_dir)
                 vector_data_set["features"][year][feature_descrption_string] = single_feature.feature_data
             
-            for day in vector_data_set["silent_days"][year]:
-                for qid in vector_data_set["silent_days"][year][day]:
+            for day in sorted(vector_data_set["silent_days"][year].keys()):
+                for qid in sorted(vector_data_set["silent_days"][year][day].keys()):
                     if vector_data_set["silent_days"][year][day][qid]:
                         vector_data_set["label_vector"].append(1)        
                     else:
@@ -184,6 +258,8 @@ class DataPreparor(object):
 
                     single_feature_vector = []
                     for feature_descrption_string in sorted(self._feature_descrption_list):
+                        # if vector_data_set["features"][year][feature_descrption_string][day][qid] == .0:
+                        #     print "%s %s %s" %(day,qid,vector_data_set["silent_days"][year][day][qid])
                         single_feature_vector.append(vector_data_set["features"][year][feature_descrption_string][day][qid])
                     
                     vector_data_set["feature_vector"].append(single_feature_vector)
@@ -192,7 +268,7 @@ class DataPreparor(object):
 
     def _save_data(self):
         self._create_dirs()
-
+        print "Store data to:\n%s" %(self._training_data_dir)
         self._save_vectors(self._training_data["feature_vector"],
                            self._training_data["label_vector"],
                            self._training_data_dir)
@@ -200,6 +276,12 @@ class DataPreparor(object):
         self._save_vectors(self._testing_data["feature_vector"],
                            self._testing_data["label_vector"],
                            self._testing_data_dir)
+
+        self._save_feature_dict(self._testing_data,
+                           self._testing_data_dir)
+
+        self._save_feature_dict(self._training_data,
+                           self._training_data_dir)
 
     def _create_dirs(self):
 
@@ -235,6 +317,16 @@ class DataPreparor(object):
 
         with open(label_file,"w") as f:
             f.write(json.dumps(label_vector))
+
+    def _save_feature_dict(self,dataset,dest_data_dir):
+        feature_dict = os.path.join(dest_data_dir,"feature_dict")
+        label_dict = os.path.join(dest_data_dir,"label_dict")
+
+        with open(feature_dict,"w") as f:
+            f.write(json.dumps(dataset["features"]))
+
+        with open(label_dict,"w") as f:
+            f.write(json.dumps(dataset["silent_days"]))
 
 
 def main():
