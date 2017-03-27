@@ -1,4 +1,4 @@
-/* get idf average for query words given index()
+/* get variance of the tf-idf weights of query terms
 */
 
 
@@ -22,57 +22,84 @@
 using namespace std;
 
 
-void get_statistics(indri::collection::Repository& r,map<string, float>& idf,vector<string>& query_words){
-
+float get_term_variance(indri::collection::Repository& r,const string& term){
     indri::server::LocalQueryServer local(r);
+    indri::collection::Repository::index_state state = r.indexes();
+    float term_variance = .0;
+    int df = local.documentStemCount(term);
     float n = 1.0*local.documentCount();
-    for(vector<string>::iterator it = query_words.begin(); it!=query_words.end(); ++it){
-        int df = local.documentStemCount(*it) ;
-        // cout<<"df for "<<*it<<" is "<<local.documentStemCount(*it)<<endl;
-
-        if( df == 0){
-            idf[*it] = .0;
-        }
-        else{
-            idf[*it] = log(n/df );        
-        }
+    if(df==0){
+        return .0;
     }
-    // string term = "immigrants";
-    // string stem = r.processTerm(term);
+    else{
+        
+      for( size_t i=0; i<state->size(); i++ ) {
+        float idf = log( 1+n/df );
+        float average_weight = .0;
+        vector<float> weights;
 
-    // cout<<"df for "<<term<<" is "<<local.documentStemCount(term)<<endl;
-    // cout<<"df for "<<stem<<" is "<<local.documentStemCount(stem)<<endl;
+
+        indri::index::Index* index = (*state)[i];
+        indri::thread::ScopedLock( index->iteratorLock() );
+
+        indri::index::DocListIterator* iter = index->docListIterator( term );
+        if (iter == NULL) continue;
+
+        iter->startIteration();
+
+        indri::index::DocListIterator::DocumentData* entry;
+
+        for( iter->startIteration(); iter->finished() == false; iter->nextEntry() ) {
+          entry = iter->currentEntry();
+          int term_count = entry->positions.size();
+          float term_weight = 1 + log(term_count)*idf;
+          average_weight += term_weight/df;
+          weights.push_back(term_weight);
+        }
+        for(int j=0;j<weights.size();j++){
+            term_variance += pow( (weights[j]-average_weight),2)/df;
+        }
+        delete iter;
+        return term_variance;
+      }
+
+      
+
+    }
+
 }
 
+map<string, float>  compute_var(indri::collection::Repository& r,map<string, vector<string> >& queries){
+    indri::server::LocalQueryServer local(r);
+    map<string, float> var;
 
-map<string, float>  compute_average_idf(map<string, vector<string> >& queries,map<string, float>& idf){
-    map<string, float> average_idf;
+    float n = 1.0*local.documentCount();
     for(map<string, vector<string> >:: iterator it=queries.begin(); it!=queries.end(); ++it){
-        float query_average_idf = .0;
+        float query_scq = .0;
         string qid = it->first;
         vector<string> query_words = it->second;
          // if (qid == "MB438"){
          //    cout<<"MB438:"<<endl;
          // }
+        float query_variance = .0;
         for(vector<string>::iterator wit = query_words.begin(); wit!=query_words.end(); ++wit){
             // if (qid == "MB438"){
             //     cout<<"\t"<<*wit<<":"<<idf[*wit]<<endl;
             // }
-            query_average_idf += idf[*wit];      
-
+            query_variance += get_term_variance(r,*wit);
+            
         }
-        query_average_idf /= query_words.size();
-        average_idf[qid] = query_average_idf;
+        var[qid] = query_variance;
     }
-    return average_idf;
+    return var;
 
 }
 
 static void usage( indri::api::Parameters param ) {
   if( !param.exists( "query" ) || 
       !( param.exists( "index" ) )) {
-   std::cerr << "get_average_idf usage: " << std::endl
-             << "   get_average_idf -query=myquery -index=myindex" << std::endl;
+   std::cerr << "get_scq usage: " << std::endl
+             << "   get_scq -query=myquery -index=myindex" << std::endl;
    exit(-1);
   }
 }
@@ -93,18 +120,16 @@ int main(int argc, char** argv){
         //string idf_term  = argv[3];
         //float variance_threshold = atof(argv[4]);
 
-        map<string, float> idf;
-        map<string, float> average_idf;
+        map<string, float> var;
         map<string, vector<string> > queries;
         r.openRead( rep_name );
         
         vector<string> query_words = get_query_words(r,query_file,queries);
-        get_statistics(r,idf,query_words);
         // output(idf,dest_dir);
 
-        average_idf = compute_average_idf(queries,idf);
+        var = compute_var(r,queries);
 
-        for(map<string,float>:: iterator it=average_idf.begin(); it!=average_idf.end(); ++it){
+        for(map<string,float>:: iterator it=var.begin(); it!=var.end(); ++it){
 
             cout<<it->first<<" "<<it->second<<endl;
         }
