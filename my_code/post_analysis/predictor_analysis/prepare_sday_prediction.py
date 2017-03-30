@@ -59,6 +59,9 @@ PREDICTOR_CLASS = {
     PredictorName.var: PredictorClass.pre,
     PredictorName.nqc: PredictorClass.post,
     PredictorName.wig: PredictorClass.post,
+    PredictorName.pwig: PredictorClass.post,
+    PredictorName.local_avg_pmi: PredictorClass.post,
+    PredictorName.local_max_pmi: PredictorClass.post,
 
 }
 

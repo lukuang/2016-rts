@@ -291,6 +291,60 @@ class WIG(PredictorUsingBoth):
                 break 
         return daily_value 
 
+class PWIG(WIG):
+    """
+    compute wig only for phrases
+    """
+    pass
+
+class LocalTermRelatedness(PredictorUsingBoth):
+    """
+    compute loca term relatedness (pmi)
+    """
+
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,cu):
+        super(LocalTermRelatedness,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir)
+        self._cu = cu
+
+    def _compute_daily_value(self,day_index_dir,day_query_file,
+                             day_result_file):
+        daily_value = {}
+
+        run_command = "%s -index=%s -query=%s -result=%s -cu=%s" %(self._bin_file,
+                                                            day_index_dir,
+                                                            day_query_file,
+                                                            day_result_file,
+                                                            self._cu)
+
+   
+
+        # print "command being run:\n%s" %(run_command)
+        p = subprocess.Popen(run_command,stdout=subprocess.PIPE,shell=True)
+        
+        while True:
+            line = p.stdout.readline()
+            if line != '':
+                line = line.rstrip()
+                parts = line.split()
+                qid = parts[0]
+                if qid not in self._judged_qids:
+                    continue
+                daily_value[qid] = float(parts[1])
+                
+
+            else:
+                break 
+        return daily_value 
+
+class LocalTermRelatednessAverage(LocalTermRelatedness):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir):
+        super(LocalTermRelatednessAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"average")
+
+class LocalTermRelatednessMax(LocalTermRelatedness):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir):
+        super(LocalTermRelatednessMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"max")
+
+
 
 class LocalCoherenceWeigheted(PredictorUsingBoth):
     """
@@ -843,6 +897,9 @@ def _main():
                 26: var
                 27: nqc
                 28: wig
+                29: pwig
+                30: local_avg_pmi
+                31: local_max_pmi
         """)
     args=parser.parse_args()
 
