@@ -478,7 +478,7 @@ def main():
                 f_average = (f_silent + f_non_silent)/2.0
 
                 if f_average > f_avg_max:
-                    f_avg_max = f_silent
+                    f_avg_max = f_average
                     f_avg_features = feature_descrption_list
                     f_avg_method_id = method_id
 
