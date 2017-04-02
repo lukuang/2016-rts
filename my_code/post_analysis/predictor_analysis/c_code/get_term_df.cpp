@@ -1,4 +1,4 @@
-/* get idf for individual query terms
+/* get df for individual query terms
 then take log of the value and output to
 buketed values: 0 1 2 3 4
 */
@@ -24,32 +24,32 @@ buketed values: 0 1 2 3 4
 using namespace std;
 
 
-void get_statistics(indri::collection::Repository& r,map<string, int>& idf,vector<string>& query_words){
+void get_statistics(indri::collection::Repository& r,map<string, int>& df,vector<string>& query_words){
 
     indri::server::LocalQueryServer local(r);
     for(vector<string>::iterator it = query_words.begin(); it!=query_words.end(); ++it){
-        int df = local.documentCount(*it) ;
+        int raw_df = local.documentCount(*it) ;
         // cout<<"df for "<<*it<<" is "<<local.documentStemCount(*it)<<endl;
 
-        if( df == 0){
-            idf[*it] = 0;
+        if( raw_df == 0){
+            df[*it] = 0;
         }
         else{
-            float raw_df = log(df );
-            if(raw_df<1){
-                idf[*it] = 0;
+            float log_df = log(raw_df );
+            if(log_df<1){
+                df[*it] = 0;
             }
-            else if(raw_df<2){
-                idf[*it] = 1;        
+            else if(log_df<2){
+                df[*it] = 1;        
             }
-            else if(raw_df<3){
-                idf[*it] = 2;        
+            else if(log_df<3){
+                df[*it] = 2;        
             }
-            else if(raw_df<4){
-                idf[*it] = 3;   
+            else if(log_df<4){
+                df[*it] = 3;   
             }
             else{
-                idf[*it] = 4; 
+                df[*it] = 4; 
             }
         }
     }
@@ -61,10 +61,10 @@ void get_statistics(indri::collection::Repository& r,map<string, int>& idf,vecto
 }
 
 
-map<string, float>  compute_average_idf(map<string, vector<string> >& queries,map<string, float>& idf){
-    map<string, float> average_idf;
+map<string, float>  compute_average_df(map<string, vector<string> >& queries,map<string, float>& df){
+    map<string, float> average_df;
     for(map<string, vector<string> >:: iterator it=queries.begin(); it!=queries.end(); ++it){
-        float query_average_idf = .0;
+        float query_average_df = .0;
         string qid = it->first;
         vector<string> query_words = it->second;
          // if (qid == "MB438"){
@@ -72,23 +72,23 @@ map<string, float>  compute_average_idf(map<string, vector<string> >& queries,ma
          // }
         for(vector<string>::iterator wit = query_words.begin(); wit!=query_words.end(); ++wit){
             // if (qid == "MB438"){
-            //     cout<<"\t"<<*wit<<":"<<idf[*wit]<<endl;
+            //     cout<<"\t"<<*wit<<":"<<df[*wit]<<endl;
             // }
-            query_average_idf += idf[*wit];      
+            query_average_df += df[*wit];      
 
         }
-        query_average_idf /= query_words.size();
-        average_idf[qid] = query_average_idf;
+        query_average_df /= query_words.size();
+        average_df[qid] = query_average_df;
     }
-    return average_idf;
+    return average_df;
 
 }
 
 static void usage( indri::api::Parameters param ) {
   if( !param.exists( "query" ) || 
       !( param.exists( "index" ) )) {
-   std::cerr << "get_average_idf usage: " << std::endl
-             << "   get_average_idf -query=myquery -index=myindex" << std::endl;
+   std::cerr << "get_average_df usage: " << std::endl
+             << "   get_average_df -query=myquery -index=myindex" << std::endl;
    exit(-1);
   }
 }
@@ -106,18 +106,18 @@ int main(int argc, char** argv){
 
         string rep_name = param[ "index" ];
         //int percent_threshold = atoi(argv[2]);
-        //string idf_term  = argv[3];
+        //string df_term  = argv[3];
         //float variance_threshold = atof(argv[4]);
 
-        map<string, int> idf;
+        map<string, int> df;
         r.openRead( rep_name );
         map<string, vector<string> > queries;
         vector<string> query_words = get_unstemmed_query_words(r,query_file,queries);
-        get_statistics(r,idf,query_words);
-        // output(idf,dest_dir);
+        get_statistics(r,df,query_words);
+        // output(df,dest_dir);
 
 
-        for(map<string,int>:: iterator it=idf.begin(); it!=idf.end(); ++it){
+        for(map<string,int>:: iterator it=df.begin(); it!=df.end(); ++it){
 
             cout<<it->first<<" "<<it->second<<endl;
         }

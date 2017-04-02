@@ -1,6 +1,6 @@
 ## your application name here
 AVGIDF= get_average_idf
-TERM_IDF= get_term_idf
+TERM_DF= get_term_df
 CLARITY= show_clarity
 SCQ= get_scq
 VAR= get_var
@@ -31,8 +31,8 @@ all:  scq var collection_f2exp uw_local_coherence w_local_coherence query_length
 avgidf:
 	$(CXX) $(CXXFLAGS) $(AVGIDF).cpp -o $(AVGIDF) $(OBJ) $(LIBPATH) $(CPPLDFLAGS)
 
-term_idf:
-	$(CXX) $(CXXFLAGS) $(TERM_IDF).cpp -o $(TERM_IDF) $(OBJ) $(LIBPATH) $(CPPLDFLAGS)
+term_df:
+	$(CXX) $(CXXFLAGS) $(TERM_DF).cpp -o $(TERM_DF) $(OBJ) $(LIBPATH) $(CPPLDFLAGS)
 
 
 clarity:
@@ -80,5 +80,5 @@ link_term_relatedness:
 
 clean:
 #	rm -f $(GET) $(THRESHOLD) $(SHOW)
-	rm -f  $(GET_LOCAL_TERM_RELATEDNESS) $(GET_PWIG) $(GET_WIG) $(VAR) $(SCQ) $(AVGIDF) $(CLARITY) $(UW_LOCAL_COHERENCE) $(W_LOCAL_COHERENCE) $(GET_QUERY_LENGTH) $(GET_TERM_RELATEDNESS) $(GET_MST_TERM_RELATEDNESS) $(GET_LINK_TERM_RELATEDNESS) $(GET_COLLECTION_F2EXP_SCORE)  $(TERM_IDF)
+	rm -f  $(GET_LOCAL_TERM_RELATEDNESS) $(GET_PWIG) $(GET_WIG) $(VAR) $(SCQ) $(AVGIDF) $(CLARITY) $(UW_LOCAL_COHERENCE) $(W_LOCAL_COHERENCE) $(GET_QUERY_LENGTH) $(GET_TERM_RELATEDNESS) $(GET_MST_TERM_RELATEDNESS) $(GET_LINK_TERM_RELATEDNESS) $(GET_COLLECTION_F2EXP_SCORE)  $(TERM_DF)
 
