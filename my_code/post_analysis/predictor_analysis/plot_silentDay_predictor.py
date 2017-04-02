@@ -56,6 +56,7 @@ class PredictorName(IntEnum):
     pwig = 29
     local_avg_pmi = 30
     local_max_pmi = 31
+    tree_estimator = 32
 
 @unique
 class Expansion(IntEnum):
@@ -100,6 +101,7 @@ BIN_FILES = {
     PredictorName.pwig:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_pwig",
     PredictorName.local_avg_pmi:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_local_term_relatedness",
     PredictorName.local_max_pmi:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_local_term_relatedness",
+    PredictorName.tree_estimator:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_term_df",
 
 }
 
@@ -349,6 +351,12 @@ def generate_predictor_values(predictor_choice,qrel,
         else:
             predictor = LocalTermRelatednessMax(qrel,index_dir,query_dir,bin_file,result_dir)
     
+    elif predictor_choice == PredictorName.tree_estimator:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using tree_estimator!")
+        else:
+            predictor = TreeEstimator(qrel,index_dir,query_dir,bin_file,result_dir)
+    
 
     # predictor.show()
     with open(data_storage_file,"w") as f:
@@ -439,6 +447,7 @@ def main():
                 29: pwig
                 30: local_avg_pmi
                 31: local_max_pmi
+                32: tree_estimator
         """)
     parser.add_argument("--term_size","-tn",type=int,
         help="""
@@ -515,8 +524,8 @@ def main():
     else:
         predictor_values = json.load(open(data_storage_file))
 
-
-    plot_predictor_values(predictor_values,silent_day_values,graph_file)
+    if args.predictor_choice!= PredictorName.tree_estimator:
+        plot_predictor_values(predictor_values,silent_day_values,graph_file)
 
 
 

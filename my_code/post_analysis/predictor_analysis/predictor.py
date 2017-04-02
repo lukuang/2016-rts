@@ -15,6 +15,28 @@ import numpy as np
 sys.path.append("/infolab/node4/lukuang/2015-RTS/src")
 from my_code.distribution.data import Qrel,T2Day,Year
 
+
+
+def get_query_terms(day_query_file):
+    query_terms = {}
+    with open(day_query_file) as f:
+        for line in f:
+            line = line.rstrip()
+            m = re.search("^(.+):(.+)$",line)
+            if m:
+                qid = m.group(1)
+                query_string = m.group(2)
+                query_string = re.sub("#weight\(","",query_string)
+                all_words = re.findall("[a-zA-z_]+",query_string)
+                query_terms[qid] = all_words
+            else:
+                message = "Wrong Format of file %s\n" %(day_query_file)
+                message += "at line:\n%s\n" %(line)
+                raise RuntimeError(message)
+
+    return query_terms
+
+
 class PredictorUsingOnlyIndri(object):
     """
     base class for predictor using Indri code
@@ -222,6 +244,105 @@ class NQC(PredictorUsingBoth):
 
 
         return daily_value 
+
+
+class TreeEstimator(PredictorUsingBoth):
+    """
+    class to prepare data for the tree-based
+    performance estimator, according to the missing
+    content paper
+    """
+    def _compute_daily_value(self,day_index_dir,day_query_file,
+                             day_result_file):
+        term_idf = {}
+
+        run_command = "%s -index=%s -query=%s" %(self._bin_file,
+                                                 day_index_dir,
+                                                 day_query_file)
+
+        
+
+        # print "command being run:\n%s" %(run_command)
+        p = subprocess.Popen(run_command,stdout=subprocess.PIPE,shell=True)
+        
+        while True:
+            line = p.stdout.readline()
+            if line != '':
+                line = line.rstrip()
+                parts = line.split()
+                term = parts[0]
+                term_idf[term] = int( parts[1] )
+                
+
+            else:
+                break 
+
+        results = {}
+        with open(day_result_file) as f:
+            for line in f:
+                line = line.rstrip()
+                parts = line.split()
+                qid = parts[0]
+                if qid in self._judged_qids:
+                    if qid not in results:
+                        results[qid] = []
+                    if len(results[qid]) >=10 :
+                        continue
+                    document_id = parts[2] 
+                    results[qid].append(document_id)
+
+        daily_value = {}
+
+
+        query_terms = get_query_terms(day_query_file)
+
+        for qid in query_terms:
+            if qid not in self._judged_qids:
+                continue
+
+            query_value_pairs = []
+            
+            # print "terms of %s" %(qid)
+            # print query_terms[qid]
+            for term in query_terms[qid]:
+
+                # ignore terms that are not computed idf (stopwords)
+                if term not in term_idf:
+                    continue
+
+                over_lap_count = 0
+                run_query_command = "IndriRunQuery -index=%s -query=%s -trecFormat=true -count=10 -rule=\"method:f2exp,s:0.1\" " %(day_index_dir,
+                                                                                                                                   term)
+
+        
+
+                # print "command being run:\n%s" %(run_query_command)
+                p = subprocess.Popen(run_query_command,stdout=subprocess.PIPE,shell=True)
+
+                # if qid not in results, meaning no documents returned for
+                # the query of the day, there will be no overlaps
+                if qid in results:
+                    while True:
+                        line = p.stdout.readline()
+                        if line != '':
+                            line = line.rstrip()
+                            parts = line.split()
+                            did = parts[2]
+
+                            if did in results[qid]:
+                                over_lap_count += 1
+                        else:
+                            break
+
+                query_value_pairs.append( [over_lap_count,term_idf[term]] )
+            
+            
+            query_value_pairs = sorted(query_value_pairs,key=lambda x:x[1])
+
+            daily_value[qid] = query_value_pairs
+
+        return daily_value
+             
 
 
 class LinkTermRelatedness(PredictorUsingLink):
