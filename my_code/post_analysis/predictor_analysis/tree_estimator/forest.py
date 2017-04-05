@@ -45,6 +45,7 @@ class Forest(object):
             alpha = self._compute_alpha(errors)
             self._update_weights(errors,alpha)
             self._trees.append({"alpha":alpha,"single_tree":single_tree})
+            print "alpha:%f" %(alpha)
 
     def _gene_cdf(self):
         for i in self._weights:
@@ -76,16 +77,24 @@ class Forest(object):
 
 
     def _compute_alpha(self,errors):
+        # ek = .0
+        # for i in self._weights:
+        #     day_qid = self._query_data[i]["day_qid"]
+        #     if errors[day_qid] != 0:
+        #         ek += self._weights[i]*errors[day_qid]
+
+
         ek = (sum(errors.values())*1.0)/len(errors)
+
         return math.log( (1-ek)/ek )/2.0
 
     def _update_weights(self,errors,alpha):
         for i in self._weights:
             day_qid = self._query_data[i]["day_qid"]
             if errors[day_qid] == 0:
-                self._weights[i] *= math.exp(alpha)
-            else:
                 self._weights[i] *= math.exp(-1*alpha)
+            else:
+                self._weights[i] *= math.exp(alpha)
 
         weight_sum = sum(self._weights.values())
 
