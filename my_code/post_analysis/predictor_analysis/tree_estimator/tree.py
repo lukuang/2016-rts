@@ -104,7 +104,7 @@ class Tree(object):
         if not value_pairs:
             return self._value
 
-        elif self._left is None:
+        elif self._left is None and self._right is None:
             return self._value
         else:
             value_pair = value_pairs[0]
@@ -141,7 +141,8 @@ class Tree(object):
 
 
         for day_qid in predicted_rank:
-            if (abs(predicted_rank[day_qid]-real_rank[day_qid])<error_threshold ):
+            single_error = abs(predicted_rank[day_qid]-real_rank[day_qid])
+            if (single_error<error_threshold ):
                 errors[day_qid] = 0
             else:
                 errors[day_qid] = 1
