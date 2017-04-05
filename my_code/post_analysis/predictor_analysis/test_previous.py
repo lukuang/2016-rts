@@ -11,6 +11,7 @@ import codecs
 import itertools  
 from enum import IntEnum, unique
 from sklearn.metrics import f1_score as f1
+import cPickle
 
 from plot_silentDay_predictor import PredictorName,Expansion,R_DIR
 from silent_days import SilentDaysFromRes,SilentDaysFromJug
@@ -48,12 +49,12 @@ class DataSet(object):
 
 def load_data(top_data_dir):
     training_dir = os.path.join(top_data_dir,"training","data")
-    training_dataset = DataSet(training_dir)
+    dataset_11 = DataSet(training_dir)
 
     testing_dir = os.path.join(top_data_dir,"testing","data")
-    testing_dataset = DataSet(testing_dir)
+    dataset_1516 = DataSet(testing_dir)
 
-    return training_dataset, testing_dataset
+    return dataset_11, dataset_1516
 
 
 def get_classifier(method):
@@ -126,7 +127,8 @@ PREDICTOR_CLASS = {
 def try_mkdir(wanted_dir):
     if os.path.exists(wanted_dir):
         # raise RuntimeError("dir already exists: %s" %(wanted_dir))
-        print "WARNING!:dir already exists: %s" %(wanted_dir)
+        # print "WARNING!:dir already exists: %s" %(wanted_dir)
+        pass
     else:
         os.mkdir(wanted_dir)
 
@@ -279,9 +281,12 @@ class DataPreparor(object):
     def prepare_data(self):
 
         # get training data
-        self._training_data = self._prepare_vector_data_set(TRAINING_YEAR)
-        self._testing_data = self._prepare_vector_data_set(TESTING_YEAR)
-        self._save_data()
+        existed = self._create_dirs()
+
+        if not existed:
+            self._training_data = self._prepare_vector_data_set(TRAINING_YEAR)
+            self._testing_data = self._prepare_vector_data_set(TESTING_YEAR)
+            self._save_data()
 
     def _prepare_vector_data_set(self,year_list):
         vector_data_set = {
@@ -327,7 +332,7 @@ class DataPreparor(object):
         return vector_data_set
 
     def _save_data(self):
-        self._create_dirs()
+        
         # print "Store data to:\n%s" %(self._training_data_dir)
         self._save_vectors(self._training_data["feature_vector"],
                            self._training_data["label_vector"],
@@ -352,22 +357,26 @@ class DataPreparor(object):
             dest_dir_name += "_Wo_result"
         dest_dir_name += "_"+self._result_expansion.name.title()
         dest_dir = os.path.join(self._top_dest_dir,dest_dir_name)
-        
-        try_mkdir(dest_dir)
-
         self._dest_dir = dest_dir
+        
+        if os.path.exists(dest_dir):
+            return True
+        else:
+            try_mkdir(dest_dir)
 
-        training_dir = os.path.join(dest_dir,"training")
-        try_mkdir(training_dir)
-        self._training_data_dir = os.path.join(training_dir,"data")
-        self._training_model_dir = os.path.join(training_dir,"model")
-        try_mkdir(self._training_data_dir)
-        try_mkdir(self._training_model_dir)
 
-        testing_dir = os.path.join(dest_dir,"testing")
-        try_mkdir(testing_dir)
-        self._testing_data_dir = os.path.join(testing_dir,"data")
-        try_mkdir(self._testing_data_dir)
+            training_dir = os.path.join(dest_dir,"training")
+            try_mkdir(training_dir)
+            self._training_data_dir = os.path.join(training_dir,"data")
+            self._training_model_dir = os.path.join(training_dir,"model")
+            try_mkdir(self._training_data_dir)
+            try_mkdir(self._training_model_dir)
+
+            testing_dir = os.path.join(dest_dir,"testing")
+            try_mkdir(testing_dir)
+            self._testing_data_dir = os.path.join(testing_dir,"data")
+            try_mkdir(self._testing_data_dir)
+            return False
 
 
     def _save_vectors(self,feature_vector, label_vector, dest_data_dir):
@@ -429,11 +438,11 @@ def main():
 
     f_avg_max = .0
     f_avg_features = ""
-    f_avg_method_id = 0
+    # f_avg_method_id = 0
 
-    f_silent_max = .0
-    f_silent_features = ""
-    f_silent_method_id = 0
+    # f_silent_max = .0
+    # f_silent_features = ""
+    # f_silent_method_id = 0
 
     for i in range( len(previous_features) ):
         feature_size = i+1
@@ -451,7 +460,7 @@ def main():
 
 
 
-            print feature_descrption_list
+            # print feature_descrption_list
             data_preparor = DataPreparor(
                                 args.predictor_data_dir, feature_descrption_list,
                                 args.use_result, args.result_expansion,args.top_dest_dir)
@@ -461,38 +470,44 @@ def main():
 
             dest_dir = data_preparor.dest_dir
 
-            training_dataset, testing_dataset = load_data(dest_dir)
-            method_ids = range(6)
+            dataset_11, dataset_1516 = load_data(dest_dir)
+            # method_ids = range(6)
 
-            for method_id in method_ids:
-                clf = get_classifier(method_id)
-                clf.fit(training_dataset.X,training_dataset.y)
-                test_predicted = clf.predict(testing_dataset.X)
-                f_silent = f1(testing_dataset.y, test_predicted,average='binary',pos_label=1)
-                if f_silent > f_silent_max:
-                    f_silent_max = f_silent
-                    f_silent_features = feature_descrption_list
-                    f_silent_method_id = method_id
+            clf_11 = get_classifier(0)
+            clf_11.fit(dataset_11.X,dataset_11.y)
+            predicted_1516 = clf_11.predict(dataset_1516.X)
 
-                f_non_silent = f1(testing_dataset.y, test_predicted,average='binary',pos_label=0)
-                f_average = (f_silent + f_non_silent)/2.0
+            clf_11_file = os.path.join(dest_dir,"training","model","clf")
+            with open(clf_11_file,'w') as f:
+                cPickle.dump(clf_11, f, protocol=cPickle.HIGHEST_PROTOCOL)
 
-                if f_average > f_avg_max:
-                    f_avg_max = f_average
-                    f_avg_features = feature_descrption_list
-                    f_avg_method_id = method_id
+            clf_1516 = get_classifier(0)
+            clf_1516.fit(dataset_1516.X,dataset_1516.y)
+            predicted_11 = clf_1516.predict(dataset_11.X)
+            f1_1516 = f1(dataset_1516.y, predicted_1516)
+            f1_11 = f1(dataset_11.y, predicted_11)
+            # if f_silent > f_silent_max:
+            #     f_silent_max = f_silent
+            #     f_silent_features = feature_descrption_list
+
+            # f_non_silent = f1(dataset_1516.y, test_predicted,average='binary',pos_label=0)
+            f_average = (f1_1516 + f1_11)/2.0
+
+            print "Features:\t%s" %(" ".join(feature_descrption_list) )
+            print "Avg f1:\t %f" %(f_average)
+            if f_average > f_avg_max:
+                f_avg_max = f_average
+                f_avg_features = feature_descrption_list
 
     print "-"*20
     print "The best f1 avg:"
     print "f1:%f" %(f_avg_max)
     print "features: %s" %(f_avg_features)
-    print "method:%d " %(f_avg_method_id)
 
-    print "-"*20
-    print "The best f1 silent:"
-    print "f1:%f" %(f_silent_max)
-    print "features: %s" %(f_silent_features)
-    print "method:%d " %(f_silent_method_id)
+    # print "-"*20
+    # print "The best f1 silent:"
+    # print "f1:%f" %(f_silent_max)
+    # print "features: %s" %(f_silent_features)
 
 
 
