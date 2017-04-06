@@ -57,6 +57,8 @@ class PredictorName(IntEnum):
     local_avg_pmi = 30
     local_max_pmi = 31
     tree_estimator = 32
+    avg_idf_weighted_pmi = 33
+    max_idf_weighted_pmi = 34
 
 @unique
 class Expansion(IntEnum):
@@ -102,6 +104,8 @@ BIN_FILES = {
     PredictorName.local_avg_pmi:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_local_term_relatedness",
     PredictorName.local_max_pmi:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_local_term_relatedness",
     PredictorName.tree_estimator:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_term_df",
+    PredictorName.avg_idf_weighted_pmi:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_term_relatedness",
+    PredictorName.max_idf_weighted_pmi:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_term_relatedness",
 
 }
 
@@ -357,6 +361,11 @@ def generate_predictor_values(predictor_choice,qrel,
         else:
             predictor = TreeEstimator(qrel,index_dir,query_dir,bin_file,result_dir)
     
+    elif predictor_choice == PredictorName.avg_idf_weighted_pmi:
+        predictor = AvgIDFWeightedPMI(qrel,index_dir,query_dir,bin_file)
+
+    elif predictor_choice == PredictorName.max_idf_weighted_pmi:
+        predictor = MaxIDFWeightedPMI(qrel,index_dir,query_dir,bin_file)
 
     # predictor.show()
     with open(data_storage_file,"w") as f:
@@ -448,6 +457,8 @@ def main():
                 30: local_avg_pmi
                 31: local_max_pmi
                 32: tree_estimator
+                33: avg_idf_weighted_pmi
+                34: max_idf_weighted_pmi
         """)
     parser.add_argument("--term_size","-tn",type=int,
         help="""

@@ -62,6 +62,8 @@ PREDICTOR_CLASS = {
     PredictorName.pwig: PredictorClass.post,
     PredictorName.local_avg_pmi: PredictorClass.post,
     PredictorName.local_max_pmi: PredictorClass.post,
+    PredictorName.avg_idf_weighted_pmi: PredictorClass.pre,
+    PredictorName.max_idf_weighted_pmi: PredictorClass.pre,
 
 }
 

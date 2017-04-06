@@ -890,14 +890,28 @@ class AvgPMI(TermRelatedness):
     """
     def __init__(self,qrel,top_index_dir,query_dir,bin_file):
         super(AvgPMI,self).__init__(qrel,top_index_dir,query_dir,bin_file,"average")
-     
+
+
+class AvgIDFWeightedPMI(AvgPMI):
+    """
+    average idf weighted pmi(term relatedness)
+    """
+    pass
+
 class MaxPMI(TermRelatedness):
     """
     average pmi(term relatedness)
     """
     def __init__(self,qrel,top_index_dir,query_dir,bin_file):
         super(MaxPMI,self).__init__(qrel,top_index_dir,query_dir,bin_file,"max")
-  
+ 
+
+class MaxIDFWeightedPMI(MaxPMI):
+    """
+    max idf weighted pmi(term relatedness)
+    """
+    pass 
+
 
 class StandardDeviation(PredictorUsingOnlyResult):
     """
@@ -1021,6 +1035,8 @@ def _main():
                 29: pwig
                 30: local_avg_pmi
                 31: local_max_pmi
+                32: avg_idf_weighted_pmi
+                33: max_idf_weighted_pmi
         """)
     args=parser.parse_args()
 
