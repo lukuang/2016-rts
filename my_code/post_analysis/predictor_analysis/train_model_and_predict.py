@@ -12,6 +12,7 @@ from sklearn import cross_validation
 from sklearn import metrics
 from sklearn import linear_model
 from sklearn.metrics import classification_report
+from sklearn.metrics import f1_score as f1
 import numpy as np
 import cPickle
 
@@ -39,12 +40,12 @@ class DataSet(object):
 
 def load_data(top_data_dir):
     training_dir = os.path.join(top_data_dir,"training","data")
-    training_dataset = DataSet(training_dir)
+    dataset_11 = DataSet(training_dir)
 
     testing_dir = os.path.join(top_data_dir,"testing","data")
-    testing_dataset = DataSet(testing_dir)
+    dataset_1516 = DataSet(testing_dir)
 
-    return training_dataset, testing_dataset
+    return dataset_11, dataset_1516
 
 def get_classifier(method):
     if method == 0:
@@ -84,27 +85,48 @@ def main():
         """)
     args=parser.parse_args()
 
-    training_dataset, testing_dataset = load_data(args.top_data_dir)
+    dataset_11, dataset_1516 = load_data(args.top_data_dir)
     clf = get_classifier(args.method)
 
-    print "cross validation:"
-    training_predicted = cross_validation.cross_val_predict(clf,training_dataset.X,training_dataset.y,cv=5)
-    print classification_report(training_dataset.y, training_predicted)
-    print "-"*20
+    # print "cross validation:"
+    # training_predicted = cross_validation.cross_val_predict(clf,training_dataset.X,training_dataset.y,cv=5)
+    # print classification_report(training_dataset.y, training_predicted)
+    # print "-"*20
 
-    print "Store trained model"
+    # print "Test on 1516 data"
     
-    clf.fit(training_dataset.X,training_dataset.y)
+    clf.fit(dataset_11.X,dataset_11.y)
     clf_file = os.path.join(args.top_data_dir,"training","model","clf")
     with open(clf_file,'w') as f:
         cPickle.dump(clf, f, protocol=cPickle.HIGHEST_PROTOCOL)
+
+
+    # print "Predict:"
+    predicted_1516 = clf.predict(dataset_1516.X)
+    # print classification_report(dataset_1516.y, predicted_1516)
+
+    # print "Test on 11 data"
+    
+    clf.fit(dataset_1516.X,dataset_1516.y)
+    testing_mode_dir = os.path.join(args.top_data_dir,"testing","model")
+    if not os.path.exists(testing_mode_dir):
+        os.mkdir(testing_mode_dir)
+    clf_file = os.path.join(args.top_data_dir,"testing","model","clf")
+    with open(clf_file,'w') as f:
+        cPickle.dump(clf, f, protocol=cPickle.HIGHEST_PROTOCOL)
+
+
+    # print "Predict:"
+    predicted_11 = clf.predict(dataset_11.X)
+    # print classification_report(dataset_11.y, predicted_11)
+    
+    f1_1516 = f1(dataset_1516.y, predicted_1516)
+    f1_11 = f1(dataset_11.y, predicted_11)
+    f1_average = (f1_1516+f1_11)/2.0
+    print "Average f1: %f" %(f1_average)
     print "-"*20
 
 
-    print "Predict:"
-    test_predicted = clf.predict(testing_dataset.X)
-    print classification_report(testing_dataset.y, test_predicted)
-    print "-"*20
 
 
 

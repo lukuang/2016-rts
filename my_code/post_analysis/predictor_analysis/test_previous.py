@@ -494,6 +494,7 @@ def main():
             f_average = (f1_1516 + f1_11)/2.0
 
             print "Features:\t%s" %(" ".join(feature_descrption_list) )
+            print "15 f1:%f, 11 f1:%f" %(f1_1516,f1_11)
             print "Avg f1:\t %f" %(f_average)
             if f_average > f_avg_max:
                 f_avg_max = f_average
