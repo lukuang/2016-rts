@@ -10,7 +10,7 @@ import argparse
 import codecs
 from enum import IntEnum, unique
 
-from plot_silentDay_predictor import PredictorName,Expansion,R_DIR
+from plot_silentDay_predictor import PredictorName,Expansion,R_DIR,PREDICTOR_CLASS,PredictorClass,RetrievalMethod
 from silent_days import SilentDaysFromRes,SilentDaysFromJug
 
 sys.path.append("/infolab/node4/lukuang/2015-RTS/src")
@@ -18,60 +18,20 @@ from my_code.distribution.data import Year
 
 
 
-@unique
-class PredictorClass(IntEnum):
-    post = 0
-    pre = 1
+
 
 
 TRAINING_YEAR = [Year.y2011]
 TESTING_YEAR = [Year.y2015,Year.y2016]
 
-# predictor class dictionary used for getting predictor class
-# from predictor name
-PREDICTOR_CLASS = {
-    PredictorName.clarity : PredictorClass.post,
-    PredictorName.standard_deviation : PredictorClass.post,
-    PredictorName.n_standard_deviation : PredictorClass.post,
-    PredictorName.top_score : PredictorClass.post,
-    PredictorName.coherence_binary : PredictorClass.post,
-    PredictorName.coherence_average : PredictorClass.post,
-    PredictorName.coherence_max : PredictorClass.post,
-    PredictorName.coherence_binary_n : PredictorClass.post,
-    PredictorName.coherence_average_n : PredictorClass.post,
-    PredictorName.coherence_max_n : PredictorClass.post,
-    PredictorName.max_pmi : PredictorClass.pre,
-    PredictorName.avg_pmi : PredictorClass.pre,
-    PredictorName.coherence_idf_weighted_binary : PredictorClass.post,
-    PredictorName.coherence_idf_weighted_average : PredictorClass.post,
-    PredictorName.coherence_idf_weighted_max : PredictorClass.post,
-    PredictorName.coherence_idf_weighted_binary_n : PredictorClass.post,
-    PredictorName.coherence_idf_weighted_average_n : PredictorClass.post,
-    PredictorName.coherence_idf_weighted_max_n : PredictorClass.post,
-    PredictorName.coherence_pmi_weighted_binary : PredictorClass.post,
-    PredictorName.coherence_pmi_weighted_average : PredictorClass.post,
-    PredictorName.coherence_pmi_weighted_max : PredictorClass.post,
-    PredictorName.query_length : PredictorClass.pre,
-    PredictorName.average_idf : PredictorClass.pre,
-    PredictorName.mst_term_relatedness: PredictorClass.pre,
-    PredictorName.link_term_relatedness: PredictorClass.pre,
-    PredictorName.scq: PredictorClass.pre,
-    PredictorName.var: PredictorClass.pre,
-    PredictorName.nqc: PredictorClass.post,
-    PredictorName.wig: PredictorClass.post,
-    PredictorName.pwig: PredictorClass.post,
-    PredictorName.local_avg_pmi: PredictorClass.post,
-    PredictorName.local_max_pmi: PredictorClass.post,
-    PredictorName.avg_idf_weighted_pmi: PredictorClass.pre,
-    PredictorName.max_idf_weighted_pmi: PredictorClass.pre,
 
-}
 
 
 def try_mkdir(wanted_dir):
     if os.path.exists(wanted_dir):
         # raise RuntimeError("dir already exists: %s" %(wanted_dir))
-        print "WARNING!:dir already exists: %s" %(wanted_dir)
+        # print "WARNING!:dir already exists: %s" %(wanted_dir)
+        pass
     else:
         os.mkdir(wanted_dir)
 
@@ -111,7 +71,7 @@ class SingleFeature(object):
         """
         get feature detail form feature_descrption_string
         """
-        print "For year %s, the features used:" %(self._year.name)
+        # print "For year %s, the features used:" %(self._year.name)
         detail_finder = re.search("^(\w+?):(\w+)$",self._feature_descrption_string)
         if detail_finder:
             self._predictor_choice = PredictorName[ detail_finder.group(1) ]
@@ -119,16 +79,16 @@ class SingleFeature(object):
             if (self._predictor_choice == PredictorName.coherence_binary_n or
                self._predictor_choice == PredictorName.coherence_average_n or
                self._predictor_choice == PredictorName.coherence_max_n or
-               self._predictor_choice == PredictorName.coherence_idf_weighted_binary_n or
-               self._predictor_choice == PredictorName.coherence_idf_weighted_average_n or
-               self._predictor_choice == PredictorName.coherence_idf_weighted_max_n):
+               self._predictor_choice == PredictorName.cidf_binary_n or
+               self._predictor_choice == PredictorName.cidf_average_n or
+               self._predictor_choice == PredictorName.cidf_max_n):
                 raise ValueError("Need to specify term size when using %s!" %(self._predictor_choice.name))
 
             self._predictor_class = PREDICTOR_CLASS[self._predictor_choice]
             self._expansion = Expansion[ detail_finder.group(2) ]
             if self._year != Year.y2016 and self._expansion == Expansion.dynamic:
                 self._expansion = Expansion.static
-            print "\t%s" %(" ".join([self._predictor_choice.name,self._predictor_class.name,self._expansion.name]))
+            # print "\t%s" %(" ".join([self._predictor_choice.name,self._predictor_class.name,self._expansion.name]))
 
         else:
             detail_finder_with_tn = re.search("^(\w+?):(\w+):(\d+)$",self._feature_descrption_string)
@@ -137,16 +97,16 @@ class SingleFeature(object):
                 if (self._predictor_choice == PredictorName.coherence_binary_n or
                    self._predictor_choice == PredictorName.coherence_average_n or
                    self._predictor_choice == PredictorName.coherence_max_n or
-                   self._predictor_choice == PredictorName.coherence_idf_weighted_binary_n or
-                   self._predictor_choice == PredictorName.coherence_idf_weighted_average_n or
-                   self._predictor_choice == PredictorName.coherence_idf_weighted_max_n):
+                   self._predictor_choice == PredictorName.cidf_binary_n or
+                   self._predictor_choice == PredictorName.cidf_average_n or
+                   self._predictor_choice == PredictorName.cidf_max_n):
                     
                     self._predictor_class = PREDICTOR_CLASS[self._predictor_choice]
                     self._expansion = Expansion[ detail_finder_with_tn.group(2) ]
                     if self._year != Year.y2016 and self._expansion == Expansion.dynamic:
                         self._expansion = Expansion.static
                     self._term_size = int(detail_finder_with_tn.group(3))
-                    print "\t%s" %(" ".join([self._predictor_choice.name,str(self._term_size),self._predictor_class.name,self._expansion.name]))
+                    # print "\t%s" %(" ".join([self._predictor_choice.name,str(self._term_size),self._predictor_class.name,self._expansion.name]))
 
                 else:
                     raise ValueError("Cannot specify term size when using %s" %(self._predictor_choice.name))
@@ -166,9 +126,9 @@ class SingleFeature(object):
         if (self._predictor_choice == PredictorName.coherence_binary_n or
                    self._predictor_choice == PredictorName.coherence_average_n or
                    self._predictor_choice == PredictorName.coherence_max_n or
-                   self._predictor_choice == PredictorName.coherence_idf_weighted_binary_n or
-                   self._predictor_choice == PredictorName.coherence_idf_weighted_average_n or
-                   self._predictor_choice == PredictorName.coherence_idf_weighted_max_n):
+                   self._predictor_choice == PredictorName.cidf_binary_n or
+                   self._predictor_choice == PredictorName.cidf_average_n or
+                   self._predictor_choice == PredictorName.cidf_max_n):
             self._data_file_path = os.path.join(
                             self._predictor_data_dir,self._predictor_class.name,
                             self._predictor_choice.name[:-1]+"%d" %(self._term_size),
@@ -179,7 +139,7 @@ class SingleFeature(object):
                             self._predictor_data_dir,self._predictor_class.name,
                             self._predictor_choice.name,self._year.name,
                             self._expansion.name,use_result_string,"data")
-        print "Data path:%s" %(self._data_file_path)
+        # print "Data path:%s" %(self._data_file_path)
         self._feature_data = json.load(open(self._data_file_path))
 
     @property
@@ -212,9 +172,9 @@ class DataPreparor(object):
 
 
     def __init__(self,predictor_data_dir,feature_descrption_list,
-                 use_result,result_expansion,top_dest_dir):
-        self._predictor_data_dir,self._feature_descrption_list, =\
-            predictor_data_dir,feature_descrption_list
+                 use_result,result_expansion,top_dest_dir,retrieval_method):
+        self._predictor_data_dir,self._feature_descrption_list, self._retrieval_method=\
+            predictor_data_dir,feature_descrption_list,retrieval_method
 
         self._use_result,self._result_expansion = use_result,result_expansion
 
@@ -240,7 +200,10 @@ class DataPreparor(object):
         for year in year_list:
             
             if self._use_result:
-                result_dir = R_DIR[year][self._result_expansion]
+                if self._result_expansion == Expansion.raw:
+                    result_dir = R_DIR[year][self._result_expansion][self._retrieval_method.name]
+                else:
+                    result_dir = R_DIR[year][self._result_expansion]
                 silent_day_generator = SilentDaysFromRes(year,result_dir)
             else:
                 silent_day_generator = SilentDaysFromJug(year)
@@ -346,16 +309,25 @@ def main():
                 1:static:
                 2:dynamic
         """)
+    parser.add_argument("--retrieval_method","-rm",choices=list(map(int, RetrievalMethod)),default=0,type=int,
+        help="""
+            Choose the retrieval method:
+                0:f2exp
+                1:dirichlet
+                2:pivoted
+                3:bm25
+        """)
     parser.add_argument("--feature_descrption_list","-f",nargs='+')
     args=parser.parse_args()
 
 
     args.result_expansion = Expansion(args.result_expansion)
+    args.retrieval_method = RetrievalMethod(args.retrieval_method)
 
     print args.feature_descrption_list
     data_preparor = DataPreparor(
                         args.predictor_data_dir, args.feature_descrption_list,
-                        args.use_result, args.result_expansion,args.top_dest_dir)
+                        args.use_result, args.result_expansion,args.top_dest_dir,args.retrieval_method)
 
 
     data_preparor.prepare_data()
