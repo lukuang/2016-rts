@@ -189,6 +189,9 @@ class NQC(PredictorUsingBoth):
     normalized standard deviation of top 10 document scores
     STD/collection_score(C)
     """
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+        super(NQC,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir)
+        self._tune_documents = tune_documents
 
     def _compute_daily_value(self,day_index_dir,day_query_file,
                              day_result_file):
@@ -227,7 +230,7 @@ class NQC(PredictorUsingBoth):
                 if qid in self._judged_qids:
                     if qid not in scores:
                         scores[qid] = []
-                    if len(scores[qid]) >=10 :
+                    if len(scores[qid]) >=self._tune_documents :
                         continue
                     single_score = float( parts[4] )
                     scores[qid].append(single_score)
@@ -382,15 +385,19 @@ class WIG(PredictorUsingBoth):
     """
     compute weighted information gain for query
     """
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+        super(WIG,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir)
+        self._tune_documents = tune_documents
 
     def _compute_daily_value(self,day_index_dir,day_query_file,
                              day_result_file):
         daily_value = {}
 
-        run_command = "%s -index=%s -query=%s -result=%s " %(self._bin_file,
+        run_command = "%s -index=%s -query=%s -result=%s -n=%d" %(self._bin_file,
                                                             day_index_dir,
                                                             day_query_file,
-                                                            day_result_file)
+                                                            day_result_file,
+                                                            self._tune_documents)
 
    
 
@@ -412,11 +419,45 @@ class WIG(PredictorUsingBoth):
                 break 
         return daily_value 
 
-class PWIG(WIG):
+class PWIG(PredictorUsingBoth):
     """
     compute wig only for phrases
     """
-    pass
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10,of_lambda=0.5):
+        super(WIG,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir)
+        self._tune_documents = tune_documents
+        self._of_lambda = of_lambda
+
+    def _compute_daily_value(self,day_index_dir,day_query_file,
+                             day_result_file):
+        daily_value = {}
+
+        run_command = "%s -index=%s -query=%s -result=%s -tune_documents=%d -of_lambda=%f" %(self._bin_file,
+                                                            day_index_dir,
+                                                            day_query_file,
+                                                            day_result_file,
+                                                            self._tune_documents,
+                                                            self._of_lambda)
+
+   
+
+        # print "command being run:\n%s" %(run_command)
+        p = subprocess.Popen(run_command,stdout=subprocess.PIPE,shell=True)
+        
+        while True:
+            line = p.stdout.readline()
+            if line != '':
+                line = line.rstrip()
+                parts = line.split()
+                qid = parts[0]
+                if qid not in self._judged_qids:
+                    continue
+                daily_value[qid] = float(parts[1])
+                
+
+            else:
+                break 
+        return daily_value 
 
 class LocalTermRelatedness(PredictorUsingBoth):
     """
@@ -471,22 +512,24 @@ class LocalCoherenceWeigheted(PredictorUsingBoth):
     """
     Base class for computing weighted coherence
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,cu,weight,tn=None):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,cu,weight,tn=None,tune_documents=10):
         super(LocalCoherenceWeigheted, self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir)
         self._weight=weight
         self._cu=cu
         self._tn = tn
+        self._tune_documents = tune_documents
 
     def _compute_daily_value(self,day_index_dir,day_query_file,
                              day_result_file):
         daily_value = {}
 
-        run_command = "%s -index=%s -query=%s -result=%s -cu=%s -weight=%s" %(self._bin_file,
+        run_command = "%s -index=%s -query=%s -result=%s -cu=%s -weight=%s -tune_documents=%d" %(self._bin_file,
                                                             day_index_dir,
                                                             day_query_file,
                                                             day_result_file,
                                                             self._cu,
-                                                            self._weight)
+                                                            self._weight,
+                                                            self._tune_documents)
 
         if self._tn:
             run_command += " -tn=%d" %(self._tn)
@@ -512,64 +555,64 @@ class LocalCoherenceWeigheted(PredictorUsingBoth):
 class LocalCoherenceWeighetedBinary(LocalCoherenceWeigheted):
     """local coherence with binary co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,weight,tn=None):
-        super(LocalCoherenceWeighetedBinary,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"binary",weight,tn=tn)
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,weight,tn=None,tune_documents=10):
+        super(LocalCoherenceWeighetedBinary,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"binary",weight,tn=tn,tune_documents=tune_documents)
 
 
 class LocalCoherenceWeighetedAverage(LocalCoherenceWeigheted):
     """local coherence with average co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,weight,tn=None):
-        super(LocalCoherenceWeighetedAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"average",weight,tn=tn)
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,weight,tn=None,tune_documents=10):
+        super(LocalCoherenceWeighetedAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"average",weight,tn=tn,tune_documents=tune_documents)
 
 
 class LocalCoherenceWeighetedMax(LocalCoherenceWeigheted):
     """
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,weight,tn=None):
-        super(LocalCoherenceWeighetedMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"max",weight,tn=tn)
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,weight,tn=None,tune_documents=10):
+        super(LocalCoherenceWeighetedMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"max",weight,tn=tn,tune_documents=tune_documents)
 
 
 class LocalCoherenceIDFWeighetedBinary(LocalCoherenceWeighetedBinary):
     """local coherence with binary co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn=None):
-        super(LocalCoherenceIDFWeighetedBinary,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"idf",tn=tn)
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn=None,tune_documents=10):
+        super(LocalCoherenceIDFWeighetedBinary,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"idf",tn=tn,tune_documents=tune_documents)
 
 
 class LocalCoherenceIDFWeighetedAverage(LocalCoherenceWeighetedAverage):
     """local coherence with average co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn=None):
-        super(LocalCoherenceIDFWeighetedAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"idf",tn=tn)
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn=None,tune_documents=10):
+        super(LocalCoherenceIDFWeighetedAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"idf",tn=tn,tune_documents=tune_documents)
 
 
 class LocalCoherenceIDFWeighetedMax(LocalCoherenceWeighetedMax):
     """
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn=None):
-        super(LocalCoherenceIDFWeighetedMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"idf",tn=tn)
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn=None,tune_documents=10):
+        super(LocalCoherenceIDFWeighetedMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"idf",tn=tn,tune_documents=tune_documents)
 
 
 class LocalCoherenceIDFWeighetedBinaryN(LocalCoherenceIDFWeighetedBinary):
     """local coherence with binary co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn):
-        super(LocalCoherenceIDFWeighetedBinaryN,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,tn=tn)
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn,tune_documents=10):
+        super(LocalCoherenceIDFWeighetedBinaryN,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,tn=tn,tune_documents=tune_documents)
 
 
 class LocalCoherenceIDFWeighetedAverageN(LocalCoherenceIDFWeighetedAverage):
     """local coherence with average co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn):
-        super(LocalCoherenceIDFWeighetedAverageN,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,tn=tn)
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn,tune_documents=10):
+        super(LocalCoherenceIDFWeighetedAverageN,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,tn=tn,tune_documents=tune_documents)
 
 
 class LocalCoherenceIDFWeighetedMaxN(LocalCoherenceIDFWeighetedMax):
     """
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn):
-        super(LocalCoherenceIDFWeighetedMaxN,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,tn=tn)
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn,tune_documents=10):
+        super(LocalCoherenceIDFWeighetedMaxN,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,tn=tn,tune_documents=tune_documents)
 
 
 
@@ -577,22 +620,22 @@ class LocalCoherenceIDFWeighetedMaxN(LocalCoherenceIDFWeighetedMax):
 class LocalCoherencePMIWeighetedBinary(LocalCoherenceWeighetedBinary):
     """local coherence with binary co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir):
-        super(LocalCoherencePMIWeighetedBinary,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"pmi",tn=2)
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+        super(LocalCoherencePMIWeighetedBinary,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"pmi",tn=2,tune_documents=tune_documents)
 
 
 class LocalCoherencePMIWeighetedAverage(LocalCoherenceWeighetedAverage):
     """local coherence with average co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir):
-        super(LocalCoherencePMIWeighetedAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"pmi",tn=2)
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+        super(LocalCoherencePMIWeighetedAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"pmi",tn=2,tune_documents=tune_documents)
 
 
 class LocalCoherencePMIWeighetedMax(LocalCoherenceWeighetedMax):
     """
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir):
-        super(LocalCoherencePMIWeighetedMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"pmi",tn=2)
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+        super(LocalCoherencePMIWeighetedMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"pmi",tn=2,tune_documents=tune_documents)
 
 
 
@@ -602,19 +645,21 @@ class LocalCoherenceUnweigheted(PredictorUsingBoth):
     """Compute unweigheted query local coherence.
     """
 
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,cu):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,cu,tune_documents=10):
         super(LocalCoherenceUnweigheted, self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir)
+        self._tune_documents = tune_documents
         self._cu=cu
 
 
     def _compute_daily_value(self,day_index_dir,day_query_file,
                              day_result_file):
         day_clarity = {}
-        run_command = "%s -index=%s -query=%s -result=%s -cu=%s" %(self._bin_file,
+        run_command = "%s -index=%s -query=%s -result=%s -cu=%s -tune_documents=%d" %(self._bin_file,
                                                             day_index_dir,
                                                             day_query_file,
                                                             day_result_file,
-                                                            self._cu)
+                                                            self._cu,
+                                                            self._tune_documents)
         # print "command being run:\n%s" %(run_command)
         p = subprocess.Popen(run_command,stdout=subprocess.PIPE,shell=True)
         
@@ -636,43 +681,45 @@ class LocalCoherenceUnweigheted(PredictorUsingBoth):
 class LocalCoherenceUnweighetedBinary(LocalCoherenceUnweigheted):
     """local coherence with binary co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir):
-        super(LocalCoherenceUnweighetedBinary,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"binary")
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+        super(LocalCoherenceUnweighetedBinary,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"binary",tune_documents=tune_documents)
 
 
 class LocalCoherenceUnweighetedAverage(LocalCoherenceUnweigheted):
     """local coherence with average co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir):
-        super(LocalCoherenceUnweighetedAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"average")
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+        super(LocalCoherenceUnweighetedAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"average",tune_documents=tune_documents)
 
 
 class LocalCoherenceUnweighetedMax(LocalCoherenceUnweigheted):
     """
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir):
-        super(LocalCoherenceUnweighetedMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"max")
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+        super(LocalCoherenceUnweighetedMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"max",tune_documents=tune_documents)
 
 class LocalCoherenceUnweighetedN(PredictorUsingBoth):
     """Compute unweigheted query local coherence given the
     size of terms tn
     """
 
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,cu,tn):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,cu,tn,tune_documents=10):
         super(LocalCoherenceUnweighetedN, self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir)
         self._cu = cu
         self._tn = tn
+        self._tune_documents=tune_documents
 
 
     def _compute_daily_value(self,day_index_dir,day_query_file,
                              day_result_file):
         day_clarity = {}
-        run_command = "%s -index=%s -query=%s -result=%s -cu=%s -tn=%d" %(self._bin_file,
+        run_command = "%s -index=%s -query=%s -result=%s -cu=%s -tn=%d -tune_documents=%d" %(self._bin_file,
                                                             day_index_dir,
                                                             day_query_file,
                                                             day_result_file,
                                                             self._cu,
-                                                            self._tn)
+                                                            self._tn,
+                                                            self._tune_documents)
         # print "command being run:\n%s" %(run_command)
         p = subprocess.Popen(run_command,stdout=subprocess.PIPE,shell=True)
         
@@ -694,22 +741,22 @@ class LocalCoherenceUnweighetedN(PredictorUsingBoth):
 class LocalCoherenceUnweighetedBinaryN(LocalCoherenceUnweighetedN):
     """local coherence with binary co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn):
-        super(LocalCoherenceUnweighetedBinaryN,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"binary",tn)
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn,tune_documents=10):
+        super(LocalCoherenceUnweighetedBinaryN,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"binary",tn,tune_documents=tune_documents)
 
 
 class LocalCoherenceUnweighetedAverageN(LocalCoherenceUnweighetedN):
     """local coherence with average co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn):
-        super(LocalCoherenceUnweighetedAverageN,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"average",tn)
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn,tune_documents=10):
+        super(LocalCoherenceUnweighetedAverageN,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"average",tn,tune_documents=tune_documents)
 
 
 class LocalCoherenceUnweighetedMaxN(LocalCoherenceUnweighetedN):
     """
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn):
-        super(LocalCoherenceUnweighetedMaxN,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"max",tn)
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn,tune_documents=10):
+        super(LocalCoherenceUnweighetedMaxN,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"max",tn,tune_documents=tune_documents)
 
 
 class SCQ(PredictorUsingOnlyIndri):
@@ -749,10 +796,18 @@ class Clarity(PredictorUsingOnlyIndri):
     """
     Clarity score
     """
+    
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,tune_documents=10,tune_terms=5):
+        super(Clarity,self).__init__(qrel,top_index_dir,query_dir,bin_file)
+        self._tune_documents,self._tune_terms = tune_documents,tune_terms
 
     def _compute_daily_value(self,day_index_dir,day_query_file):
         day_clarity = {}
-        run_command = "%s -index=%s -query=%s -rule=\"method:f2exp,s:0.1\"" %(self._bin_file,day_index_dir,day_query_file)
+        run_command = "%s -index=%s -query=%s -rule=\"method:f2exp,s:0.1\" -documents=%d -terms=%d" %(self._bin_file,
+                                                                                                      day_index_dir,
+                                                                                                      day_query_file,
+                                                                                                      self._tune_documents,
+                                                                                                      self._tune_terms)
         # print "command being run:\n%s" %(run_command)
         p = subprocess.Popen(run_command,stdout=subprocess.PIPE,shell=True)
         
@@ -852,6 +907,13 @@ class QueryLength(PredictorUsingOnlyIndri):
                 break 
         return daily_value
 
+class CandidateSize(QueryLength):
+    """
+    get the size of candidate documents(document with at least one
+    query term)
+    """
+    pass
+
 class TermRelatedness(PredictorUsingOnlyIndri):
     """
     term relatedness
@@ -915,8 +977,11 @@ class MaxIDFWeightedPMI(MaxPMI):
 
 class StandardDeviation(PredictorUsingOnlyResult):
     """
-    standard deviation of top 10 document scores
+    standard deviation of top document scores
     """
+    def __init__(self,qrel,result_dir,tune_documents=10):
+        super(StandardDeviation,self).__init__(qrel,result_dir)
+        self._tune_documents = tune_documents
 
     def _compute_daily_value(self,day_result_file):
         scores = {}
@@ -929,7 +994,7 @@ class StandardDeviation(PredictorUsingOnlyResult):
                 if qid in self._judged_qids:
                     if qid not in scores:
                         scores[qid] = []
-                    if len(scores[qid]) >=10 :
+                    if len(scores[qid]) >=self._tune_documents :
                         continue
                     single_score = float( parts[4] )
                     scores[qid].append(single_score)
@@ -943,8 +1008,11 @@ class StandardDeviation(PredictorUsingOnlyResult):
 
 class NormalizedStandardDeviation(PredictorUsingOnlyResult):
     """
-    standard deviation of top 10 document scores
+    normalized standard deviation of top document scores
     """
+    def __init__(self,qrel,result_dir,tune_documents=10):
+        super(NormalizedStandardDeviation,self).__init__(qrel,result_dir)
+        self._tune_documents = tune_documents
 
     def _compute_daily_value(self,day_result_file):
         scores = {}
@@ -959,7 +1027,7 @@ class NormalizedStandardDeviation(PredictorUsingOnlyResult):
                     if qid not in scores:
                         scores[qid] = []
                         top_score[qid] = float( parts[4] )
-                    if len(scores[qid]) >=10 :
+                    if len(scores[qid]) >=self._tune_documents :
                         continue
                     single_score = float( parts[4] )
                     if single_score >= 0.5*top_score[qid]:
@@ -1005,8 +1073,8 @@ def _main():
             Choose the predictor:
                 0: clarity
                 1: average idf
-                2: DEV
-                3: NDEV
+                2: dev
+                3: ndev
                 4: top_score
                 5: coherence_binary
                 6: coherence_average
@@ -1017,15 +1085,15 @@ def _main():
                 11: query_length
                 12: avg_pmi
                 13: max_pmi
-                14: coherence_idf_weighted_binary
-                15: coherence_idf_weighted_average
-                16: coherence_idf_weighted_max
-                17: coherence_idf_weighted_binary_n
-                18: coherence_idf_weighted_average_n
-                19: coherence_idf_weighted_max_n 
-                20: coherence_pmi_weighted_binary
-                21: coherence_pmi_weighted_average
-                22: coherence_pmi_weighted_max
+                14: cidf_binary
+                15: cidf_average
+                16: cidf_max
+                17: cidf_binary_n
+                18: cidf_average_n
+                19: cidf_max_n 
+                20: cpmi_binary
+                21: cpmi_average
+                22: cpmi_max
                 23: mst_term_relatedness
                 24: link_term_relatedness
                 25: scq
@@ -1035,8 +1103,8 @@ def _main():
                 29: pwig
                 30: local_avg_pmi
                 31: local_max_pmi
-                32: avg_idf_weighted_pmi
-                33: max_idf_weighted_pmi
+                32: aidf_pmi
+                33: midf_pmi
         """)
     args=parser.parse_args()
 

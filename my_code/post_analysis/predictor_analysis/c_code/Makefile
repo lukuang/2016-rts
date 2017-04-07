@@ -15,6 +15,7 @@ GET_LINK_TERM_RELATEDNESS = get_link_term_relatedness
 GET_COLLECTION_F2EXP_SCORE = get_collection_f2exp_score
 GET_WIG = get_wig
 GET_PWIG = get_pwig
+GET_CANDIDATE_SIZE=get_candidate_size
 ## extra object files for your app here
 OBJ=
 
@@ -27,7 +28,10 @@ LIBPATH=-L$(libdir)
 CXXFLAGS=-DPACKAGE_NAME=\"Indri\" -DPACKAGE_TARNAME=\"indri\" -DPACKAGE_VERSION=\"5.6\" -DPACKAGE_STRING=\"Indri\ 5.6\" -DPACKAGE_BUGREPORT=\"project@lemurproject.org\" -DYYTEXT_POINTER=1 -DINDRI_STANDALONE=1 -DHAVE_LIBM=1 -DHAVE_LIBPTHREAD=1 -DHAVE_LIBZ=1 -DHAVE_LIBIBERTY=1 -DHAVE_NAMESPACES= -DISNAN_IN_NAMESPACE_STD= -DHAVE_FSEEKO=1 -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_EXT_ATOMICITY_H=1 -DP_NEEDS_GNU_CXX_NAMESPACE=1 -DHAVE_MKSTEMP=1 -DHAVE_MKSTEMPS=1 -DNDEBUG=1 -std=c++11  -g -O3 $(INCPATH)
 CPPLDFLAGS  =  -lindri -liberty -lz -lpthread -lm 
 
-all:  scq var collection_f2exp uw_local_coherence w_local_coherence query_length avgidf clarity term_relatedness mst_term_relatedness link_term_relatedness wig pwig local_term_relatedness
+all:  get_candidate_size scq var collection_f2exp uw_local_coherence w_local_coherence query_length avgidf clarity term_relatedness mst_term_relatedness link_term_relatedness wig pwig local_term_relatedness
+
+get_candidate_size:
+	$(CXX) $(CXXFLAGS) $(GET_CANDIDATE_SIZE).cpp -o $(GET_CANDIDATE_SIZE) $(OBJ) $(LIBPATH) $(CPPLDFLAGS)
 
 avgidf:
 	$(CXX) $(CXXFLAGS) $(AVGIDF).cpp -o $(AVGIDF) $(OBJ) $(LIBPATH) $(CPPLDFLAGS)
@@ -85,5 +89,5 @@ link_term_relatedness:
 
 clean:
 #	rm -f $(GET) $(THRESHOLD) $(SHOW)
-	rm -f  $(GET_LOCAL_TERM_RELATEDNESS) $(GET_PWIG) $(GET_WIG) $(VAR) $(SCQ) $(AVGIDF) $(CLARITY) $(UW_LOCAL_COHERENCE) $(W_LOCAL_COHERENCE) $(GET_QUERY_LENGTH) $(GET_TERM_RELATEDNESS) $(GET_MST_TERM_RELATEDNESS) $(GET_LINK_TERM_RELATEDNESS) $(GET_COLLECTION_F2EXP_SCORE)  $(TERM_DF) $(GET_WEIGHTED_TERM_RELATEDNESS)
+	rm -f  $(GET_CANDIDATE_SIZE) $(GET_LOCAL_TERM_RELATEDNESS) $(GET_PWIG) $(GET_WIG) $(VAR) $(SCQ) $(AVGIDF) $(CLARITY) $(UW_LOCAL_COHERENCE) $(W_LOCAL_COHERENCE) $(GET_QUERY_LENGTH) $(GET_TERM_RELATEDNESS) $(GET_MST_TERM_RELATEDNESS) $(GET_LINK_TERM_RELATEDNESS) $(GET_COLLECTION_F2EXP_SCORE)  $(TERM_DF) $(GET_WEIGHTED_TERM_RELATEDNESS)
 

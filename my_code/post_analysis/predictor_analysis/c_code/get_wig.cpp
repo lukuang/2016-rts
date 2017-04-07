@@ -28,7 +28,7 @@ using namespace std;
 
 
 
-map<string, vector<string> > get_results(char* result_file){
+map<string, vector<string> > get_results(char* result_file, const int& n){
     ifstream f;
     string line;
     string qid="";
@@ -45,7 +45,7 @@ map<string, vector<string> > get_results(char* result_file){
                 line = line.substr(qid_founder+4);
                 size_t docid_finder = line.find_first_of(" ");
                 if(docid_finder != string::npos){
-                    if(results[qid].size()==10){
+                    if(results[qid].size()==n){
                         continue;
                     }
                     else{
@@ -479,7 +479,7 @@ int main(int argc, char** argv){
             debug = true;
             // cout<<"YES!!!!"<<endl;
         }
-        
+        int n = param.get( "n", 10 );
         std::string query_file_string = param[ "query" ];
         char* query_file = new char[query_file_string.length()+1];
         memcpy(query_file, query_file_string.c_str(), query_file_string.length()+1);
@@ -504,7 +504,7 @@ int main(int argc, char** argv){
         // For example, for a query {qid: [w1,w2,w3]}
         // the result would be {qid: [ [w1,w2],[w1,w2],[w1,w3],[w1,w2,w3] ]}
 
-        map<string, vector<string> > results = get_results(result_file);
+        map<string, vector<string> > results = get_results(result_file,n);
         // cout<<"finished geting results"<<endl;
 
 

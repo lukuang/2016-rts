@@ -370,7 +370,7 @@ void show_weighted_coherence( map<string, vector <vector<string> > >& query_subw
 
 
 
-map<string, vector<string> > get_results(char* result_file){
+map<string, vector<string> > get_results(char* result_file,const int& tune_documents){
     ifstream f;
     string line;
     string qid="";
@@ -387,7 +387,7 @@ map<string, vector<string> > get_results(char* result_file){
                 line = line.substr(qid_founder+4);
                 size_t docid_finder = line.find_first_of(" ");
                 if(docid_finder != string::npos){
-                    if(results[qid].size()==10){
+                    if(results[qid].size()==tune_documents){
                         continue;
                     }
                     else{
@@ -581,6 +581,7 @@ int main(int argc, char** argv){
         r.openRead( rep_name );
         vector<string> query_words = get_query_words(r,query_file,queries);
         
+        int tune_documents = param.get("tune_documents",10);
         
         // output(idf,dest_dir);
 
@@ -590,7 +591,7 @@ int main(int argc, char** argv){
         // the result would be {qid: [ [w1,w2],[w1,w2],[w1,w3],[w1,w2,w3] ]}
 
         map<string, vector <vector<string> > > query_subwords_vector = get_subwords_vector(queries);
-        map<string, vector<string> > results = get_results(result_file);
+        map<string, vector<string> > results = get_results(result_file,tune_documents);
         // cout<<"finished geting results"<<endl;
         map<string, vector< map<string,int> > > result_term_map = get_result_term_map(r,results);
         // cout<<"finished geting result map"<<endl;

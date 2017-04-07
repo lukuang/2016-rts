@@ -28,7 +28,7 @@ using namespace std;
 
 
 
-map<string, vector<string> > get_results(char* result_file){
+map<string, vector<string> > get_results(char* result_file,const int& tune_documents){
     ifstream f;
     string line;
     string qid="";
@@ -45,7 +45,7 @@ map<string, vector<string> > get_results(char* result_file){
                 line = line.substr(qid_founder+4);
                 size_t docid_finder = line.find_first_of(" ");
                 if(docid_finder != string::npos){
-                    if(results[qid].size()==10){
+                    if(results[qid].size()==tune_documents){
                         continue;
                     }
                     else{
@@ -346,7 +346,7 @@ class Query{
             }
         }
 
-        float compute_query_pwig(indri::collection::Repository& r,vector<string>& document_results){
+        float compute_query_pwig(indri::collection::Repository& r,vector<string>& document_results,const float& of_lambda){
             indri::server::LocalQueryServer local(r);
             float C = 1.0*local.termCount();
             float wig = .0;
@@ -357,7 +357,8 @@ class Query{
                 int dl = single_document.get_dl();
                 float alpha = 1000.0/(dl+1000.0); 
                 if(phrase_count!=0){
-                    float phrase_lambda = 1.0/sqrt(phrase_count);
+                    float of_phrase_lambda = of_lambda/sqrt(phrase_count);
+                    float uf_phrase_lambda = (1.0-of_lambda)/sqrt(phrase_count);
                     //compute wig for phrase features
                     if(debug) cout<<"Get Phrase features"<<endl;
                     for(map<int,SizedPhrases>::iterator it=sized_phrases.begin(); it!=sized_phrases.end();++it){
@@ -373,14 +374,14 @@ class Query{
                             if(cof!=.0){
                                 float of_document_score = (1-alpha)*(of[phrase_id]/dl) + alpha*(cof/C);
                                 float of_collection_score = cof/C;
-                                wig += phrase_lambda*log2( of_document_score/of_collection_score);
-                                if(debug) cout<<"add "<<phrase_lambda*log2( of_document_score/of_collection_score)<<"for unordered feature to wig"<<endl;
+                                wig += of_phrase_lambda*log2( of_document_score/of_collection_score);
+                                if(debug) cout<<"add "<<of_phrase_lambda*log2( of_document_score/of_collection_score)<<"for unordered feature to wig"<<endl;
                             }
                             if(cuf!=.0){              
                                 float uf_document_score = (1-alpha)*(uf[phrase_id]/dl) + alpha*(cuf/C);
                                 float uf_collection_score = cuf/C;
-                                wig += phrase_lambda*log2( uf_document_score/uf_collection_score);
-                                if(debug) cout<<"add "<< phrase_lambda*log2( uf_document_score/uf_collection_score)<<"for unordered feature to wig"<<endl;
+                                wig += uf_phrase_lambda*log2( uf_document_score/uf_collection_score);
+                                if(debug) cout<<"add "<< uf_phrase_lambda*log2( uf_document_score/uf_collection_score)<<"for unordered feature to wig"<<endl;
                             }
                         }
                     }
@@ -434,7 +435,7 @@ class Query{
 
 
 
-map<string, float> get_pwig(indri::collection::Repository& r,map<string, vector<string> >& results,map<string, vector<string> >& queries, const string& indexName, const bool& debug){
+map<string, float> get_pwig(indri::collection::Repository& r,map<string, vector<string> >& results,map<string, vector<string> >& queries, const string& indexName, const bool& debug, const float& of_lambda){
   map<string, float> wig;
   map<string,Query> query_with_phrases;
   for(map<string, vector<string> >::iterator it=queries.begin();it!=queries.end(); ++it ){
@@ -444,7 +445,7 @@ map<string, float> get_pwig(indri::collection::Repository& r,map<string, vector<
     if(debug) cout<<"Got queries"<<endl;
     query_with_phrases[qid].get_collection_frequency(r,indexName);
     if(debug) cout<<"Got collection frequency"<<endl;
-    float query_wig = query_with_phrases[qid].compute_query_pwig(r,results[qid]);
+    float query_wig = query_with_phrases[qid].compute_query_pwig(r,results[qid],of_lambda);
     wig[qid] = query_wig;
     // query_with_phrases[qid].show();
     // for(vector<string>::const_iterator sid=it->second.begin(); sid!=it->second.end(); ++sid){
@@ -496,6 +497,7 @@ int main(int argc, char** argv){
 
         map<string, vector<string> > queries;
 
+        int tune_documents = param.get("tune_documents",10);
         r.openRead( rep_name );
         vector<string> query_words = get_unstemmed_query_words(r,query_file,queries);
         // output(idf,dest_dir);
@@ -505,11 +507,11 @@ int main(int argc, char** argv){
         // For example, for a query {qid: [w1,w2,w3]}
         // the result would be {qid: [ [w1,w2],[w1,w2],[w1,w3],[w1,w2,w3] ]}
 
-        map<string, vector<string> > results = get_results(result_file);
+        map<string, vector<string> > results = get_results(result_file,tune_documents);
         // cout<<"finished geting results"<<endl;
 
-
-        map<string, float> wig = get_pwig(r,results,queries,rep_name,debug);
+        float of_lambda = param.get("of_lambda",0.5);
+        map<string, float> wig = get_pwig(r,results,queries,rep_name,debug,of_lambda);
         for(map<string,float>:: iterator it=wig.begin(); it!=wig.end(); ++it){
 
             cout<<it->first<<" "<<it->second<<endl;
