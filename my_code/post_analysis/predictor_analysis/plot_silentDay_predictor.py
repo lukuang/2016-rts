@@ -65,6 +65,7 @@ class PredictorName(IntEnum):
     aidf_pmi = 33
     midf_pmi = 34
     candidate_size = 35
+    qf = 36
 
 @unique
 class Expansion(IntEnum):
@@ -72,13 +73,7 @@ class Expansion(IntEnum):
     static = 1
     dynamic = 2
 
-@unique
-class RetrievalMethod(IntEnum):
-    f2exp = 0
-    dirichlet = 1
-    pivoted = 2
-    bm25 = 3
-    
+
 
 
 BIN_FILES = {
@@ -109,7 +104,7 @@ BIN_FILES = {
     PredictorName.link_term_relatedness:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_link_term_relatedness",
     PredictorName.scq:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_scq",
     PredictorName.var:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_var",
-    PredictorName.nqc:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_collection_f2exp_score",
+    PredictorName.nqc:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_collection_score",
     PredictorName.wig:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_wig",
     PredictorName.pwig:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_pwig",
     PredictorName.local_avg_pmi:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_local_term_relatedness",
@@ -118,6 +113,7 @@ BIN_FILES = {
     PredictorName.aidf_pmi:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_term_relatedness",
     PredictorName.midf_pmi:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_term_relatedness",
     PredictorName.candidate_size:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_candidate_size",
+    PredictorName.qf:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_qf_query",
 
 }
 
@@ -251,6 +247,7 @@ PREDICTOR_CLASS = {
     PredictorName.aidf_pmi: PredictorClass.pre,
     PredictorName.midf_pmi: PredictorClass.pre,
     PredictorName.candidate_size: PredictorClass.pre,
+    PredictorName.qf: PredictorClass.post,
 
 }
 
@@ -258,9 +255,14 @@ PREDICTOR_CLASS = {
 
 def generate_predictor_values(predictor_choice,qrel,
                               index_dir,query_dir,result_dir,
-                              bin_file,link_dir,data_storage_file,term_size):
+                              bin_file,link_dir,data_storage_file,
+                              term_size,retrieval_method):
     if predictor_choice == PredictorName.clarity:
-        predictor = Clarity(qrel,index_dir,query_dir,bin_file)
+        if retrieval_method is None:
+            raise RuntimeError("Need to specify retrieval method when using clarity!")
+        predictor = Clarity(qrel,index_dir,query_dir,bin_file,retrieval_method=retrieval_method)
+
+
     elif predictor_choice == PredictorName.average_idf:
         predictor = AverageIDF(qrel,index_dir,query_dir,bin_file)
     elif predictor_choice == PredictorName.dev:
@@ -403,8 +405,10 @@ def generate_predictor_values(predictor_choice,qrel,
     elif predictor_choice == PredictorName.nqc:
         if not result_dir:
             raise RuntimeError("Need to specify result dir when using nqc!")
+        elif (retrieval_method is None):
+            raise RuntimeError("Need to specify retrieval_method when using nqc!")
         else:
-            predictor = NQC(qrel,index_dir,query_dir,bin_file,result_dir)
+            predictor = NQC(qrel,index_dir,query_dir,bin_file,result_dir,retrieval_method=retrieval_method)
 
     elif predictor_choice == PredictorName.wig:
         if not result_dir:
@@ -445,6 +449,15 @@ def generate_predictor_values(predictor_choice,qrel,
     elif predictor_choice == PredictorName.candidate_size:
         predictor = CandidateSize(qrel,index_dir,query_dir,bin_file)
 
+    elif predictor_choice == PredictorName.qf:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using qf!")
+        elif retrieval_method is None:
+            raise RuntimeError("Need to specify retrieval method when using qf!")
+        else:
+            predictor = QF(qrel,index_dir,query_dir,bin_file,result_dir,retrieval_method=retrieval_method)
+    
+
     # predictor.show()
     with open(data_storage_file,"w") as f:
         f.write(json.dumps(predictor.values))
@@ -460,13 +473,17 @@ def plot_predictor_values(predictor_values,silent_day_values,dest_file):
     val = .0
     for day in silent_day_values:
         for qid in silent_day_values[day]:
-            
-            if silent_day_values[day][qid]:
-                silent_predictor_values.append(predictor_values[day][qid])
-                # if predictor_values[day][qid] == 5.93344:
-                #     print "%s,%s" %(qid,day)
+            try:
+                single_predictor_values = predictor_values[day][qid]
+            except KeyError:
+                continue
             else:
-                non_silent_predictor_values.append(predictor_values[day][qid])
+                if silent_day_values[day][qid]:
+                    silent_predictor_values.append(single_predictor_values)
+                    # if predictor_values[day][qid] == 5.93344:
+                    #     print "%s,%s" %(qid,day)
+                else:
+                    non_silent_predictor_values.append(single_predictor_values)
 
     # print silent_predictor_values
     # print max(silent_predictor_values)
@@ -482,7 +499,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     # parser.add_argument("--index_dir","-id",default="/infolab/headnode2/lukuang/2016-rts/data/full_index_reparsed/")
     # parser.add_argument("--query_dir","-qr",default="/infolab/headnode2/lukuang/2016-rts/code/2016/senario_b/data/reparsed/clarity_queries/static/")
-    parser.add_argument("--use_result","-ur",action="store_true")
+    # parser.add_argument("--use_result","-ur",action="store_true")
     parser.add_argument("data_dir")
     parser.add_argument("--year","-y",choices=list(map(int, Year)),default=0,type=int,
         help="""
@@ -546,6 +563,7 @@ def main():
                 33: aidf_pmi
                 34: midf_pmi
                 35: candidate_size
+                36: qf
         """)
     parser.add_argument("--term_size","-tn",type=int,
         help="""
@@ -587,7 +605,7 @@ def main():
     printing_message += "\texpansion:%s\n" %(args.expansion.name)
     dest_dir = expansion_dir
 
-    if args.use_result:
+    if PREDICTOR_CLASS[args.predictor_choice] == PredictorClass.post:
         if args.expansion == Expansion.raw:
             printing_message += "\tretrieval method:%s\n" %(args.retrieval_method.name) 
             dest_dir = os.path.join(dest_dir,args.retrieval_method.name)
@@ -610,10 +628,10 @@ def main():
     
     data_storage_file = os.path.join(dest_dir,"data")
 
-    if args.use_result:
-        silent_day_generator = SilentDaysFromRes(args.year,result_dir)
-    else:
-        silent_day_generator = SilentDaysFromJug(args.year)
+    # if args.use_result:
+    #     silent_day_generator = SilentDaysFromRes(args.year,result_dir)
+    # else:
+    silent_day_generator = SilentDaysFromJug(args.year)
 
     silent_day_values = silent_day_generator.silent_days
     # print silent_day_values
@@ -624,7 +642,8 @@ def main():
         predictor_values = generate_predictor_values(
                                 args.predictor_choice,silent_day_generator.qrel,
                                 index_dir,query_dir,result_dir,
-                                bin_file,link_dir,data_storage_file,args.term_size)
+                                bin_file,link_dir,data_storage_file,args.term_size,
+                                args.retrieval_method)
     
     else:
         predictor_values = json.load(open(data_storage_file))

@@ -11,11 +11,24 @@ import codecs
 from abc import ABCMeta,abstractmethod
 import subprocess
 import numpy as np
+from enum import IntEnum, unique
 
 sys.path.append("/infolab/node4/lukuang/2015-RTS/src")
 from my_code.distribution.data import Qrel,T2Day,Year
 
+@unique
+class RetrievalMethod(IntEnum):
+    f2exp = 0
+    dirichlet = 1
+    pivoted = 2
+    bm25 = 3
 
+RULE = {
+    RetrievalMethod.f2exp:"method:f2exp,s:0.1",
+    RetrievalMethod.dirichlet:"method:dirichlet,mu:500",
+    RetrievalMethod.pivoted:"method:pivoted,s:0.2",
+    RetrievalMethod.bm25:"method:okapi,k1:1.0",
+}
 
 def get_query_terms(day_query_file):
     query_terms = {}
@@ -189,17 +202,19 @@ class NQC(PredictorUsingBoth):
     normalized standard deviation of top 10 document scores
     STD/collection_score(C)
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10,retrieval_method=RetrievalMethod.f2exp):
         super(NQC,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir)
         self._tune_documents = tune_documents
+        self._retrieval_method = retrieval_method
 
     def _compute_daily_value(self,day_index_dir,day_query_file,
                              day_result_file):
         collection_score = {}
 
-        run_command = "%s -index=%s -query=%s" %(self._bin_file,
-                                                 day_index_dir,
-                                                 day_query_file)
+        run_command = "%s -index=%s -query=%s -retrieval_method=%s" %(self._bin_file,
+                                                                      day_index_dir,
+                                                                      day_query_file,
+                                                                      self._retrieval_method.name)
 
         
 
@@ -248,6 +263,97 @@ class NQC(PredictorUsingBoth):
 
         return daily_value 
 
+class QF(PredictorUsingBoth):
+    """
+    Query feedback predictor
+    """
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=5,retrieval_method=RetrievalMethod.f2exp,tune_terms=20):
+        super(QF,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir)
+        self._tune_documents = tune_documents
+        self._tune_terms = tune_terms
+        self._retrieval_method = retrieval_method
+        self._rule = RULE[ self._retrieval_method ]
+
+    def _compute_daily_value(self,day_index_dir,day_query_file,
+                             day_result_file):
+    
+        daily_value = {}
+        # get feedback queries
+        feedback_queries = {}
+
+        run_command = "%s -index=%s -query=%s -result=%s -tune_documents=%d -tune_terms=%d" %(self._bin_file,
+                                                                                             day_index_dir,
+                                                                                             day_query_file,
+                                                                                             day_result_file,
+                                                                                             self._tune_documents,
+                                                                                             self._tune_terms)
+        p = subprocess.Popen(run_command,stdout=subprocess.PIPE,shell=True)
+        
+        while True:
+            line = p.stdout.readline()
+            if line != '':
+                line = line.rstrip()
+                parts = line.split()
+                qid = parts[0]
+                if qid not in self._judged_qids:
+                    continue
+                feedback_queries[qid] = " ".join(parts[1:])
+                
+
+            else:
+                break                                                                            
+
+        # get results
+        results = {}
+        with open(day_result_file) as f:
+            for line in f:
+                line = line.rstrip()
+                parts = line.split()
+                qid = parts[0]
+                if qid in self._judged_qids:
+                    if qid not in results:
+                        results[qid] = []
+                    if len(results[qid]) >=self._tune_documents :
+                        continue
+                    document_id = parts[2] 
+                    results[qid].append(document_id)
+
+        # print results
+        
+        # get results of feedback queries
+        for qid in feedback_queries:
+            over_lap_count = 0
+            run_query_command = "IndriRunQuery -index=%s -query=\"%s\" -trecFormat=true -count=%d -rule=\"%s\" " %(day_index_dir,
+                                                                                                                   feedback_queries[qid],
+                                                                                                                   self._tune_documents,
+                                                                                                                   self._rule)
+
+
+
+            # print "command being run:\n%s" %(run_query_command)
+            p = subprocess.Popen(run_query_command,stdout=subprocess.PIPE,shell=True)
+
+            # if qid not in results, meaning no documents returned for
+            # the query of the day, there will be no overlaps
+            if qid in results:
+                while True:
+                    line = p.stdout.readline()
+                    if line != '':
+                        line = line.rstrip()
+                        parts = line.split()
+                        did = parts[2]
+                        # print did
+                        if did in results[qid]:
+                            over_lap_count += 1
+                    else:
+                        break
+
+            daily_value[qid] = over_lap_count*1.0/self._tune_documents
+
+        # print daily_value
+
+        return daily_value 
+
 
 class TreeEstimator(PredictorUsingBoth):
     """
@@ -255,6 +361,11 @@ class TreeEstimator(PredictorUsingBoth):
     performance estimator, according to the missing
     content paper
     """
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,retrieval_method=RetrievalMethod.f2exp):
+        super(TreeEstimator,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir)
+        self._retrieval_method = retrieval_method
+        self._rule = RULE[ self._retrieval_method ]
+
     def _compute_daily_value(self,day_index_dir,day_query_file,
                              day_result_file):
         term_idf = {}
@@ -314,8 +425,9 @@ class TreeEstimator(PredictorUsingBoth):
                     continue
 
                 over_lap_count = 0
-                run_query_command = "IndriRunQuery -index=%s -query=%s -trecFormat=true -count=10 -rule=\"method:f2exp,s:0.1\" " %(day_index_dir,
-                                                                                                                                   term)
+                run_query_command = "IndriRunQuery -index=%s -query=%s -trecFormat=true -count=10 -rule=\"%s\" " %(day_index_dir,
+                                                                                                                   term,
+                                                                                                                   self._rule)
 
         
 
@@ -385,7 +497,7 @@ class WIG(PredictorUsingBoth):
     """
     compute weighted information gain for query
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=100):
         super(WIG,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir)
         self._tune_documents = tune_documents
 
@@ -423,8 +535,8 @@ class PWIG(PredictorUsingBoth):
     """
     compute wig only for phrases
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10,of_lambda=0.5):
-        super(WIG,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir)
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=20,of_lambda=1.0):
+        super(PWIG,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir)
         self._tune_documents = tune_documents
         self._of_lambda = of_lambda
 
@@ -464,19 +576,21 @@ class LocalTermRelatedness(PredictorUsingBoth):
     compute loca term relatedness (pmi)
     """
 
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,cu):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,cu,tune_documents=10):
         super(LocalTermRelatedness,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir)
         self._cu = cu
+        self._tune_documents = tune_documents
 
     def _compute_daily_value(self,day_index_dir,day_query_file,
                              day_result_file):
         daily_value = {}
 
-        run_command = "%s -index=%s -query=%s -result=%s -cu=%s" %(self._bin_file,
+        run_command = "%s -index=%s -query=%s -result=%s -cu=%s -tune_documents=%d" %(self._bin_file,
                                                             day_index_dir,
                                                             day_query_file,
                                                             day_result_file,
-                                                            self._cu)
+                                                            self._cu,
+                                                            self._tune_documents)
 
    
 
@@ -499,12 +613,12 @@ class LocalTermRelatedness(PredictorUsingBoth):
         return daily_value 
 
 class LocalTermRelatednessAverage(LocalTermRelatedness):
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir):
-        super(LocalTermRelatednessAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"average")
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=50):
+        super(LocalTermRelatednessAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"average",tune_documents=tune_documents)
 
 class LocalTermRelatednessMax(LocalTermRelatedness):
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir):
-        super(LocalTermRelatednessMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"max")
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=50):
+        super(LocalTermRelatednessMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"max",tune_documents=tune_documents)
 
 
 
@@ -576,21 +690,21 @@ class LocalCoherenceWeighetedMax(LocalCoherenceWeigheted):
 class LocalCoherenceIDFWeighetedBinary(LocalCoherenceWeighetedBinary):
     """local coherence with binary co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn=None,tune_documents=10):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn=None,tune_documents=25):
         super(LocalCoherenceIDFWeighetedBinary,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"idf",tn=tn,tune_documents=tune_documents)
 
 
 class LocalCoherenceIDFWeighetedAverage(LocalCoherenceWeighetedAverage):
     """local coherence with average co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn=None,tune_documents=10):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn=None,tune_documents=100):
         super(LocalCoherenceIDFWeighetedAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"idf",tn=tn,tune_documents=tune_documents)
 
 
 class LocalCoherenceIDFWeighetedMax(LocalCoherenceWeighetedMax):
     """
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn=None,tune_documents=10):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn=None,tune_documents=100):
         super(LocalCoherenceIDFWeighetedMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"idf",tn=tn,tune_documents=tune_documents)
 
 
@@ -620,21 +734,21 @@ class LocalCoherenceIDFWeighetedMaxN(LocalCoherenceIDFWeighetedMax):
 class LocalCoherencePMIWeighetedBinary(LocalCoherenceWeighetedBinary):
     """local coherence with binary co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=25):
         super(LocalCoherencePMIWeighetedBinary,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"pmi",tn=2,tune_documents=tune_documents)
 
 
 class LocalCoherencePMIWeighetedAverage(LocalCoherenceWeighetedAverage):
     """local coherence with average co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=100):
         super(LocalCoherencePMIWeighetedAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"pmi",tn=2,tune_documents=tune_documents)
 
 
 class LocalCoherencePMIWeighetedMax(LocalCoherenceWeighetedMax):
     """
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=100):
         super(LocalCoherencePMIWeighetedMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"pmi",tn=2,tune_documents=tune_documents)
 
 
@@ -681,21 +795,21 @@ class LocalCoherenceUnweigheted(PredictorUsingBoth):
 class LocalCoherenceUnweighetedBinary(LocalCoherenceUnweigheted):
     """local coherence with binary co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=5):
         super(LocalCoherenceUnweighetedBinary,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"binary",tune_documents=tune_documents)
 
 
 class LocalCoherenceUnweighetedAverage(LocalCoherenceUnweigheted):
     """local coherence with average co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=100):
         super(LocalCoherenceUnweighetedAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"average",tune_documents=tune_documents)
 
 
 class LocalCoherenceUnweighetedMax(LocalCoherenceUnweigheted):
     """
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=100):
         super(LocalCoherenceUnweighetedMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"max",tune_documents=tune_documents)
 
 class LocalCoherenceUnweighetedN(PredictorUsingBoth):
@@ -741,7 +855,11 @@ class LocalCoherenceUnweighetedN(PredictorUsingBoth):
 class LocalCoherenceUnweighetedBinaryN(LocalCoherenceUnweighetedN):
     """local coherence with binary co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn,tune_documents=10):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn,tune_documents=5):
+        if tn == 2:
+            tune_documents = 25
+        elif tn == 3:
+            tune_documents = 5
         super(LocalCoherenceUnweighetedBinaryN,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"binary",tn,tune_documents=tune_documents)
 
 
@@ -749,6 +867,10 @@ class LocalCoherenceUnweighetedAverageN(LocalCoherenceUnweighetedN):
     """local coherence with average co-occurrence count
     """
     def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn,tune_documents=10):
+        if tn == 2:
+            tune_documents = 100
+        elif tn == 3:
+            tune_documents = 5
         super(LocalCoherenceUnweighetedAverageN,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"average",tn,tune_documents=tune_documents)
 
 
@@ -756,6 +878,10 @@ class LocalCoherenceUnweighetedMaxN(LocalCoherenceUnweighetedN):
     """
     """
     def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tn,tune_documents=10):
+        if tn == 2:
+            tune_documents = 100
+        elif tn == 3:
+            tune_documents = 5
         super(LocalCoherenceUnweighetedMaxN,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"max",tn,tune_documents=tune_documents)
 
 
@@ -797,17 +923,22 @@ class Clarity(PredictorUsingOnlyIndri):
     Clarity score
     """
     
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,tune_documents=10,tune_terms=5):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,retrieval_method=RetrievalMethod.f2exp,tune_documents=5,tune_terms=5):
         super(Clarity,self).__init__(qrel,top_index_dir,query_dir,bin_file)
         self._tune_documents,self._tune_terms = tune_documents,tune_terms
+        self._retrieval_method = retrieval_method
+
+        self._rule = RULE[self._retrieval_method]
+
 
     def _compute_daily_value(self,day_index_dir,day_query_file):
         day_clarity = {}
-        run_command = "%s -index=%s -query=%s -rule=\"method:f2exp,s:0.1\" -documents=%d -terms=%d" %(self._bin_file,
-                                                                                                      day_index_dir,
-                                                                                                      day_query_file,
-                                                                                                      self._tune_documents,
-                                                                                                      self._tune_terms)
+        run_command = "%s -index=%s -query=%s -rule=\"%s\" -documents=%d -terms=%d" %(self._bin_file,
+                                                                                      day_index_dir,
+                                                                                      day_query_file,
+                                                                                      self._rule,
+                                                                                      self._tune_documents,
+                                                                                      self._tune_terms)
         # print "command being run:\n%s" %(run_command)
         p = subprocess.Popen(run_command,stdout=subprocess.PIPE,shell=True)
         
@@ -979,7 +1110,7 @@ class StandardDeviation(PredictorUsingOnlyResult):
     """
     standard deviation of top document scores
     """
-    def __init__(self,qrel,result_dir,tune_documents=10):
+    def __init__(self,qrel,result_dir,tune_documents=5):
         super(StandardDeviation,self).__init__(qrel,result_dir)
         self._tune_documents = tune_documents
 
@@ -1010,7 +1141,7 @@ class NormalizedStandardDeviation(PredictorUsingOnlyResult):
     """
     normalized standard deviation of top document scores
     """
-    def __init__(self,qrel,result_dir,tune_documents=10):
+    def __init__(self,qrel,result_dir,tune_documents=5):
         super(NormalizedStandardDeviation,self).__init__(qrel,result_dir)
         self._tune_documents = tune_documents
 

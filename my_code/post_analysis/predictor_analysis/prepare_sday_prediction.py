@@ -33,7 +33,7 @@ def try_mkdir(wanted_dir):
         # print "WARNING!:dir already exists: %s" %(wanted_dir)
         pass
     else:
-        os.mkdir(wanted_dir)
+        os.makedirs(wanted_dir)
 
 
 def convert_feature_string(feature_string):
@@ -55,11 +55,13 @@ class SingleFeature(object):
     
 
     # Note the feature format should be "PredictorChoice:Expansion"
-    def __init__(self,year,feature_descrption_string,predictor_data_dir):
+    def __init__(self,year,feature_descrption_string,predictor_data_dir,retrieval_method):
 
 
         self._year,self._feature_descrption_string, self._predictor_data_dir =\
             year, feature_descrption_string, predictor_data_dir
+
+        self._retrieval_method = retrieval_method    
 
 
         self._get_feature_detail()
@@ -135,10 +137,16 @@ class SingleFeature(object):
                             self._year.name,
                             self._expansion.name,use_result_string,"data")
         else:
-            self._data_file_path = os.path.join(
-                            self._predictor_data_dir,self._predictor_class.name,
-                            self._predictor_choice.name,self._year.name,
-                            self._expansion.name,use_result_string,"data")
+            if self._predictor_class == PredictorClass.pre:
+                self._data_file_path = os.path.join(
+                                self._predictor_data_dir,self._predictor_class.name,
+                                self._predictor_choice.name,self._year.name,
+                                self._expansion.name,use_result_string,"data")
+            else:
+                self._data_file_path = os.path.join(
+                                self._predictor_data_dir,self._predictor_class.name,
+                                self._predictor_choice.name,self._year.name,
+                                self._expansion.name,self._retrieval_method.name,"data")
         # print "Data path:%s" %(self._data_file_path)
         self._feature_data = json.load(open(self._data_file_path))
 
@@ -214,7 +222,7 @@ class DataPreparor(object):
 
             vector_data_set["features"][year] = {}
             for feature_descrption_string in self._feature_descrption_list:
-                single_feature = SingleFeature(year,feature_descrption_string,self._predictor_data_dir)
+                single_feature = SingleFeature(year,feature_descrption_string,self._predictor_data_dir,self._retrieval_method)
                 vector_data_set["features"][year][feature_descrption_string] = single_feature.feature_data
             
             for day in sorted(vector_data_set["silent_days"][year].keys()):
@@ -228,8 +236,12 @@ class DataPreparor(object):
                     for feature_descrption_string in sorted(self._feature_descrption_list):
                         # if vector_data_set["features"][year][feature_descrption_string][day][qid] == .0:
                         #     print "%s %s %s" %(day,qid,vector_data_set["silent_days"][year][day][qid])
-                        single_feature_vector.append(vector_data_set["features"][year][feature_descrption_string][day][qid])
-                    
+                        try:
+                            single_feature_vector.append(vector_data_set["features"][year][feature_descrption_string][day][qid])
+                        except KeyError:
+                            # print "Feature: %s" %(feature_descrption_string)
+                            # print "Day:%s, query:%s" %(day,qid)
+                            single_feature_vector.append(0)
                     vector_data_set["feature_vector"].append(single_feature_vector)
 
         return vector_data_set
@@ -259,7 +271,7 @@ class DataPreparor(object):
         else:
             dest_dir_name += "_Wo_result"
         dest_dir_name += "_"+self._result_expansion.name.title()
-        dest_dir = os.path.join(self._top_dest_dir,dest_dir_name)
+        dest_dir = os.path.join(self._top_dest_dir,self._retrieval_method.name,dest_dir_name)
         
         try_mkdir(dest_dir)
 

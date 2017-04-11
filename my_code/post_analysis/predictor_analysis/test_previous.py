@@ -13,7 +13,7 @@ from enum import IntEnum, unique
 from sklearn.metrics import f1_score as f1
 import cPickle
 
-from plot_silentDay_predictor import PredictorName,Expansion,R_DIR
+from plot_silentDay_predictor import PredictorName,Expansion,R_DIR,PREDICTOR_CLASS,RetrievalMethod
 from silent_days import SilentDaysFromRes,SilentDaysFromJug
 
 sys.path.append("/infolab/node4/lukuang/2015-RTS/src")
@@ -85,43 +85,7 @@ def get_classifier(method):
 TRAINING_YEAR = [Year.y2011]
 TESTING_YEAR = [Year.y2015,Year.y2016]
 
-# predictor class dictionary used for getting predictor class
-# from predictor name
-PREDICTOR_CLASS = {
-    PredictorName.clarity : PredictorClass.post,
-    PredictorName.standard_deviation : PredictorClass.post,
-    PredictorName.n_standard_deviation : PredictorClass.post,
-    PredictorName.top_score : PredictorClass.post,
-    PredictorName.coherence_binary : PredictorClass.post,
-    PredictorName.coherence_average : PredictorClass.post,
-    PredictorName.coherence_max : PredictorClass.post,
-    PredictorName.coherence_binary_n : PredictorClass.post,
-    PredictorName.coherence_average_n : PredictorClass.post,
-    PredictorName.coherence_max_n : PredictorClass.post,
-    PredictorName.max_pmi : PredictorClass.pre,
-    PredictorName.avg_pmi : PredictorClass.pre,
-    PredictorName.coherence_idf_weighted_binary : PredictorClass.post,
-    PredictorName.coherence_idf_weighted_average : PredictorClass.post,
-    PredictorName.coherence_idf_weighted_max : PredictorClass.post,
-    PredictorName.coherence_idf_weighted_binary_n : PredictorClass.post,
-    PredictorName.coherence_idf_weighted_average_n : PredictorClass.post,
-    PredictorName.coherence_idf_weighted_max_n : PredictorClass.post,
-    PredictorName.coherence_pmi_weighted_binary : PredictorClass.post,
-    PredictorName.coherence_pmi_weighted_average : PredictorClass.post,
-    PredictorName.coherence_pmi_weighted_max : PredictorClass.post,
-    PredictorName.query_length : PredictorClass.pre,
-    PredictorName.average_idf : PredictorClass.pre,
-    PredictorName.mst_term_relatedness: PredictorClass.pre,
-    PredictorName.link_term_relatedness: PredictorClass.pre,
-    PredictorName.scq: PredictorClass.pre,
-    PredictorName.var: PredictorClass.pre,
-    PredictorName.nqc: PredictorClass.post,
-    PredictorName.wig: PredictorClass.post,
-    PredictorName.pwig: PredictorClass.post,
-    PredictorName.local_avg_pmi: PredictorClass.post,
-    PredictorName.local_max_pmi: PredictorClass.post,
 
-}
 
 
 def try_mkdir(wanted_dir):
@@ -130,7 +94,7 @@ def try_mkdir(wanted_dir):
         # print "WARNING!:dir already exists: %s" %(wanted_dir)
         pass
     else:
-        os.mkdir(wanted_dir)
+        os.makedirs(wanted_dir)
 
 
 def convert_feature_string(feature_string):
@@ -152,11 +116,12 @@ class SingleFeature(object):
     
 
     # Note the feature format should be "PredictorChoice:Expansion"
-    def __init__(self,year,feature_descrption_string,predictor_data_dir):
+    def __init__(self,year,feature_descrption_string,predictor_data_dir,retrieval_method):
 
 
         self._year,self._feature_descrption_string, self._predictor_data_dir =\
             year, feature_descrption_string, predictor_data_dir
+        self._retrieval_method = retrieval_method    
 
 
         self._get_feature_detail()
@@ -176,9 +141,9 @@ class SingleFeature(object):
             if (self._predictor_choice == PredictorName.coherence_binary_n or
                self._predictor_choice == PredictorName.coherence_average_n or
                self._predictor_choice == PredictorName.coherence_max_n or
-               self._predictor_choice == PredictorName.coherence_idf_weighted_binary_n or
-               self._predictor_choice == PredictorName.coherence_idf_weighted_average_n or
-               self._predictor_choice == PredictorName.coherence_idf_weighted_max_n):
+               self._predictor_choice == PredictorName.cidf_binary_n or
+               self._predictor_choice == PredictorName.cidf_average_n or
+               self._predictor_choice == PredictorName.cidf_max_n):
                 raise ValueError("Need to specify term size when using %s!" %(self._predictor_choice.name))
 
             self._predictor_class = PREDICTOR_CLASS[self._predictor_choice]
@@ -194,9 +159,9 @@ class SingleFeature(object):
                 if (self._predictor_choice == PredictorName.coherence_binary_n or
                    self._predictor_choice == PredictorName.coherence_average_n or
                    self._predictor_choice == PredictorName.coherence_max_n or
-                   self._predictor_choice == PredictorName.coherence_idf_weighted_binary_n or
-                   self._predictor_choice == PredictorName.coherence_idf_weighted_average_n or
-                   self._predictor_choice == PredictorName.coherence_idf_weighted_max_n):
+                   self._predictor_choice == PredictorName.cidf_binary_n or
+                   self._predictor_choice == PredictorName.cidf_average_n or
+                   self._predictor_choice == PredictorName.cidf_max_n):
                     
                     self._predictor_class = PREDICTOR_CLASS[self._predictor_choice]
                     self._expansion = Expansion[ detail_finder_with_tn.group(2) ]
@@ -223,19 +188,25 @@ class SingleFeature(object):
         if (self._predictor_choice == PredictorName.coherence_binary_n or
                    self._predictor_choice == PredictorName.coherence_average_n or
                    self._predictor_choice == PredictorName.coherence_max_n or
-                   self._predictor_choice == PredictorName.coherence_idf_weighted_binary_n or
-                   self._predictor_choice == PredictorName.coherence_idf_weighted_average_n or
-                   self._predictor_choice == PredictorName.coherence_idf_weighted_max_n):
+                   self._predictor_choice == PredictorName.cidf_binary_n or
+                   self._predictor_choice == PredictorName.cidf_average_n or
+                   self._predictor_choice == PredictorName.cidf_max_n):
             self._data_file_path = os.path.join(
                             self._predictor_data_dir,self._predictor_class.name,
                             self._predictor_choice.name[:-1]+"%d" %(self._term_size),
                             self._year.name,
                             self._expansion.name,use_result_string,"data")
         else:
-            self._data_file_path = os.path.join(
-                            self._predictor_data_dir,self._predictor_class.name,
-                            self._predictor_choice.name,self._year.name,
-                            self._expansion.name,use_result_string,"data")
+            if self._predictor_class == PredictorClass.pre:
+                self._data_file_path = os.path.join(
+                                self._predictor_data_dir,self._predictor_class.name,
+                                self._predictor_choice.name,self._year.name,
+                                self._expansion.name,use_result_string,"data")
+            else:
+                self._data_file_path = os.path.join(
+                                self._predictor_data_dir,self._predictor_class.name,
+                                self._predictor_choice.name,self._year.name,
+                                self._expansion.name,self._retrieval_method.name,"data")
         # print "Data path:%s" %(self._data_file_path)
         self._feature_data = json.load(open(self._data_file_path))
 
@@ -269,9 +240,9 @@ class DataPreparor(object):
 
 
     def __init__(self,predictor_data_dir,feature_descrption_list,
-                 use_result,result_expansion,top_dest_dir):
-        self._predictor_data_dir,self._feature_descrption_list, =\
-            predictor_data_dir,feature_descrption_list
+                 use_result,result_expansion,top_dest_dir,retrieval_method):
+        self._predictor_data_dir,self._feature_descrption_list, self._retrieval_method=\
+            predictor_data_dir,feature_descrption_list,retrieval_method
 
         self._use_result,self._result_expansion = use_result,result_expansion
 
@@ -300,7 +271,7 @@ class DataPreparor(object):
         for year in year_list:
             
             if self._use_result:
-                result_dir = R_DIR[year][self._result_expansion]
+                result_dir = R_DIR[year][self._result_expansion][self._retrieval_method.name]
                 silent_day_generator = SilentDaysFromRes(year,result_dir)
             else:
                 silent_day_generator = SilentDaysFromJug(year)
@@ -311,7 +282,7 @@ class DataPreparor(object):
 
             vector_data_set["features"][year] = {}
             for feature_descrption_string in self._feature_descrption_list:
-                single_feature = SingleFeature(year,feature_descrption_string,self._predictor_data_dir)
+                single_feature = SingleFeature(year,feature_descrption_string,self._predictor_data_dir,self._retrieval_method)
                 vector_data_set["features"][year][feature_descrption_string] = single_feature.feature_data
             
             for day in sorted(vector_data_set["silent_days"][year].keys()):
@@ -325,7 +296,12 @@ class DataPreparor(object):
                     for feature_descrption_string in sorted(self._feature_descrption_list):
                         # if vector_data_set["features"][year][feature_descrption_string][day][qid] == .0:
                         #     print "%s %s %s" %(day,qid,vector_data_set["silent_days"][year][day][qid])
-                        single_feature_vector.append(vector_data_set["features"][year][feature_descrption_string][day][qid])
+                        try:
+                            single_feature_vector.append(vector_data_set["features"][year][feature_descrption_string][day][qid])
+                        except KeyError:
+                            # print "Feature: %s" %(feature_descrption_string)
+                            # print "Day:%s, query:%s" %(day,qid)
+                            single_feature_vector.append(0)
                     
                     vector_data_set["feature_vector"].append(single_feature_vector)
 
@@ -356,7 +332,7 @@ class DataPreparor(object):
         else:
             dest_dir_name += "_Wo_result"
         dest_dir_name += "_"+self._result_expansion.name.title()
-        dest_dir = os.path.join(self._top_dest_dir,dest_dir_name)
+        dest_dir = os.path.join(self._top_dest_dir,self._retrieval_method.name,dest_dir_name)
         self._dest_dir = dest_dir
         
         if os.path.exists(dest_dir):
@@ -409,6 +385,14 @@ def main():
     parser.add_argument("--use_result","-ur",action="store_true")
     parser.add_argument("--top_dest_dir","-td",default="/infolab/headnode2/lukuang/2016-rts/code/my_code/post_analysis/predictor_analysis/sday_prediction_data")
     parser.add_argument("--predictor_data_dir","-pd",default="/infolab/headnode2/lukuang/2016-rts/code/my_code/post_analysis/predictor_analysis/predictor_data")
+    parser.add_argument("--retrieval_method","-rm",choices=list(map(int, RetrievalMethod)),default=0,type=int,
+        help="""
+            Choose the retrieval method:
+                0:f2exp
+                1:dirichlet
+                2:pivoted
+                3:bm25
+        """)
     parser.add_argument("--result_expansion","-re",choices=list(map(int, Expansion)),default=0,type=int,
         help="""
             Choose the expansion:
@@ -420,12 +404,13 @@ def main():
 
 
     args.result_expansion = Expansion(args.result_expansion)
+    args.retrieval_method = RetrievalMethod(args.retrieval_method)
 
     previous_features = {
         "clarity:raw":"post",
         "average_idf:raw":"pre",
-        "standard_deviation:raw":"post",
-        "n_standard_deviation:raw":"post",
+        "dev:raw":"post",
+        "ndev:raw":"post",
         "top_score:raw":"post",
         "query_length:raw":"pre",
         "avg_pmi:raw":"pre",
@@ -434,10 +419,16 @@ def main():
         "var:raw":"pre",
         "nqc:raw":"post",
         "wig:raw":"post",
+        "qf:raw":"post",
     }
 
+    if args.retrieval_method == RetrievalMethod.dirichlet:
+        previous_features.pop("ndev:raw",None)
+
+    f_positive_max = .0
     f_avg_max = .0
     f_avg_features = ""
+    f_positive_features = ""
     # f_avg_method_id = 0
 
     # f_silent_max = .0
@@ -463,7 +454,8 @@ def main():
             # print feature_descrption_list
             data_preparor = DataPreparor(
                                 args.predictor_data_dir, feature_descrption_list,
-                                args.use_result, args.result_expansion,args.top_dest_dir)
+                                args.use_result, args.result_expansion,
+                                args.top_dest_dir,args.retrieval_method)
 
 
             data_preparor.prepare_data()
@@ -473,7 +465,7 @@ def main():
             dataset_11, dataset_1516 = load_data(dest_dir)
             # method_ids = range(6)
 
-            clf_11 = get_classifier(0)
+            clf_11 = get_classifier(2)
             clf_11.fit(dataset_11.X,dataset_11.y)
             predicted_1516 = clf_11.predict(dataset_1516.X)
 
@@ -481,7 +473,7 @@ def main():
             with open(clf_11_file,'w') as f:
                 cPickle.dump(clf_11, f, protocol=cPickle.HIGHEST_PROTOCOL)
 
-            clf_1516 = get_classifier(0)
+            clf_1516 = get_classifier(2)
             clf_1516.fit(dataset_1516.X,dataset_1516.y)
             predicted_11 = clf_1516.predict(dataset_11.X)
             f1_1516 = f1(dataset_1516.y, predicted_1516)
@@ -491,24 +483,35 @@ def main():
             #     f_silent_features = feature_descrption_list
 
             # f_non_silent = f1(dataset_1516.y, test_predicted,average='binary',pos_label=0)
-            f_average = (f1_1516 + f1_11)/2.0
+            f_positive = (f1_1516 + f1_11)/2.0
+
+            f1_1516_macro = f1(dataset_1516.y, predicted_1516,average="macro")
+
+            f1_11_macro = f1(dataset_11.y, predicted_11,average="macro")
+            f1_macro_average = (f1_1516_macro+f1_11_macro)/2.0
+
 
             print "Features:\t%s" %(" ".join(feature_descrption_list) )
             print "15 f1:%f, 11 f1:%f" %(f1_1516,f1_11)
-            print "Avg f1:\t %f" %(f_average)
-            if f_average > f_avg_max:
-                f_avg_max = f_average
+            print "positive f1:\t %f" %(f_positive)
+            if f_positive > f_positive_max:
+                f_positive_max = f_positive
+                f_positive_features = feature_descrption_list
+
+            print "average f1:\t %f" %(f1_macro_average) 
+            if f1_macro_average > f_avg_max:
+                f_avg_max = f1_macro_average
                 f_avg_features = feature_descrption_list
+
+    print "-"*20
+    print "The best f1 positive:"
+    print "f1:%f" %(f_positive_max)
+    print "features: %s" %(f_positive_features)
 
     print "-"*20
     print "The best f1 avg:"
     print "f1:%f" %(f_avg_max)
     print "features: %s" %(f_avg_features)
-
-    # print "-"*20
-    # print "The best f1 silent:"
-    # print "f1:%f" %(f_silent_max)
-    # print "features: %s" %(f_silent_features)
 
 
 

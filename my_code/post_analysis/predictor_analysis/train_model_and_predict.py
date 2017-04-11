@@ -8,11 +8,12 @@ import sys
 import re
 import argparse
 import codecs
-from sklearn import cross_validation
+# from sklearn import cross_validation
 from sklearn import metrics
 from sklearn import linear_model
 from sklearn.metrics import classification_report
 from sklearn.metrics import f1_score as f1
+from sklearn.metrics import precision_score
 import numpy as np
 import cPickle
 
@@ -21,13 +22,41 @@ import cPickle
 class DataSet(object):
     """Dataset
     """
-    def __init__(self,dataset_dir):
+    def __init__(self,dataset_dir,balanced):
+        self._balanced = balanced
         self._dataset_dir = dataset_dir
         self._load_data_set()
 
     def _load_data_set(self):
-        self._X = json.load(open(os.path.join(self._dataset_dir,"feature")))
-        self._y = json.load(open(os.path.join(self._dataset_dir,"label")))
+        if self._balanced:
+            temp_X = json.load(open(os.path.join(self._dataset_dir,"feature")))
+            temp_y = json.load(open(os.path.join(self._dataset_dir,"label")))
+
+            true_count = 0
+
+            for single_y in temp_y:
+                if single_y:
+                   true_count += 1 
+
+            percentage = true_count*1.0/(len(temp_y) - true_count)
+
+            self._X = []
+            self._y = []
+
+            for i in range( len(temp_y) ):
+                if temp_y[i]:
+                    self._X.append(temp_X[i])
+                    self._y.append(temp_y[i])
+                else:
+                    prob = random.uniform(0, 1)
+                    if prob <= percentage:
+                        self._X.append(temp_X[i])
+                        self._y.append(temp_y[i])
+            print "There are %d positive examples and the size of the balanced data set is %d" %(true_count,len(self._X))
+
+        else:
+            self._X = json.load(open(os.path.join(self._dataset_dir,"feature")))
+            self._y = json.load(open(os.path.join(self._dataset_dir,"label")))
 
     @property
     def X(self):
@@ -38,12 +67,12 @@ class DataSet(object):
         return self._y
     
 
-def load_data(top_data_dir):
+def load_data(top_data_dir,balanced=False):
     training_dir = os.path.join(top_data_dir,"training","data")
-    dataset_11 = DataSet(training_dir)
+    dataset_11 = DataSet(training_dir,balanced)
 
     testing_dir = os.path.join(top_data_dir,"testing","data")
-    dataset_1516 = DataSet(testing_dir)
+    dataset_1516 = DataSet(testing_dir,balanced)
 
     return dataset_11, dataset_1516
 
@@ -73,6 +102,7 @@ def get_classifier(method):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("top_data_dir")
+    parser.add_argument("--balanced","-bl",action="store_true")
     parser.add_argument('--method','-m',type=int,default=0,choices=range(6),
         help=
         """chose methods from:
@@ -119,11 +149,18 @@ def main():
     # print "Predict:"
     predicted_11 = clf.predict(dataset_11.X)
     # print classification_report(dataset_11.y, predicted_11)
-    
+    # print classification_report(dataset_1516.y, predicted_1516)
+    # print precision_score(dataset_1516.y, predicted_1516)
+    f1_1516_macro = f1(dataset_1516.y, predicted_1516,average="macro")
     f1_1516 = f1(dataset_1516.y, predicted_1516)
+
+    f1_11_macro = f1(dataset_11.y, predicted_11,average="macro")
     f1_11 = f1(dataset_11.y, predicted_11)
     f1_average = (f1_1516+f1_11)/2.0
-    print "Average f1: %f" %(f1_average)
+    f1_macro_average = (f1_1516_macro+f1_11_macro)/2.0
+
+    print "Positive f1: %f" %(f1_average)
+    print "Average f1: %f" %(f1_macro_average)
     print "-"*20
 
 
