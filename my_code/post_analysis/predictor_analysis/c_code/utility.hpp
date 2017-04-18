@@ -18,7 +18,7 @@
 using namespace std;
 
 map <string,int> read_stopwords(){
-  char file_name[] = "/usa/lukuang/data/new_stopwords";
+  char file_name[] = "/home/1546/data/new_stopwords";
   ifstream stopwords;
   stopwords.open(file_name);
   string needed = "0123456789qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM";

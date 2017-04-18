@@ -181,16 +181,17 @@ class Document{
     string external_id;
     int internal_did;
     float average_tf;
-    int dl=0;
+    int dl;
     map<string,int> tf;
     int unique_term_size;
-    float lengthNorm = .0;
+    float lengthNorm ;
     bool debug;
     Document(){
 
     }
 
     Document( const vector<string>& single_query_word,const Collection& collection, const bool debug){
+	dl = 0;
         external_id = "IDEAL";
         internal_did = -1;
         dl = single_query_word.size();
@@ -334,10 +335,10 @@ class LADocument{
     string external_id;
     int internal_did;
     float average_tf;
-    int dl=0;
+    int dl;
     map<string,int> tf;
     int unique_term_size;
-    float lengthNorm = .0;
+    float lengthNorm;
     bool debug;
     LADocument(){
 
@@ -346,7 +347,7 @@ class LADocument{
 
     LADocument(indri::collection::Repository& r,const int& internal_did,const Collection& collection, const bool& debug){
         indri::server::LocalQueryServer local(r);
-
+	dl=0;
         this->debug=debug;
         std::vector<lemur::api::DOCID_T> documentIDs;
         documentIDs.push_back(internal_did);
