@@ -370,9 +370,10 @@ class TreeEstimator(PredictorUsingBoth):
                              day_result_file):
         term_idf = {}
 
-        run_command = "%s -index=%s -query=%s" %(self._bin_file,
-                                                 day_index_dir,
-                                                 day_query_file)
+        run_command = "%s -index=%s -query=%s -rule=\"%s\"" %(self._bin_file,
+                                                          day_index_dir,
+                                                          day_query_file,
+                                                          self._rule)
 
         
 
@@ -452,7 +453,7 @@ class TreeEstimator(PredictorUsingBoth):
                 query_value_pairs.append( [over_lap_count,term_idf[term]] )
             
             
-            query_value_pairs = sorted(query_value_pairs,key=lambda x:x[1])
+            query_value_pairs = sorted(query_value_pairs,key=lambda (k,v):(v,k))
 
             daily_value[qid] = query_value_pairs
 
@@ -802,7 +803,7 @@ class LocalCoherenceUnweighetedBinary(LocalCoherenceUnweigheted):
 class LocalCoherenceUnweighetedAverage(LocalCoherenceUnweigheted):
     """local coherence with average co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=100):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=75):
         super(LocalCoherenceUnweighetedAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"average",tune_documents=tune_documents)
 
 
@@ -1161,8 +1162,12 @@ class NormalizedStandardDeviation(PredictorUsingOnlyResult):
                     if len(scores[qid]) >=self._tune_documents :
                         continue
                     single_score = float( parts[4] )
-                    if single_score >= 0.5*top_score[qid]:
-                        scores[qid].append(single_score)
+                    if top_score[qid] >= 0:
+                        if single_score >= 0.5*top_score[qid]:
+                            scores[qid].append(single_score)
+                    else:
+                        if single_score >= 2*top_score[qid]:
+                            scores[qid].append(single_score)
 
         for qid in self._judged_qids:
             if qid in scores:
