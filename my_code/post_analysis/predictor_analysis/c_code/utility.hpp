@@ -129,6 +129,7 @@ vector<string> get_query_words(indri::collection::Repository& r, char* query_fil
                 string query_lang_string = line.substr(found+1);
                 size_t query_string_begin = query_lang_string.find_first_of("(");
                 size_t query_string_end = query_lang_string.find_last_of(")");
+                // cout<<query_string_begin<<" "<<query_string_end<<endl;
                 string query_string = query_lang_string.substr(query_string_begin+1,query_string_end-query_string_begin-8);
                 // cout<<qid<<":"<<query_string<<endl;
 

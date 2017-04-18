@@ -39,10 +39,10 @@ vector< vector<int> > get_index_vector(const int& begin,const int& end,const int
                     index_vector.push_back(*iit);
                 }
 
-                vector< vector<int> > sub_index_vector_full_size = get_index_vector(i+2,end,size);
-                for(vector< vector<int> >::iterator iit=sub_index_vector_full_size.begin(); iit!=sub_index_vector_full_size.end();++iit){
-                    index_vector.push_back(*iit);
-                }
+                // vector< vector<int> > sub_index_vector_full_size = get_index_vector(i+2,end,size);
+                // for(vector< vector<int> >::iterator iit=sub_index_vector_full_size.begin(); iit!=sub_index_vector_full_size.end();++iit){
+                //     index_vector.push_back(*iit);
+                // }
             }
             else{
                 std::vector<int> single_word;
@@ -54,12 +54,20 @@ vector< vector<int> > get_index_vector(const int& begin,const int& end,const int
     return index_vector;
 }
 
-map<string, vector <vector<string> > > get_subwords_vector( map<string, vector<string> >& queries ){
+map<string, vector <vector<string> > > get_subwords_vector( map<string, vector<string> >& queries, const bool& debug ){
     map<string, vector <vector<string> > > query_subwords_vector ;
     for(map<string, vector<string> >::iterator it=queries.begin(); it!=queries.end();++it){
         vector< vector<string> > subwords_vector;
+        if (debug){
+            cout<<"For Query "<<it->first<<":"<<endl;
+            cout<<"\t";
+            for(int k=0;k<it->second.size();k++){
+                cout<<" "<<it->second[k];
+            }
+            cout<<endl;
+        }
         if(it->second.size()>=1){
-            for(int i =2; i<=it->second.size();i++){
+            for(int i =2; i<=min(int(it->second.size()),5);i++){
                 int end_index = it->second.size()-1;
                 int sub_vector_size = i;
                 vector< vector<int> > sub_index_vector = get_index_vector(0,end_index,sub_vector_size); 
@@ -69,6 +77,13 @@ map<string, vector <vector<string> > > get_subwords_vector( map<string, vector<s
                         temp_word_vector.push_back(it->second[*sit]);
                     }
                     subwords_vector.push_back(temp_word_vector);
+                    if (debug){
+                        cout<<"\tadd:";
+                        for(int k=0;k<temp_word_vector.size();k++){
+                            cout<<" "<<temp_word_vector[k];
+                        }
+                        cout<<endl;
+                    }
                 }
             }
         }
@@ -251,7 +266,9 @@ map<string, vector< map<string,int> > > get_result_term_map(indri::collection::R
     map<string, vector< map<string,int> > > result_term_map;
     for(map<string, vector<string> >::const_iterator it=results.begin();it!=results.end(); ++it ){
         vector< map<string,int> > one_result_term_map;
+        // cout<<"For qid "<<it->first<<":"<<endl;
         for(vector<string>::const_iterator sid=it->second.begin(); sid!=it->second.end(); ++sid){
+            // cout<<"\tProcess "<<*sid<<endl;
             map<string , int> doc_term_map = get_term_map(r,*sid);
             one_result_term_map.push_back(doc_term_map);
         }
@@ -364,13 +381,16 @@ int main(int argc, char** argv){
         // for cooccurrence cvomputation.
         // For example, for a query {qid: [w1,w2,w3]}
         // the result would be {qid: [ [w1,w2],[w1,w2],[w1,w3],[w1,w2,w3] ]}
-
-        map<string, vector <vector<string> > > query_subwords_vector = get_subwords_vector(queries);
+        if (debug) cout<<"Finished geting query words"<<endl;
+        map<string, vector <vector<string> > > query_subwords_vector = get_subwords_vector(queries,debug);
+        if (debug) cout<<"Finished geting query word vectors"<<endl;
         map<string, vector<string> > results = get_results(result_file,tune_documents);
+        if (debug) cout<<"Finished geting results"<<endl;
         // cout<<"finished geting results"<<endl;
         map<string, vector< map<string,int> > > result_term_map = get_result_term_map(r,results);
-        // cout<<"finished geting result map"<<endl;
+        if (debug) cout<<"Finished geting result map"<<endl;
         map<string, vector <int> > co_occurrence_map = get_co_occurrence_map(query_subwords_vector,result_term_map);
+        if (debug) cout<<"Finished geting co-occurrence map"<<endl;
         show_unweighted_coherence(query_subwords_vector,co_occurrence_map,cu,debug,tn,queries);
 
 

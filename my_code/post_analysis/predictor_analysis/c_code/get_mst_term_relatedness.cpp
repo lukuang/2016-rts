@@ -42,10 +42,10 @@ vector< vector<int> > get_index_vector(const int& begin,const int& end,const int
                     index_vector.push_back(*iit);
                 }
 
-                vector< vector<int> > sub_index_vector_full_size = get_index_vector(i+2,end,size);
-                for(vector< vector<int> >::iterator iit=sub_index_vector_full_size.begin(); iit!=sub_index_vector_full_size.end();++iit){
-                    index_vector.push_back(*iit);
-                }
+                // vector< vector<int> > sub_index_vector_full_size = get_index_vector(i+2,end,size);
+                // for(vector< vector<int> >::iterator iit=sub_index_vector_full_size.begin(); iit!=sub_index_vector_full_size.end();++iit){
+                //     index_vector.push_back(*iit);
+                // }
             }
             else{
                 std::vector<int> single_word;

@@ -56,10 +56,10 @@ vector< vector<int> > get_index_vector(const int& begin,const int& end,const int
                     index_vector.push_back(*iit);
                 }
 
-                vector< vector<int> > sub_index_vector_full_size = get_index_vector(i+2,end,size);
-                for(vector< vector<int> >::iterator iit=sub_index_vector_full_size.begin(); iit!=sub_index_vector_full_size.end();++iit){
-                    index_vector.push_back(*iit);
-                }
+                // vector< vector<int> > sub_index_vector_full_size = get_index_vector(i+2,end,size);
+                // for(vector< vector<int> >::iterator iit=sub_index_vector_full_size.begin(); iit!=sub_index_vector_full_size.end();++iit){
+                //     index_vector.push_back(*iit);
+                // }
             }
             else{
                 std::vector<int> single_word;
@@ -76,7 +76,7 @@ map<string, vector <vector<string> > > get_subwords_vector( map<string, vector<s
     for(map<string, vector<string> >::iterator it=queries.begin(); it!=queries.end();++it){
         vector< vector<string> > subwords_vector;
         if(it->second.size()>=1){
-            for(int i =2; i<=it->second.size();i++){
+            for(int i =2; i<=min( int(it->second.size()),5 );i++){
                 int end_index = it->second.size()-1;
                 int sub_vector_size = i;
                 vector< vector<int> > sub_index_vector = get_index_vector(0,end_index,sub_vector_size); 
