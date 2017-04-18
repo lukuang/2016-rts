@@ -209,7 +209,7 @@ class DataPreparor(object):
             
             if self._use_result:
                 if self._result_expansion == Expansion.raw:
-                    result_dir = R_DIR[year][self._result_expansion][self._retrieval_method.name]
+                    result_dir = R_DIR[year][self._result_expansion][self._retrieval_method]
                 else:
                     result_dir = R_DIR[year][self._result_expansion]
                 silent_day_generator = SilentDaysFromRes(year,result_dir)
