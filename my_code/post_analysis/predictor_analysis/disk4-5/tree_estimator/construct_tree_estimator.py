@@ -155,7 +155,7 @@ def main():
         all_metrics[day] =  eval_data.get_metric(result_files[day])
 
     # print results
-    print all_metrics
+    # print all_metrics
     # create query_data
     query_data = []
     day = "10"
