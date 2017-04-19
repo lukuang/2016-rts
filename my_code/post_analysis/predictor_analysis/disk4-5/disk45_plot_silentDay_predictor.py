@@ -134,6 +134,7 @@ R_DIR[IndexType.full] = {
         RetrievalMethod.dirichlet:"/infolab/node4/lukuang/2015-RTS/disk4-5/data/results/full/dirichlet",
         RetrievalMethod.pivoted:"/infolab/node4/lukuang/2015-RTS/disk4-5/data/results/full/pivoted",
         RetrievalMethod.bm25:"/infolab/node4/lukuang/2015-RTS/disk4-5/data/results/full/bm25",
+        RetrievalMethod.juru:"/infolab/node4/lukuang/2015-RTS/disk4-5/data/results/full/juru",
 
 }
 
@@ -142,6 +143,7 @@ R_DIR[IndexType.processed] = {
         RetrievalMethod.dirichlet:"/infolab/node4/lukuang/2015-RTS/disk4-5/data/results/processed/dirichlet",
         RetrievalMethod.pivoted:"/infolab/node4/lukuang/2015-RTS/disk4-5/data/results/processed/pivoted",
         RetrievalMethod.bm25:"/infolab/node4/lukuang/2015-RTS/disk4-5/data/results/processed/bm25",
+        RetrievalMethod.juru:"/infolab/node4/lukuang/2015-RTS/disk4-5/data/results/processed/juru",
 
 }
 
@@ -150,6 +152,17 @@ R_DIR[IndexType.processed] = {
 IND_DIR = {
     IndexType.processed:"/infolab/node4/lukuang/2015-RTS/disk4-5/index/processed",
     IndexType.full:"/infolab/node4/lukuang/2015-RTS/disk4-5/index/full",
+}
+
+T_DIR = {
+    IndexType.processed:"/infolab/node4/lukuang/2015-RTS/disk4-5/data/term_result_dir/processed",
+    IndexType.full:"/infolab/node4/lukuang/2015-RTS/disk4-5/data/term_result_dir/full",    
+}
+
+LA_DIR = {
+    IndexType.processed:"/infolab/node4/lukuang/2015-RTS/disk4-5/data/la_dir/processed",
+    IndexType.full:"/infolab/node4/lukuang/2015-RTS/disk4-5/data/la_dir/full",    
+
 }
 
 # predictor class dictionary used for getting predictor class
@@ -200,7 +213,8 @@ PREDICTOR_CLASS = {
 def generate_predictor_values(predictor_choice,qrel,
                               index_dir,query_dir,result_dir,
                               bin_file,link_dir,data_storage_file,
-                              term_size,retrieval_method):
+                              term_size,retrieval_method,
+                              term_result_dir=None,la_dir=None):
     print "use %s" %(predictor_choice.name)
     print index_dir
     print query_dir
@@ -386,7 +400,10 @@ def generate_predictor_values(predictor_choice,qrel,
         if not result_dir:
             raise RuntimeError("Need to specify result dir when using tree_estimator!")
         else:
-            predictor = TreeEstimator(qrel,index_dir,query_dir,bin_file,result_dir)
+            predictor = TreeEstimator(qrel,index_dir,query_dir,bin_file,
+                                      result_dir,term_result_dir=term_result_dir,
+                                      la_dir=la_dir,
+                                      retrieval_method=retrieval_method)
     
     elif predictor_choice == PredictorName.aidf_pmi:
         predictor = AvgIDFWeightedPMI(qrel,index_dir,query_dir,bin_file)
@@ -537,6 +554,8 @@ def main():
     query_dir = Q_DIR
     index_dir = IND_DIR[args.index_type]
     link_dir = None
+    term_result_dir = None
+    la_dir = None
     
     # print query_dir
     # print index_dir
@@ -548,6 +567,10 @@ def main():
     args.data_dir = os.path.join(args.data_dir,PREDICTOR_CLASS[args.predictor_choice].name)
     args.data_dir = os.path.join(args.data_dir,args.predictor_choice.name)
     dest_dir = args.data_dir
+
+    if args.predictor_choice == PredictorName.tree_estimator:
+        term_result_dir = T_DIR[args.index_type]
+        la_dir = LA_DIR[args.index_type]
 
     if PREDICTOR_CLASS[args.predictor_choice] == PredictorClass.post:
         printing_message += "\tretrieval method:%s\n" %(args.retrieval_method.name) 
@@ -583,8 +606,10 @@ def main():
         predictor_values = generate_predictor_values(
                                 args.predictor_choice,disk45_qrel,
                                 index_dir,query_dir,result_dir,
-                                bin_file,link_dir,data_storage_file,args.term_size,
-                                args.retrieval_method)
+                                bin_file,link_dir,data_storage_file,
+                                args.term_size,args.retrieval_method,
+                                term_result_dir=term_result_dir,
+                                la_dir=term_result_dir)
     
     else:
         predictor_values = json.load(open(data_storage_file))
