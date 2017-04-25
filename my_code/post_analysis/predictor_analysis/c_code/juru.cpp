@@ -370,6 +370,7 @@ class LADocument{
 
               
               if(unique_term_map.find(stem)==unique_term_map.end()){
+
                     unique_term_map[stem] = 0;
                 }
               
@@ -524,15 +525,17 @@ class PostingList{
             }
         }
 
-        void print_result(const int& result_size){
+        void write_result(const int& result_size,char* dest_file){
             std::multimap<float, string> dst = flip_map(scores);
-
+            ofstream dest_file_stream;
+            dest_file_stream.open(dest_file);
             int count = 0;
             for(map <float, string>::reverse_iterator dit=dst.rbegin();dit!=dst.rend();++dit){
-                cout<<qid<<" Q0 "<< dit->second<<" "<<(count+1)<<" "<<dit->first<<" Juru"<<endl;
+                dest_file_stream<<qid<<" Q0 "<< dit->second<<" "<<(count+1)<<" "<<dit->first<<" Juru"<<endl;
                 count++;
                 if (count >= result_size) break;
             }
+            dest_file_stream.close();
         }
 
         void update_candidate_las(indri::collection::Repository& r, map<string, map<string,int> >& candidate_map,const string& external_id,const map <string,int>& stopwords){
@@ -810,10 +813,11 @@ void write_la(map<string, map<string,LAPostingList> >& query_las, char* la_file)
 
 static void usage( indri::api::Parameters param ) {
   if( !( param.exists( "query" ) || param.exists( "term" )) || 
-      !( param.exists( "index" ) ) ) {
+      !( param.exists( "index" ) ) || 
+      !( param.exists( "dest_dir" ) ) ) {
    std::cerr << "juru usage: " << std::endl
-             << "   juru -query=myquery -index=myindex OR" << std::endl;
-    std::cerr << "   juru -term=myquery -index=myindex OR" << std::endl;
+             << "   juru -query=myquery -index=myindex -dest_dir=dest_dir OR" << std::endl;
+    std::cerr << "   juru -term=myquery -index=myindex -dest_dir=dest_dir" << std::endl;
    exit(-1);
   }
 }
@@ -827,6 +831,7 @@ int main(int argc, char** argv){
         usage( param );
         
         string rep_name = param[ "index" ];
+        string dest_dir = param[ "dest_dir" ];
         bool debug = false;
         if (param.exists( "debug" )){
             debug = true;
@@ -887,6 +892,7 @@ int main(int argc, char** argv){
                 queries[term] = query_vector;
             }
             else{
+                cout<<"finished!"<<endl;
                 exit(0);
             }
         }
@@ -913,7 +919,10 @@ int main(int argc, char** argv){
                     } 
                 }
             }
-            single_posting_list->print_result(result_size);
+            string dest_file_string = dest_dir +"/"+qid;
+            char* dest_file = new char[dest_file_string.length()+1];
+            memcpy(dest_file, dest_file_string.c_str(), dest_file_string.length()+1);
+            single_posting_list->write_result(result_size,dest_file);
             delete single_posting_list;
 
         }
@@ -924,6 +933,7 @@ int main(int argc, char** argv){
         else{
             if(debug) cout<<"USE LA FILE TURN TO FALSE!"<<endl;
         }
+        cout<<"finished!"<<endl;
 
 
         r.close();
