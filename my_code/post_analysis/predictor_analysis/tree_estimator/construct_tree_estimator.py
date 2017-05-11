@@ -21,7 +21,7 @@ sys.path.append("/infolab/node4/lukuang/2015-RTS/src")
 from my_code.distribution.data import Qrel,T2Day,SemaCluster,Days,Year
 
 sys.path.append("/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis")
-from plot_silentDay_predictor import R_DIR, Expansion
+from plot_silentDay_predictor import R_DIR, Expansion,RetrievalMethod
 
 # R_DIR = {
 #     Year.y2015:{},
@@ -150,15 +150,23 @@ def main():
                 1:2016
                 2:2011
         """)
-    parser.add_argument("--query_data_file","-qdf",default="/infolab/headnode2/lukuang/2016-rts/code/my_code/post_analysis/predictor_analysis/predictor_data/post/tree_estimator/y2011/raw/with_result/data")
+    parser.add_argument("--tree_estimator_directory","-td",default="/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/predictor_data/post/tree_estimator")
     parser.add_argument("--number_of_iterations","-ni",type=int,default=50)
-    parser.add_argument("--error_threshold","-et",type=int,default=30)
+    parser.add_argument("--error_threshold","-et",type=int,default=50)
     parser.add_argument("--expansion","-e",choices=list(map(int, Expansion)),default=0,type=int,
         help="""
             Choose the expansion:
                 0:raw
                 1:static:
                 2:dynamic
+        """)
+    parser.add_argument("--retrieval_method","-rm",choices=list(map(int, RetrievalMethod)),default=0,type=int,
+        help="""
+            Choose the retrieval method:
+                0:f2exp
+                1:dirichlet
+                2:pivoted
+                3:bm25
         """)
     parser.add_argument("dest_file")
     args=parser.parse_args()
@@ -167,10 +175,17 @@ def main():
     #     raise ValueError("Threshold cannot be greater than 50!")
 
     args.year = Year(args.year)
+    args.retrieval_method = RetrievalMethod(args.retrieval_method)
+    args.expansion = Expansion(args.expansion)
+
+
     eval_data = EvalData(args.year)
-    result_dir = R_DIR[args.year][args.expansion]
+    result_dir = R_DIR[args.year][args.expansion][args.retrieval_method]
     results = read_results(result_dir,eval_data)
-    values = json.load(open(args.query_data_file))
+    query_data_file = os.path.join(args.tree_estimator_directory,args.year.name,args.expansion.name,args.retrieval_method.name)
+    query_data_file = os.path.join(query_data_file,"data")
+    print "get value pair %s" %(query_data_file)
+    values = json.load(open(query_data_file))
 
     # print results
 
