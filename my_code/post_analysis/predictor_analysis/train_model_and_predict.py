@@ -124,7 +124,7 @@ def main():
     # print "-"*20
 
     # print "Test on 1516 data"
-    
+    print "load data from %s" %(args.top_data_dir)
     clf.fit(dataset_11.X,dataset_11.y)
     clf_file = os.path.join(args.top_data_dir,"training","model","clf")
     with open(clf_file,'w') as f:
@@ -133,7 +133,7 @@ def main():
 
     # print "Predict:"
     predicted_1516 = clf.predict(dataset_1516.X)
-    # print classification_report(dataset_1516.y, predicted_1516)
+    print classification_report(dataset_1516.y, predicted_1516)
 
     # print "Test on 11 data"
     
@@ -148,7 +148,7 @@ def main():
 
     # print "Predict:"
     predicted_11 = clf.predict(dataset_11.X)
-    # print classification_report(dataset_11.y, predicted_11)
+    print classification_report(dataset_11.y, predicted_11)
     # print classification_report(dataset_1516.y, predicted_1516)
     # print precision_score(dataset_1516.y, predicted_1516)
     f1_1516_macro = f1(dataset_1516.y, predicted_1516,average="macro")
@@ -158,6 +158,8 @@ def main():
     f1_11 = f1(dataset_11.y, predicted_11)
     f1_average = (f1_1516+f1_11)/2.0
     f1_macro_average = (f1_1516_macro+f1_11_macro)/2.0
+
+    print "for 2011: pos:%f, avg:%f" %(f1_1516,f1_1516_macro)
 
     print "Positive f1: %f" %(f1_average)
     print "Average f1: %f" %(f1_macro_average)
