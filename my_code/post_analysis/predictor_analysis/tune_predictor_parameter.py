@@ -269,7 +269,30 @@ def generate_predictor_values_for_tune(predictor_choice,qrel,
             raise RuntimeError("Need to specify retrieval method when using qf!")
         else:
             predictor = QF(qrel,index_dir,query_dir,bin_file,result_dir,tune_documents=tune_documents,tune_terms=tune_terms,retrieval_method=retrieval_method)
-    
+    elif predictor_choice == PredictorName.sized_coherence_binary:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using sized_coherence_binary!")
+        elif not tune_documents:
+            raise RuntimeError("Need to specify tune_documents when tuning sized_coherence_binary!")
+        else:
+            predictor = LocalSizedCoherenceUnweighetedBinary(qrel,index_dir,query_dir,bin_file,result_dir,tune_documents=tune_documents)
+
+    elif predictor_choice == PredictorName.sized_coherence_average:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using sized_coherence_average!")
+        elif not tune_documents:
+            raise RuntimeError("Need to specify tune_documents when tuning sized_coherence_average!")
+        else:
+            predictor = LocalSizedCoherenceUnweighetedAverage(qrel,index_dir,query_dir,bin_file,result_dir,tune_documents=tune_documents)
+
+    elif predictor_choice == PredictorName.sized_coherence_max:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using sized_coherence_max!")
+        elif not tune_documents:
+            raise RuntimeError("Need to specify tune_documents when tuning sized_coherence_max!")
+        else:
+            predictor = LocalSizedCoherenceUnweighetedMax(qrel,index_dir,query_dir,bin_file,result_dir,tune_documents=tune_documents)
+
 
     return predictor.values
 
@@ -281,7 +304,7 @@ def prepare_for_auc(predictor_values,silent_day_values):
     for day in silent_day_values:
         for qid in silent_day_values[day]:
             try: 
-                y_score.append( predictor_values[day][qid] )
+                y_score.append( -1*predictor_values[day][qid] )
             except KeyError:
                 y_score.append(0)
             if silent_day_values[day][qid]:
@@ -364,6 +387,9 @@ def main():
                 34: midf_pmi
                 35: candidate_size
                 36: qf
+                37: sized_coherence_binary 
+                38: sized_coherence_average
+                39: sized_coherence_max
         """)
     parser.add_argument("--term_size","-tn",type=int,
         help="""
@@ -396,6 +422,9 @@ def main():
                     PredictorName.nqc,
                     PredictorName.local_avg_pmi,
                     PredictorName.local_max_pmi,
+                    PredictorName.sized_coherence_binary,
+                    PredictorName.sized_coherence_average,
+                    PredictorName.sized_coherence_max,
                   ]
 
     args.predictor_choice = PredictorName(args.predictor_choice)
@@ -473,6 +502,7 @@ def main():
                                         args.term_size,tune_documents=tune_documents,
                                         retrieval_method=args.retrieval_method)
                 y_true, y_score = prepare_for_auc(predictor_values,silent_day_values)
+
                 score = roc_auc_score(y_true, y_score)
 
                 para_string = "document=%d" %(tune_documents)

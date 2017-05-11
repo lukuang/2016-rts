@@ -217,7 +217,7 @@ class NQC(PredictorUsingBoth):
     normalized standard deviation of top 10 document scores
     STD/collection_score(C)
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10,retrieval_method=RetrievalMethod.f2exp):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=25,retrieval_method=RetrievalMethod.f2exp):
         super(NQC,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir)
         self._tune_documents = tune_documents
         self._retrieval_method = retrieval_method
@@ -282,7 +282,7 @@ class QF(PredictorUsingBoth):
     """
     Query feedback predictor
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=5,retrieval_method=RetrievalMethod.f2exp,tune_terms=20):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=15,retrieval_method=RetrievalMethod.f2exp,tune_terms=15):
         super(QF,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir)
         self._tune_documents = tune_documents
         self._tune_terms = tune_terms
@@ -649,7 +649,7 @@ class WIG(PredictorUsingBoth):
     """
     compute weighted information gain for query
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=100):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=5):
         super(WIG,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir)
         self._tune_documents = tune_documents
 
@@ -687,7 +687,7 @@ class PWIG(PredictorUsingBoth):
     """
     compute wig only for phrases
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=20,of_lambda=1.0):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=5,of_lambda=0.2):
         super(PWIG,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir)
         self._tune_documents = tune_documents
         self._of_lambda = of_lambda
@@ -705,7 +705,7 @@ class PWIG(PredictorUsingBoth):
 
    
 
-        # print "command being run:\n%s" %(run_command)
+        print "command being run:\n%s" %(run_command)
         p = subprocess.Popen(run_command,stdout=subprocess.PIPE,shell=True)
         
         while True:
@@ -926,7 +926,7 @@ class LocalCoherenceUnweigheted(PredictorUsingBoth):
                                                             day_result_file,
                                                             self._cu,
                                                             self._tune_documents)
-        # print "command being run:\n%s" %(run_command)
+        print "command being run:\n%s" %(run_command)
         p = subprocess.Popen(run_command,stdout=subprocess.PIPE,shell=True)
         
         while True:
@@ -951,22 +951,46 @@ class LocalCoherenceUnweigheted(PredictorUsingBoth):
 class LocalCoherenceUnweighetedBinary(LocalCoherenceUnweigheted):
     """local coherence with binary co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=5):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=100):
         super(LocalCoherenceUnweighetedBinary,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"binary",tune_documents=tune_documents)
 
 
 class LocalCoherenceUnweighetedAverage(LocalCoherenceUnweigheted):
     """local coherence with average co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=75):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
         super(LocalCoherenceUnweighetedAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"average",tune_documents=tune_documents)
 
 
 class LocalCoherenceUnweighetedMax(LocalCoherenceUnweigheted):
     """
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=100):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=5):
         super(LocalCoherenceUnweighetedMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"max",tune_documents=tune_documents)
+
+
+class LocalSizedCoherenceUnweighetedBinary(LocalCoherenceUnweigheted):
+    """local coherence with binary co-occurrence count (SIZED)
+    """
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=5):
+        super(LocalSizedCoherenceUnweighetedBinary,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"binary",tune_documents=tune_documents)
+
+class LocalSizedCoherenceUnweighetedAverage(LocalCoherenceUnweigheted):
+    """local coherence with average co-occurrence count
+    """
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=5):
+        super(LocalSizedCoherenceUnweighetedAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"average",tune_documents=tune_documents)
+
+
+
+class LocalSizedCoherenceUnweighetedMax(LocalCoherenceUnweigheted):
+    """
+    """
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=5):
+        super(LocalSizedCoherenceUnweighetedMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"max",tune_documents=tune_documents)
+
+
+
 
 class LocalCoherenceUnweighetedN(PredictorUsingBoth):
     """Compute unweigheted query local coherence given the
@@ -1079,7 +1103,7 @@ class Clarity(PredictorUsingOnlyIndri):
     Clarity score
     """
     
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,retrieval_method=RetrievalMethod.f2exp,tune_documents=5,tune_terms=5):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,retrieval_method=RetrievalMethod.f2exp,tune_documents=20,tune_terms=20):
         super(Clarity,self).__init__(qrel,top_index_dir,query_dir,bin_file)
         self._tune_documents,self._tune_terms = tune_documents,tune_terms
         self._retrieval_method = retrieval_method
@@ -1217,7 +1241,7 @@ class TermRelatedness(PredictorUsingOnlyIndri):
                                                         day_index_dir,
                                                         day_query_file,
                                                         self._cu)
-        # print "command being run:\n%s" %(run_command)
+        print "command being run:\n%s" %(run_command)
         p = subprocess.Popen(run_command,stdout=subprocess.PIPE,shell=True)
         
         while True:
@@ -1268,7 +1292,7 @@ class StandardDeviation(PredictorUsingOnlyResult):
     """
     standard deviation of top document scores
     """
-    def __init__(self,qrel,result_dir,tune_documents=5):
+    def __init__(self,qrel,result_dir,tune_documents=100):
         super(StandardDeviation,self).__init__(qrel,result_dir)
         self._tune_documents = tune_documents
 
@@ -1299,7 +1323,7 @@ class NormalizedStandardDeviation(PredictorUsingOnlyResult):
     """
     normalized standard deviation of top document scores
     """
-    def __init__(self,qrel,result_dir,tune_documents=5):
+    def __init__(self,qrel,result_dir,tune_documents=100):
         super(NormalizedStandardDeviation,self).__init__(qrel,result_dir)
         self._tune_documents = tune_documents
 

@@ -66,6 +66,9 @@ class PredictorName(IntEnum):
     midf_pmi = 34
     candidate_size = 35
     qf = 36
+    sized_coherence_binary = 37
+    sized_coherence_average = 38
+    sized_coherence_max = 39
 
 @unique
 class Expansion(IntEnum):
@@ -114,6 +117,9 @@ BIN_FILES = {
     PredictorName.midf_pmi:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_term_relatedness",
     PredictorName.candidate_size:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_candidate_size",
     PredictorName.qf:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_qf_query",
+    PredictorName.sized_coherence_binary:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_sized_lqc",
+    PredictorName.sized_coherence_max:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_sized_lqc",
+    PredictorName.sized_coherence_average:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_sized_lqc",
 
 }
 
@@ -248,6 +254,10 @@ PREDICTOR_CLASS = {
     PredictorName.midf_pmi: PredictorClass.pre,
     PredictorName.candidate_size: PredictorClass.pre,
     PredictorName.qf: PredictorClass.post,
+    PredictorName.tree_estimator: PredictorClass.post,
+    PredictorName.sized_coherence_binary: PredictorClass.post,
+    PredictorName.sized_coherence_average: PredictorClass.post,
+    PredictorName.sized_coherence_max: PredictorClass.post,
 
 }
 
@@ -456,7 +466,24 @@ def generate_predictor_values(predictor_choice,qrel,
             raise RuntimeError("Need to specify retrieval method when using qf!")
         else:
             predictor = QF(qrel,index_dir,query_dir,bin_file,result_dir,retrieval_method=retrieval_method)
-    
+    elif predictor_choice == PredictorName.sized_coherence_binary:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using sized_coherence_binary!")
+        else:
+            predictor = LocalSizedCoherenceUnweighetedBinary(qrel,index_dir,query_dir,bin_file,result_dir)
+
+    elif predictor_choice == PredictorName.sized_coherence_average:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using sized_coherence_average!")
+        else:
+            predictor = LocalSizedCoherenceUnweighetedAverage(qrel,index_dir,query_dir,bin_file,result_dir)
+
+    elif predictor_choice == PredictorName.sized_coherence_max:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using sized_coherence_max!")
+        else:
+            predictor = LocalSizedCoherenceUnweighetedMax(qrel,index_dir,query_dir,bin_file,result_dir)
+
 
     # predictor.show()
     with open(data_storage_file,"w") as f:
@@ -564,6 +591,9 @@ def main():
                 34: midf_pmi
                 35: candidate_size
                 36: qf
+                37: sized_coherence_binary 
+                38: sized_coherence_average
+                39: sized_coherence_max
         """)
     parser.add_argument("--term_size","-tn",type=int,
         help="""
