@@ -15,6 +15,9 @@ import subprocess
 from copy import deepcopy
 from scipy.stats import kendalltau
 from sklearn.model_selection import KFold
+from enum import IntEnum, unique
+
+
 
 from forest import Forest
 
@@ -24,7 +27,10 @@ from my_code.distribution.data import Qrel,T2Day,SemaCluster,Days,Year
 sys.path.append("/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/disk4-5")
 from disk45_plot_silentDay_predictor import R_DIR, Expansion, IndexType, RetrievalMethod
 
-
+@unique
+class QueryPart(IntEnum):
+    title = 0
+    desc = 1
 
 
 
@@ -121,6 +127,12 @@ def main():
                 0:full
                 1:processed
         """)
+    parser.add_argument("--query_part","-qp",choices=list(map(int, QueryPart)),default=0,type=int,
+        help="""
+            Choose the query part:
+                0:title
+                1:desc
+        """)
     parser.add_argument("--tree_estimator_directory","-td",default="/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/disk4-5/predictor_data/post/tree_estimator")
     parser.add_argument("--number_of_iterations","-ni",type=int,default=50)
     parser.add_argument("--error_threshold","-et",type=int,default=30)
@@ -132,7 +144,7 @@ def main():
                 2:pivoted
                 3:bm25
         """)
-    parser.add_argument("dest_file")
+    parser.add_argument("dest_dir")
     parser.add_argument("--metric_string","-ms",default="P_10")
     args=parser.parse_args()
 
@@ -140,6 +152,7 @@ def main():
     #     raise ValueError("Threshold cannot be greater than 50!")
 
     args.index_type = IndexType(args.index_type)
+    args.query_part = QueryPart(args.query_part)
     eval_data = EvalData(args.index_type,args.metric_string)
     args.retrieval_method = RetrievalMethod(args.retrieval_method)
     result_dir = R_DIR[args.index_type][args.retrieval_method]
@@ -154,26 +167,25 @@ def main():
     for day in values:
         all_metrics[day] =  eval_data.get_metric(result_files[day])
 
-    # print results
-    # print all_metrics
+    #load silent day
+
     # create query_data
     query_data = []
     day = "10"
     for qid in values.values()[0].keys():
+        # m = re.search("^(\d+)_",qid)
+        # if m:
+        #     q_num = int(m.group(1))
+        #     if q_num > 650:
+        #         continue
+        # else:
+        #     raise RuntimeError("Mal qid format %s" %(qid))
         day_qid = "10_%s" %(qid)
-        # print day_qid
-        if "desc" in day_qid:
-            # print "escape desc query"
+        if args.query_part.name not in qid:
             continue
-        else:
-            m = re.search("^(\d+)_title",qid)
-            if m:
-                qid_value = int(m.group(1))
-                if qid_value > 650:
-                    continue
-
-            else:
-                "Wrong qid format: %s" %(qid)
+        # print day_qid
+        
+        
         # print results[day]
 
         if qid in all_metrics[day]:
@@ -228,7 +240,11 @@ def main():
     forest = Forest(query_data,args.error_threshold,args.number_of_iterations)
         
     forest.start_training()
-    with open(args.dest_file,'w') as f:
+
+    dest_file = os.path.join(args.dest_dir,args.query_part.name,args.retrieval_method.name+"_"+args.metric_string)
+
+    print "Store to %s" %(dest_file)
+    with open(dest_file,'w') as f:
         cPickle.dump(forest, f, protocol=cPickle.HIGHEST_PROTOCOL)
 
 
