@@ -146,7 +146,7 @@ string get_reversed_stem(indri::collection::Repository& r,const string & term){
                 reversed_term = term + end_chara;
                 if (term != r.processTerm(reversed_term) ){
                     cerr<<"Cannot find reversed_term for "<<term<<"!"<<endl;
-                    exit(-1);
+                    return "";
                 }
             }
         }
@@ -214,8 +214,12 @@ map<string, float> get_top_terms(indri::collection::Repository& r,vector< map<st
 string get_top_term_string(indri::collection::Repository& r,map<string, float>& top_terms){
     string top_term_string = "#weight( ";
     for(map <string, float>::iterator it=top_terms.begin();it!=top_terms.end();++it){
-        top_term_string += " "+to_string(it->second);
         string reversed_term = get_reversed_stem(r,it->first);
+        if(reversed_term.length()==0){
+            continue;
+        }
+        top_term_string += " "+to_string(it->second);
+
         top_term_string += " "+reversed_term;
     }   
     top_term_string += " )";

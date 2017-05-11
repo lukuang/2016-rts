@@ -370,7 +370,7 @@ class LADocument{
 
               
               if(unique_term_map.find(stem)==unique_term_map.end()){
-                
+
                     unique_term_map[stem] = 0;
                 }
               
@@ -892,6 +892,7 @@ int main(int argc, char** argv){
                 queries[term] = query_vector;
             }
             else{
+                cout<<"finished!"<<endl;
                 exit(0);
             }
         }
@@ -932,6 +933,7 @@ int main(int argc, char** argv){
         else{
             if(debug) cout<<"USE LA FILE TURN TO FALSE!"<<endl;
         }
+        cout<<"finished!"<<endl;
 
 
         r.close();
