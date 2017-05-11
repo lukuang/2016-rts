@@ -26,7 +26,7 @@ class Forest(object):
 
         self._weights = {}    
         self._index_cdf = [0]*len( self._query_data )
-
+        self._epsilon = 1.0/len( self._query_data )
 
     def start_training(self):
         for i in range( len(self._query_data) ):
@@ -45,10 +45,10 @@ class Forest(object):
             alpha = self._compute_alpha(errors)
             self._update_weights(errors,alpha)
             self._trees.append({"alpha":alpha,"single_tree":single_tree})
-            print "alpha:%f" %(alpha)
+            # print "alpha:%f" %(alpha)
 
     def _gene_cdf(self):
-        for i in self._weights:
+        for i in range( len(self._query_data) ):
             if i == 0:
                 self._index_cdf[0] = self._weights[i] 
             else:
@@ -64,7 +64,7 @@ class Forest(object):
         indecis = []
         for i in range( len(self._query_data) ):
             prob = random.uniform(0, 1)
-            for j in  self._weights:
+            for j in  range( len(self._query_data) ):
                 if prob <= self._index_cdf[j]:
                     sample_data.append( deepcopy(self._query_data[j]) )
                     indecis.append(j)
@@ -86,7 +86,7 @@ class Forest(object):
 
         ek = (sum(errors.values())*1.0)/len(errors)
 
-        return math.log( (1-ek)/ek )/2.0
+        return math.log( (1-ek+self._epsilon)/(ek+self._epsilon) )/2.0
 
     def _update_weights(self,errors,alpha):
         for i in self._weights:

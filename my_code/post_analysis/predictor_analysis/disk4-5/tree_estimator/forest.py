@@ -27,6 +27,8 @@ class Forest(object):
         self._weights = {}    
         self._index_cdf = [0]*len( self._query_data )
 
+        self._epsilon = 1.0/len(self._query_data)
+
 
     def start_training(self):
         for i in range( len(self._query_data) ):
@@ -86,7 +88,7 @@ class Forest(object):
 
         ek = (sum(errors.values())*1.0)/len(errors)
         # print "ek is %f" %(ek)
-        return math.log( (1-ek)/ek )/2.0
+        return math.log( (1-ek+self._epsilon)/(ek+self._epsilon) )/2.0
 
     def _update_weights(self,errors,alpha):
         for i in self._weights:
