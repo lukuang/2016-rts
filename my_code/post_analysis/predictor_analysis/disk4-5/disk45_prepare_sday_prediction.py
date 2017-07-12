@@ -171,7 +171,7 @@ class DataPreparor(object):
 
     def __init__(self,predictor_data_dir,feature_descrption_list,
                  top_dest_dir,retrieval_method,silent_query_info_file,
-                 index_type,title_only):
+                 index_type,title_only,designate_dest_dir):
         self._predictor_data_dir,self._feature_descrption_list, self._retrieval_method=\
             predictor_data_dir,feature_descrption_list,retrieval_method
         self._index_type = index_type
@@ -180,6 +180,7 @@ class DataPreparor(object):
         self._top_dest_dir = top_dest_dir
         self._silent_query_info_file = silent_query_info_file
         self._title_only = title_only
+        self._designate_dest_dir = designate_dest_dir
 
     def prepare_data(self):
 
@@ -250,7 +251,10 @@ class DataPreparor(object):
 
     def _create_dirs(self):
 
-        dest_dir_name =  "_".join([convert_feature_string(i) for i in sorted(self._feature_descrption_list) ])
+        if self._designate_dest_dir:
+            dest_dir_name = self._designate_dest_dir
+        else:
+            dest_dir_name =  "_".join([convert_feature_string(i) for i in sorted(self._feature_descrption_list) ])
         if self._title_only:
             dest_dir = os.path.join(self._top_dest_dir,self._index_type.name,"title_only",self._retrieval_method.name,dest_dir_name)
         else:
@@ -313,6 +317,7 @@ def main():
                 1:processed
         """)
     parser.add_argument("--feature_descrption_list","-f",nargs='+')
+    parser.add_argument("--designate_dest_dir","-dr")
     args=parser.parse_args()
 
 
@@ -323,8 +328,8 @@ def main():
     data_preparor = DataPreparor(
                         args.predictor_data_dir, args.feature_descrption_list,
                         args.top_dest_dir,args.retrieval_method,
-                        args.silent_query_info_file,args.index_type,args.title_only)
-
+                        args.silent_query_info_file,args.index_type,args.title_only,
+                        args.designate_dest_dir)
 
     data_preparor.prepare_data()
     
