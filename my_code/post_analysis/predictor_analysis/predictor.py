@@ -627,27 +627,27 @@ class QueryTermCoverage(LocalTermRelatedness):
     pass
 
 class QueryTermCoverageAverage(QueryTermCoverage):
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=5):
         super(QueryTermCoverageAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"average",tune_documents=tune_documents)
 
 class QueryTermCoverageMax(QueryTermCoverage):
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=5):
         super(QueryTermCoverageMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"max",tune_documents=tune_documents)
 
 class QueryTermCoverageMin(QueryTermCoverage):
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=5):
         super(QueryTermCoverageMin,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"min",tune_documents=tune_documents)
 
 class QueryTermCoverageMedian(QueryTermCoverage):
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=5):
         super(QueryTermCoverageMedian,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"median",tune_documents=tune_documents)
 
 class QueryTermCoverageUpper(QueryTermCoverage):
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=5):
         super(QueryTermCoverageUpper,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"upper",tune_documents=tune_documents)
 
 class QueryTermCoverageLower(QueryTermCoverage):
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=5):
         super(QueryTermCoverageLower,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"lower",tune_documents=tune_documents)
 
 
@@ -695,28 +695,28 @@ class TopTermCoverage(PredictorUsingBoth):
         return daily_value 
 
 class TopTermCoverageAverage(TopTermCoverage):
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10,tune_terms=10):
-        super(TopTermCoverageAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"average",tune_documents=tune_documents,tune_terms=10)
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=15,tune_terms=10):
+        super(TopTermCoverageAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"average",tune_documents=tune_documents,tune_terms=tune_terms)
 
 class TopTermCoverageMax(TopTermCoverage):
     def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10,tune_terms=10):
-        super(TopTermCoverageMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"max",tune_documents=tune_documents,tune_terms=10)
+        super(TopTermCoverageMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"max",tune_documents=tune_documents,tune_terms=tune_terms)
 
 class TopTermCoverageMin(TopTermCoverage):
     def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10,tune_terms=10):
-        super(TopTermCoverageMin,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"min",tune_documents=tune_documents,tune_terms=10)
+        super(TopTermCoverageMin,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"min",tune_documents=tune_documents,tune_terms=tune_terms)
 
 class TopTermCoverageMedian(TopTermCoverage):
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10,tune_terms=10):
-        super(TopTermCoverageMedian,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"median",tune_documents=tune_documents,tune_terms=10)
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10,tune_terms=15):
+        super(TopTermCoverageMedian,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"median",tune_documents=tune_documents,tune_terms=tune_terms)
 
 class TopTermCoverageUpper(TopTermCoverage):
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10,tune_terms=10):
-        super(TopTermCoverageUpper,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"upper",tune_documents=tune_documents,tune_terms=10)
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=20,tune_terms=10):
+        super(TopTermCoverageUpper,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"upper",tune_documents=tune_documents,tune_terms=tune_terms)
 
 class TopTermCoverageLower(TopTermCoverage):
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10,tune_terms=10):
-        super(TopTermCoverageLower,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"lower",tune_documents=tune_documents,tune_terms=10)
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=5,tune_terms=10):
+        super(TopTermCoverageLower,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"lower",tune_documents=tune_documents,tune_terms=tune_terms)
 
 
 
