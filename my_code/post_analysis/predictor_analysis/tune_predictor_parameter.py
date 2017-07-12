@@ -293,6 +293,73 @@ def generate_predictor_values_for_tune(predictor_choice,qrel,
         else:
             predictor = LocalSizedCoherenceUnweighetedMax(qrel,index_dir,query_dir,bin_file,result_dir,tune_documents=tune_documents)
 
+    elif predictor_choice == PredictorName.qtc_average:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using qtc_average!")
+        elif not tune_documents:
+            raise RuntimeError("Need to specify tune_documents when tuning qtc_average!")
+        else:
+            predictor = QueryTermCoverageAverage(qrel,index_dir,query_dir,bin_file,result_dir,tune_documents=tune_documents)
+    elif predictor_choice == PredictorName.qtc_median:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using qtc_median!")
+        elif not tune_documents:
+            raise RuntimeError("Need to specify tune_documents when tuning qtc_median!")
+        else:
+            predictor = QueryTermCoverageMedian(qrel,index_dir,query_dir,bin_file,result_dir,tune_documents=tune_documents)
+    elif predictor_choice == PredictorName.qtc_upper:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using qtc_upper!")
+        elif not tune_documents:
+            raise RuntimeError("Need to specify tune_documents when tuning qtc_upper!")
+        else:
+            predictor = QueryTermCoverageUpper(qrel,index_dir,query_dir,bin_file,result_dir,tune_documents=tune_documents)
+    elif predictor_choice == PredictorName.qtc_lower:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using qtc_lower!")
+        elif not tune_documents:
+            raise RuntimeError("Need to specify tune_documents when tuning qtc_lower!")
+        else:
+            predictor = QueryTermCoverageLower(qrel,index_dir,query_dir,bin_file,result_dir,tune_documents=tune_documents)
+    
+
+    elif predictor_choice == PredictorName.ttc_average:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using ttc_average!")
+        elif(not tune_documents) or (not tune_terms):
+            raise RuntimeError("Need to specify tune_documents and tune_terms when tuning ttc_average!") 
+        elif retrieval_method is None:
+            raise RuntimeError("Need to specify retrieval method when using ttc_average!")
+        else:
+            predictor = TopTermCoverageAverage(qrel,index_dir,query_dir,bin_file,result_dir,tune_documents=tune_documents,tune_terms=tune_terms)
+    elif predictor_choice == PredictorName.ttc_median:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using ttc_median!")
+        elif(not tune_documents) or (not tune_terms):
+            raise RuntimeError("Need to specify tune_documents and tune_terms when tuning ttc_median!") 
+        elif retrieval_method is None:
+            raise RuntimeError("Need to specify retrieval method when using ttc_median!")
+        else:
+            predictor = TopTermCoverageMedian(qrel,index_dir,query_dir,bin_file,result_dir,tune_documents=tune_documents,tune_terms=tune_terms)
+    elif predictor_choice == PredictorName.ttc_upper:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using ttc_upper!")
+        elif(not tune_documents) or (not tune_terms):
+            raise RuntimeError("Need to specify tune_documents and tune_terms when tuning ttc_upper!") 
+        elif retrieval_method is None:
+            raise RuntimeError("Need to specify retrieval method when using ttc_upper!")
+        else:
+            predictor = TopTermCoverageUpper(qrel,index_dir,query_dir,bin_file,result_dir,tune_documents=tune_documents,tune_terms=tune_terms)
+    elif predictor_choice == PredictorName.ttc_lower:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using ttc_lower!")
+        elif(not tune_documents) or (not tune_terms):
+            raise RuntimeError("Need to specify tune_documents and tune_terms when tuning ttc_lower!") 
+        elif retrieval_method is None:
+            raise RuntimeError("Need to specify retrieval method when using ttc_lower!")
+        else:
+            predictor = TopTermCoverageLower(qrel,index_dir,query_dir,bin_file,result_dir,tune_documents=tune_documents,tune_terms=tune_terms)
+        
 
     return predictor.values
 
@@ -390,6 +457,14 @@ def main():
                 37: sized_coherence_binary 
                 38: sized_coherence_average
                 39: sized_coherence_max
+                40: qtc_average
+                41: qtc_median
+                42: qtc_upper
+                43: qtc_lower
+                44: ttc_average
+                45: ttc_median
+                46: ttc_upper
+                47: ttc_lower
         """)
     parser.add_argument("--term_size","-tn",type=int,
         help="""
@@ -425,6 +500,10 @@ def main():
                     PredictorName.sized_coherence_binary,
                     PredictorName.sized_coherence_average,
                     PredictorName.sized_coherence_max,
+                    PredictorName.qtc_average,
+                    PredictorName.qtc_median,
+                    PredictorName.qtc_upper,
+                    PredictorName.qtc_lower,
                   ]
 
     args.predictor_choice = PredictorName(args.predictor_choice)
@@ -512,7 +591,13 @@ def main():
                 tuning_info_strcut[para_string][ year.name[1:] ] = score
                 if args.debug:
                     print "\tfor n %d, the score is %.3f" %(tune_documents,score)
-        elif(args.predictor_choice == PredictorName.clarity or args.predictor_choice == PredictorName.qf):
+        elif(args.predictor_choice == PredictorName.clarity 
+                or args.predictor_choice == PredictorName.ttc_average
+                or args.predictor_choice == PredictorName.ttc_median
+                or args.predictor_choice == PredictorName.ttc_upper
+                or args.predictor_choice == PredictorName.ttc_lower
+                or args.predictor_choice == PredictorName.qf):
+                
             for tune_documents in [5,10,15,20]:
                 for tune_terms in [5,10,15,20]:
                     para_string = "document=%d,term=%d" %(tune_documents,tune_terms)

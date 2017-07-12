@@ -615,12 +615,108 @@ class LocalTermRelatedness(PredictorUsingBoth):
         return daily_value 
 
 class LocalTermRelatednessAverage(LocalTermRelatedness):
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=50):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
         super(LocalTermRelatednessAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"average",tune_documents=tune_documents)
 
 class LocalTermRelatednessMax(LocalTermRelatedness):
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=50):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
         super(LocalTermRelatednessMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"max",tune_documents=tune_documents)
+
+
+class QueryTermCoverage(LocalTermRelatedness):
+    pass
+
+class QueryTermCoverageAverage(QueryTermCoverage):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+        super(QueryTermCoverageAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"average",tune_documents=tune_documents)
+
+class QueryTermCoverageMax(QueryTermCoverage):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+        super(QueryTermCoverageMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"max",tune_documents=tune_documents)
+
+class QueryTermCoverageMin(QueryTermCoverage):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+        super(QueryTermCoverageMin,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"min",tune_documents=tune_documents)
+
+class QueryTermCoverageMedian(QueryTermCoverage):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+        super(QueryTermCoverageMedian,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"median",tune_documents=tune_documents)
+
+class QueryTermCoverageUpper(QueryTermCoverage):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+        super(QueryTermCoverageUpper,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"upper",tune_documents=tune_documents)
+
+class QueryTermCoverageLower(QueryTermCoverage):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+        super(QueryTermCoverageLower,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"lower",tune_documents=tune_documents)
+
+
+class TopTermCoverage(PredictorUsingBoth):
+    """
+    compute top term coverage 
+    """
+
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,cu,tune_documents=10,tune_terms=10):
+        super(TopTermCoverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir)
+        self._cu = cu
+        self._tune_documents = tune_documents
+        self._tune_terms = tune_terms
+
+    def _compute_daily_value(self,day_index_dir,day_query_file,
+                             day_result_file):
+        daily_value = {}
+
+        run_command = "%s -index=%s -query=%s -result=%s -cu=%s -tune_documents=%d -tune_terms=%d" %(self._bin_file,
+                                                            day_index_dir,
+                                                            day_query_file,
+                                                            day_result_file,
+                                                            self._cu,
+                                                            self._tune_documents,
+                                                            self._tune_terms)
+
+   
+
+        # print "command being run:\n%s" %(run_command)
+        p = subprocess.Popen(run_command,stdout=subprocess.PIPE,shell=True)
+        
+        while True:
+            line = p.stdout.readline()
+            if line != '':
+                line = line.rstrip()
+                parts = line.split()
+                qid = parts[0]
+                if qid not in self._judged_qids:
+                    continue
+                daily_value[qid] = float(parts[1])
+                
+
+            else:
+                break 
+        return daily_value 
+
+class TopTermCoverageAverage(TopTermCoverage):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10,tune_terms=10):
+        super(TopTermCoverageAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"average",tune_documents=tune_documents,tune_terms=10)
+
+class TopTermCoverageMax(TopTermCoverage):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10,tune_terms=10):
+        super(TopTermCoverageMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"max",tune_documents=tune_documents,tune_terms=10)
+
+class TopTermCoverageMin(TopTermCoverage):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10,tune_terms=10):
+        super(TopTermCoverageMin,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"min",tune_documents=tune_documents,tune_terms=10)
+
+class TopTermCoverageMedian(TopTermCoverage):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10,tune_terms=10):
+        super(TopTermCoverageMedian,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"median",tune_documents=tune_documents,tune_terms=10)
+
+class TopTermCoverageUpper(TopTermCoverage):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10,tune_terms=10):
+        super(TopTermCoverageUpper,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"upper",tune_documents=tune_documents,tune_terms=10)
+
+class TopTermCoverageLower(TopTermCoverage):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10,tune_terms=10):
+        super(TopTermCoverageLower,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"lower",tune_documents=tune_documents,tune_terms=10)
 
 
 

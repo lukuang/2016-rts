@@ -69,6 +69,14 @@ class PredictorName(IntEnum):
     sized_coherence_binary = 37
     sized_coherence_average = 38
     sized_coherence_max = 39
+    qtc_average = 40
+    qtc_median = 41
+    qtc_upper = 42
+    qtc_lower = 43
+    ttc_average = 44
+    ttc_median = 45
+    ttc_upper = 46
+    ttc_lower = 47
 
 @unique
 class Expansion(IntEnum):
@@ -120,6 +128,14 @@ BIN_FILES = {
     PredictorName.sized_coherence_binary:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_sized_lqc",
     PredictorName.sized_coherence_max:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_sized_lqc",
     PredictorName.sized_coherence_average:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_sized_lqc",
+    PredictorName.qtc_average:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_query_term_coverage",
+    PredictorName.qtc_median:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_query_term_coverage",
+    PredictorName.qtc_lower:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_query_term_coverage",
+    PredictorName.qtc_upper:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_query_term_coverage",
+    PredictorName.ttc_average:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_top_term_coverage",
+    PredictorName.ttc_median:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_top_term_coverage",
+    PredictorName.ttc_lower:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_top_term_coverage",
+    PredictorName.ttc_upper:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_top_term_coverage",
 
 }
 
@@ -258,6 +274,15 @@ PREDICTOR_CLASS = {
     PredictorName.sized_coherence_binary: PredictorClass.post,
     PredictorName.sized_coherence_average: PredictorClass.post,
     PredictorName.sized_coherence_max: PredictorClass.post,
+    PredictorName.qtc_average: PredictorClass.post,
+    PredictorName.qtc_median: PredictorClass.post,
+    PredictorName.qtc_upper: PredictorClass.post,
+    PredictorName.qtc_lower: PredictorClass.post,
+    PredictorName.ttc_average: PredictorClass.post,
+    PredictorName.ttc_median: PredictorClass.post,
+    PredictorName.ttc_upper: PredictorClass.post,
+    PredictorName.ttc_lower: PredictorClass.post,
+
 
 }
 
@@ -484,6 +509,48 @@ def generate_predictor_values(predictor_choice,qrel,
         else:
             predictor = LocalSizedCoherenceUnweighetedMax(qrel,index_dir,query_dir,bin_file,result_dir)
 
+    elif predictor_choice == PredictorName.qtc_average:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using qtc average!")
+        else:
+            predictor = QueryTermCoverageAverage(qrel,index_dir,query_dir,bin_file,result_dir)
+    elif predictor_choice == PredictorName.qtc_median:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using qtc median!")
+        else:
+            predictor = QueryTermCoverageMedian(qrel,index_dir,query_dir,bin_file,result_dir)
+    elif predictor_choice == PredictorName.qtc_upper:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using qtc upper!")
+        else:
+            predictor = QueryTermCoverageUpper(qrel,index_dir,query_dir,bin_file,result_dir)
+    elif predictor_choice == PredictorName.qtc_lower:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using qtc lower!")
+        else:
+            predictor = QueryTermCoverageLower(qrel,index_dir,query_dir,bin_file,result_dir)
+
+    elif predictor_choice == PredictorName.ttc_average:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using ttc average!")
+        else:
+            predictor = TopTermCoverageAverage(qrel,index_dir,query_dir,bin_file,result_dir)
+    elif predictor_choice == PredictorName.ttc_median:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using ttc median!")
+        else:
+            predictor = TopTermCoverageMedian(qrel,index_dir,query_dir,bin_file,result_dir)
+    elif predictor_choice == PredictorName.ttc_upper:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using ttc upper!")
+        else:
+            predictor = TopTermCoverageUpper(qrel,index_dir,query_dir,bin_file,result_dir)
+    elif predictor_choice == PredictorName.ttc_lower:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using ttc lower!")
+        else:
+            predictor = TopTermCoverageLower(qrel,index_dir,query_dir,bin_file,result_dir)
+
 
     # predictor.show()
     with open(data_storage_file,"w") as f:
@@ -594,6 +661,14 @@ def main():
                 37: sized_coherence_binary 
                 38: sized_coherence_average
                 39: sized_coherence_max
+                40: qtc_average
+                41: qtc_median
+                42: qtc_upper
+                43: qtc_lower
+                44: ttc_average
+                45: ttc_median
+                46: ttc_upper
+                47: ttc_lower
         """)
     parser.add_argument("--term_size","-tn",type=int,
         help="""
