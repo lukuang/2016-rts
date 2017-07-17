@@ -20,7 +20,7 @@ from my_code.process_tweet  import CrawledTweet
 from my_code.crawler import TweetListener
 
 
-def run_at_even_hour(auth,listener):
+def run_at_even_hour(auth_file,dest_dir):
   """
   run at the next even hour
   to handle the starting time of running 
@@ -32,11 +32,22 @@ def run_at_even_hour(auth,listener):
   secs = delta_t.seconds+1
   print "now is %s" %(datetime.utcnow())
   print "need to wait %f secs" %(secs)
-  t = Timer(secs, run_crawler,[auth,listener])
+  t = Timer(secs, run_crawler,[auth_file,dest_dir])
   t.start()
 
 
-def run_crawler(auth,listener):
+def run_crawler(auth_file,dest_dir):
+  log_dir = os.path.join(dest_dir,"log")
+  text_dir = os.path.join(dest_dir,"text")
+  listener = TweetListener(log_dir,text_dir)
+  auth_info = json.load(open(auth_file))
+  consumer_key = auth_info["consumer_key"]
+  consumer_secret = auth_info["consumer_secret"]
+  access_token = auth_info["access_token"]
+  access_token_secret = auth_info["access_token_secret"]
+
+  auth = OAuthHandler(consumer_key,consumer_secret)
+  auth.set_access_token(access_token,access_token_secret)
   stream = Stream(auth,listener)
   print "run at %s" %(datetime.utcnow())
   while True:
@@ -52,20 +63,20 @@ def main():
   parser.add_argument("dest_dir")
   args=parser.parse_args()
 
-  log_dir = os.path.join(args.dest_dir,"log")
-  text_dir = os.path.join(args.dest_dir,"text")
-  listener = TweetListener(log_dir,text_dir)
-  auth_info = json.load(open(args.auth_file))
-  consumer_key = auth_info["consumer_key"]
-  consumer_secret = auth_info["consumer_secret"]
-  access_token = auth_info["access_token"]
-  access_token_secret = auth_info["access_token_secret"]
+  # log_dir = os.path.join(args.dest_dir,"log")
+  # text_dir = os.path.join(args.dest_dir,"text")
+  # listener = TweetListener(log_dir,text_dir)
+  # auth_info = json.load(open(args.auth_file))
+  # consumer_key = auth_info["consumer_key"]
+  # consumer_secret = auth_info["consumer_secret"]
+  # access_token = auth_info["access_token"]
+  # access_token_secret = auth_info["access_token_secret"]
 
 
-  auth = OAuthHandler(consumer_key,consumer_secret)
-  auth.set_access_token(access_token,access_token_secret)
+  # auth = OAuthHandler(consumer_key,consumer_secret)
+  # auth.set_access_token(access_token,access_token_secret)
 
-  run_at_even_hour(auth,listener)
+  run_at_even_hour(args.auth_file,args.dest_dir)
   
 
 if __name__=="__main__":
