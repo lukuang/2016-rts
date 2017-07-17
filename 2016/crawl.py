@@ -10,6 +10,9 @@ import argparse
 import codecs
 from tweepy import OAuthHandler
 from tweepy import Stream
+from datetime import datetime
+from threading import Timer
+
 sys.path.append("/infolab/node4/lukuang/2015-RTS/src")
 
 
@@ -17,6 +20,31 @@ from my_code.process_tweet  import CrawledTweet
 from my_code.crawler import TweetListener
 
 
+def run_at_even_hour(auth,listener):
+  """
+  run at the next even hour
+  to handle the starting time of running 
+  code is not at even hour
+  """ 
+  x=datetime.today()
+  y=x.replace(day=x.day+1, hour=x.hour+1, minute=0, second=0, microsecond=0)
+  delta_t=y-x
+  secs = delta_t.seconds+1
+  print "now is %s" %(datetime.utcnow())
+  print "need to wait %f secs" %(secs)
+  t = Timer(secs, run_crawler,[auth,listener])
+  t.start()
+
+
+def run_crawler(auth,listener):
+  stream = Stream(auth,listener)
+  print "run at %s" %(datetime.utcnow())
+  while True:
+    try:
+      stream.sample()
+    except Exception as ex:
+      print str(ex)
+      pass
 
 def main():
   parser = argparse.ArgumentParser(description=__doc__)
@@ -37,13 +65,8 @@ def main():
   auth = OAuthHandler(consumer_key,consumer_secret)
   auth.set_access_token(access_token,access_token_secret)
 
-  stream = Stream(auth,listener)
-  while True:
-    try:
-      stream.sample()
-    except Exception as ex:
-      print str(ex)
-      pass
+  run_at_even_hour(auth,listener)
+  
 
 if __name__=="__main__":
     main()
