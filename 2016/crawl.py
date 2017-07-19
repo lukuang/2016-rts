@@ -27,7 +27,7 @@ def run_at_even_hour(auth_file,dest_dir):
   code is not at even hour
   """ 
   x=datetime.today()
-  y=x.replace(day=x.day+1, hour=x.hour+1, minute=0, second=0, microsecond=0)
+  y=x.replace(day=x.day+1, hour=x.hour+1, minute=1, second=0, microsecond=0)
   delta_t=y-x
   secs = delta_t.seconds+1
   print "now is %s" %(datetime.utcnow())
