@@ -17,7 +17,7 @@ def now():
 
 class BrokerCommunicator(object):
     def __init__(self,basic_file,run_name_file,topic_file,debug=False):
-        self.hostname,self.port,self.groupid = \
+        self.hostname,self.groupid = \
             self.process_basic_file(basic_file)
 
         self.run_name_file,self.topic_file,self.debug = \
@@ -25,7 +25,7 @@ class BrokerCommunicator(object):
         
         self.runid_clientid = self.process_run_name_file(run_name_file)
         self._topics = self.process_topic_file(topic_file)
-        self.base_end_point = "http://%s:%s" %(self.hostname,self.port)
+        self.base_end_point = "%s" %(self.hostname)
         self.register_end_point = "%s/register/system" %(self.base_end_point)
         self._clientids = {}
         self._poll_topic_end_point = ""
@@ -48,7 +48,7 @@ class BrokerCommunicator(object):
         data= self.load_json(basic_file) 
         if data is None:
             raise RuntimeError("Need to have a valid basic file %s" %basic_file)
-        return data["hostname"],data["port"],data["groupid"]
+        return data["hostname"],data["groupid"]
 
 
     
@@ -158,7 +158,7 @@ def main():
     parser.add_argument("topic_file")
     parser.add_argument("run_name")
     parser.add_argument("--tweet_id","-tw",default="738418531520352258")
-    parser.add_argument("--topic_id","-to",default="MB226")
+    parser.add_argument("--topic_id","-to",default="RTS187")
     parser.add_argument("--debug","-de",action='store_true')
     args=parser.parse_args()
 
@@ -166,7 +166,7 @@ def main():
                         args.topic_file,args.debug)
     communicator.register_run(args.run_name)
     communicator.poll_topics()
-    communicator.post_tweet(args.topic_id,args.tweet_id)
+    communicator.post_tweet(args.run_name,args.topic_id,args.tweet_id)
 
 if __name__=="__main__":
     main()
