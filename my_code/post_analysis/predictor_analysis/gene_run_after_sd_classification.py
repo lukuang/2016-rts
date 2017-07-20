@@ -78,7 +78,7 @@ class EvalData(object):
     
 
 
-def read_results(result_dir,eval_data):
+def read_results(result_dir,eval_data,treshold):
     results = {}
     all_days = set()
     for qid in eval_data._days:
@@ -98,7 +98,7 @@ def read_results(result_dir,eval_data):
                 if qid in eval_data._judged_qids:
                     if qid not in results[day]:
                         results[day][qid] = []
-                    if (len(results[day][qid])<10):
+                    if (len(results[day][qid])<treshold):
                         results[day][qid].append(line)
     return results
 
@@ -201,6 +201,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--use_result","-ur",action="store_true")
     parser.add_argument("--gene_original","-gn",action="store_true")
+    parser.add_argument("--treshold","-t",type=int,default=10)
     parser.add_argument("--top_dest_dir","-td",default="/infolab/headnode2/lukuang/2016-rts/code/my_code/post_analysis/predictor_analysis/sday_prediction_data")
     parser.add_argument("--result_expansion","-re",choices=list(map(int, Expansion)),default=0,type=int,
         help="""
@@ -227,13 +228,20 @@ def main():
     
 
     results = {}
-    result_dir_2015 = R_DIR[Year.y2015][args.result_expansion][args.retrieval_method]
+    if args.result_expansion != Expansion.raw:
+        result_dir_2015 = R_DIR[Year.y2015][args.result_expansion]
+    else:
+        result_dir_2015 = R_DIR[Year.y2015][args.result_expansion][args.retrieval_method]
+    # print result_dir_2015
     eval_data_2015 = EvalData(Year.y2015)
-    results[Year.y2015] = read_results(result_dir_2015,eval_data_2015)
+    results[Year.y2015] = read_results(result_dir_2015,eval_data_2015,args.treshold)
 
-    result_dir_2016 = R_DIR[Year.y2016][args.result_expansion][args.retrieval_method]
+    if args.result_expansion != Expansion.raw:
+        result_dir_2016 = R_DIR[Year.y2016][args.result_expansion]
+    else:
+        result_dir_2016 = R_DIR[Year.y2016][args.result_expansion][args.retrieval_method]
     eval_data_2016 = EvalData(Year.y2016)
-    results[Year.y2016] = read_results(result_dir_2016,eval_data_2016)
+    results[Year.y2016] = read_results(result_dir_2016,eval_data_2016,args.treshold)
 
     if not args.gene_original:
         print args.feature_descrption_list
