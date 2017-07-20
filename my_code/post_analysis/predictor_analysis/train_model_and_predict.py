@@ -159,7 +159,8 @@ def main():
     f1_average = (f1_1516+f1_11)/2.0
     f1_macro_average = (f1_1516_macro+f1_11_macro)/2.0
 
-    print "for 2011: pos:%f, avg:%f" %(f1_1516,f1_1516_macro)
+    print "for 2011: pos:%f, avg:%f" %(f1_11,f1_11_macro)
+    print "for 2015: pos:%f, avg:%f" %(f1_1516,f1_1516_macro)
 
     print "Positive f1: %f" %(f1_average)
     print "Average f1: %f" %(f1_macro_average)
