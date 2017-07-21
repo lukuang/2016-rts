@@ -75,6 +75,12 @@ class PredictorUsingOnlyIndri(object):
     def _compute_daily_value(self,day_index_dir,day_query_file):
         pass
 
+    def get_day_value(self,day):
+        day_index_dir = os.path.join(self._top_index_dir,day)
+        day_query_file = os.path.join(self._query_dir,day)
+        day_value = self._compute_daily_value(day_index_dir,day_query_file)       
+        return day_value   
+
     @property
     def values(self):
         if not self._values:
@@ -111,6 +117,13 @@ class PredictorUsingLink(object):
     def _compute_daily_value(self,day_index_dir,day_query_file,day_link_file):
         pass
 
+    def get_day_value(self,day):
+        day_index_dir = os.path.join(self._top_index_dir,day)
+        day_query_file = os.path.join(self._query_dir,day)
+        day_link_file = os.path.join(self._link_dir,day)
+        day_value = self._compute_daily_value(day_index_dir,day_query_file,day_link_file)       
+        return day_value
+
     @property
     def values(self):
         if not self._values:
@@ -142,6 +155,11 @@ class PredictorUsingOnlyResult(object):
             day_result_file = os.path.join(self._result_dir,day)
             daily_value = self._compute_daily_value(day_result_file)       
             self._values[day] = daily_value
+
+    def get_day_value(self,day):
+        day_result_file = os.path.join(self._result_dir,day)
+        day_value = self._compute_daily_value(day_result_file)       
+        return day_value
 
     @abstractmethod
     def _compute_daily_value(day_result_file):
@@ -181,6 +199,14 @@ class PredictorUsingBoth(object):
                                     day_result_file)       
             self._values[day] = daily_value
 
+    def get_day_value(self,day):
+        day_index_dir = os.path.join(self._top_index_dir,day)
+        day_query_file = os.path.join(self._query_dir,day)
+        day_result_file = os.path.join(self._result_dir,day)
+        day_value = self._compute_daily_value(
+                                day_index_dir,day_query_file,
+                                day_result_file)  
+        return day_value
 
 
     @abstractmethod
