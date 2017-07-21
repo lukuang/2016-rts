@@ -287,11 +287,11 @@ PREDICTOR_CLASS = {
 }
 
 
-
-def generate_predictor_values(predictor_choice,qrel,
-                              index_dir,query_dir,result_dir,
-                              bin_file,link_dir,data_storage_file,
-                              term_size,retrieval_method):
+def gene_predictor(predictor_choice,qrel,
+                   index_dir,query_dir,result_dir,
+                   bin_file,link_dir,data_storage_file,
+                   term_size,retrieval_method):
+    
     if predictor_choice == PredictorName.clarity:
         if retrieval_method is None:
             raise RuntimeError("Need to specify retrieval method when using clarity!")
@@ -552,6 +552,14 @@ def generate_predictor_values(predictor_choice,qrel,
             predictor = TopTermCoverageLower(qrel,index_dir,query_dir,bin_file,result_dir)
 
 
+    
+    return predictor
+
+def generate_predictor_values(predictor_choice,qrel,
+                              index_dir,query_dir,result_dir,
+                              bin_file,link_dir,data_storage_file,
+                              term_size,retrieval_method):
+    
     # predictor.show()
     with open(data_storage_file,"w") as f:
         f.write(json.dumps(predictor.values))
