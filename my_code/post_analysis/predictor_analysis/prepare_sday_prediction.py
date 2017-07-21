@@ -251,7 +251,8 @@ class DataPreparor(object):
 
     def _save_data(self):
         self._create_dirs()
-        print "Store data to:\n%s" %(self._training_data_dir)
+        # print "Dest dir is %s" %(self._dest_dir)
+        # print "Store data to:\n%s" %(self._training_data_dir)
         self._save_vectors(self._training_data["feature_vector"],
                            self._training_data["label_vector"],
                            self._training_data_dir)
@@ -280,6 +281,8 @@ class DataPreparor(object):
         dest_dir = os.path.join(self._top_dest_dir,self._retrieval_method.name,dest_dir_name)
         
         try_mkdir(dest_dir)
+
+        self._dest_dir = dest_dir
 
         training_dir = os.path.join(dest_dir,"training")
         try_mkdir(training_dir)
