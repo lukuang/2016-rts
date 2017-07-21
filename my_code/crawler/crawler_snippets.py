@@ -383,7 +383,7 @@ class snippets_crawler():
 
             self.google_crawl()
             self.yahoo_crawl()
-            self.bing_crawl()
+            #self.bing_crawl()
 
 
 def load_queries(query_file,year):
