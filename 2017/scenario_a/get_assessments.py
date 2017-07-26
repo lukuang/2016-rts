@@ -59,7 +59,7 @@ def main():
         qids.append( t["topid"] )
 
     run_info = json.load(open(args.run_name_file))
-    clientid = run_info.values()[0]
+
 
     print "wait till 00:00 today first!"
     total_secs = need_wait()    
@@ -74,18 +74,20 @@ def main():
         print "date is %s" %date
 
         day_assessments = []
-        dest_file = os.path.join(args.assessment_dir,date)
-        for qid in qids:
-            assessment_request_url = "%s/assessments/%s/%s" %(hostname,qid,clientid)
-            run_command = "curl -X POST -H 'Content-Type: application/json' %s " %(assessment_request_url)
+        for name in run_info:
+            clientid = run_info[name]
+            dest_file = os.path.join(args.assessment_dir,"%s_%s" %(date,name) )
+            for qid in qids:
+                assessment_request_url = "%s/assessments/%s/%s" %(hostname,qid,clientid)
+                run_command = "curl -X POST -H 'Content-Type: application/json' %s " %(assessment_request_url)
 
-            p = subprocess.Popen(run_command,stdout=subprocess.PIPE,shell=True)
-            content = p.communicate()[0]
-            q_assessment = json.loads(content)
-            day_assessments.append(q_assessment)
+                p = subprocess.Popen(run_command,stdout=subprocess.PIPE,shell=True)
+                content = p.communicate()[0]
+                q_assessment = json.loads(content)
+                day_assessments.append(q_assessment)
 
-        with open(dest_file,"w") as of:
-            of.write(json.dumps(day_assessments,indent=4))
+            with open(dest_file,"w") as of:
+                of.write(json.dumps(day_assessments,indent=4))
 
         end = now()
 
