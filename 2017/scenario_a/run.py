@@ -99,9 +99,9 @@ class Detector(object):
 class Run(object):
     """run class
     """
-    def __init__(self,run_name,index_dir,posted_result_dir):
-        self._run_name, self._index_dir, self._posted_result_dir=\
-            run_name, index_dir, posted_result_dir
+    def __init__(self,run_name,index_dir,posted_result_dir,limit):
+        self._run_name, self._index_dir, self._posted_result_dir,self._limit=\
+            run_name, index_dir, posted_result_dir, limit
         self._posted_result_file = os.path.join(self._posted_result_dir,self._run_name)
         self._results = {}
         self._posted_results = {}
@@ -131,7 +131,7 @@ class Run(object):
                         self._results[date][qid].append(tid)
                         #stop posting tweets for a query if 1 tweets already
                         #posted
-                        if len(self._results[date][qid]) == 1:
+                        if len(self._results[date][qid]) == self._limit:
                             break
 
 
@@ -498,9 +498,9 @@ def main():
 
 
     runs = {
-        "UDInfoBL":Run("UDInfoBL",args.index_dir,args.posted_result_dir ),
-        "UDInfoSDWR":Run("UDInfoSDWR",args.index_dir,args.posted_result_dir),
-        "UDInfoEXP":Run("UDInfoEXP",args.index_dir,args.posted_result_dir)
+        "UDInfoBL":Run("UDInfoBL",args.index_dir,args.posted_result_dir,1),
+        "UDInfoSDWR":Run("UDInfoSDWR",args.index_dir,args.posted_result_dir,1),
+        "UDInfoEXP":Run("UDInfoEXP",args.index_dir,args.posted_result_dir,10)
     }
 
     for name in runs:
