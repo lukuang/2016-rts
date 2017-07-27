@@ -258,8 +258,9 @@ def read_query_file(query_file,qrels):
         qid = single_query["topid"]
         if qid not in qrels:
             continue
-        text = re.sub("[^\w ]+"," ",single_query["title"])
-        queries[qid] = text
+        # text = re.sub("[^\w ]+"," ",single_query["title"])
+        # queries[qid] = text
+        queries[qid] = single_query["title"]
     return queries
 
 
