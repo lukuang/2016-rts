@@ -10,11 +10,18 @@ import re
 import argparse
 import codecs
 import cPickle
+import subprocess
 
 from plot_silentDay_predictor import PredictorName,Expansion,R_DIR,RetrievalMethod
 
 sys.path.append("/infolab/node4/lukuang/2015-RTS/src")
 from my_code.distribution.data import Qrel,T2Day,SemaCluster,Days,Year
+
+
+FULL_IND_DIR = {
+    Year.y2015:"/infolab/node4/lukuang/2015-RTS/2015-data/collection/simulation/index/incremental/29",
+    Year.y2016:"/infolab/headnode2/lukuang/2016-rts/data/incremental_index"
+}
 
 def convert_feature_string(feature_string):
     detail_finder_with_tn = re.search("^(\w+):(\w+):(\d+)$",feature_string)
@@ -25,6 +32,89 @@ def convert_feature_string(feature_string):
     feature_string = feature_string[0].upper()+feature_string[1:]
     
     return feature_string
+
+
+def get_text(index_dir,tid):
+    run_command = "dumpindex %s dt `dumpindex %s di docno %s`"\
+            %(index_dir,index_dir,tid)
+
+    p = subprocess.Popen(run_command,stdout=subprocess.PIPE,shell=True)
+    content = p.communicate()[0]
+    m = re.search("<TEXT>(.+?)</TEXT>",content,re.DOTALL)
+    if m is not None:
+        return m.group(1)
+    else:
+        return None
+
+class PreviousResults(object):
+    """class used to store previously post
+    tweets for each run and query, as well as
+    check novalty of the tweet
+    """
+
+    def __init__(self,sim_treshold,debug=False):
+        self._sim_treshold, self._debug = sim_treshold, debug
+        self._previous_results = {}
+        
+
+    
+
+
+    def _store_tweet(self,tweet_text,run_name,qid):
+        if self._debug:
+            print "store new tweet %s\nfor query %s run %s"\
+                %(tweet_text,qid,run_name)
+        if run_name not in self._previous_results:
+            self._previous_results[run_name] = {}
+        
+        if qid not in self._previous_results[run_name]:
+            self._previous_results[run_name][qid] = []
+        
+        self._previous_results[run_name][qid].append(tweet_text)
+
+
+    def _term_diff(self,tweet_text,t_text):
+        words1 = re.findall("\w+",tweet_text)
+        words2 = re.findall("\w+",t_text)
+        common = list(set(words1).intersection(words2))
+        return len(common)*1.0/max(len(words1),len(words2))
+
+
+    def _check_tweet_redundant(self,tweet_text,t_text):
+        if self._debug:
+            print "check diff between %s\nand %s" %(tweet_text,t_text)
+        term_diff = self._term_diff(tweet_text,t_text)
+        if self._debug:
+            print "the metric is %f" %(term_diff)
+        if term_diff >= self._sim_treshold:
+            return True
+        else:
+            return False
+
+
+
+    def is_redundant(self,tweet_text,run_name,qid):
+        
+        if run_name not in self._previous_results:
+            self._previous_results[run_name] = {}
+            self._previous_results[run_name][qid] = []
+            
+        elif qid not in self._previous_results[run_name]:
+            self._previous_results[run_name][qid] = []
+
+        
+        else:
+
+            for t_text in self._previous_results[run_name][qid]:
+                if self._check_tweet_redundant(tweet_text,t_text):
+                    if self._debug:
+                        print "%s\n is redundant to\n%s" %(tweet_text,t_text)
+                        print "-"*20
+                    return True
+
+        self._store_tweet(tweet_text,run_name,qid)
+        return False
+
 
 class EvalData(object):
     """
@@ -127,7 +217,8 @@ class Classifier(object):
             dest_dir_name += "_W_result"
         else:
             dest_dir_name += "_Wo_result"
-        dest_dir_name += "_"+self._result_expansion.name.title()
+        # dest_dir_name += "_"+self._result_expansion.name.title()
+        dest_dir_name += "_Raw"
         dest_dir = os.path.join(self._top_dest_dir,self._retrieval_method.name,dest_dir_name)
         
         
@@ -201,7 +292,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--use_result","-ur",action="store_true")
     parser.add_argument("--gene_original","-gn",action="store_true")
+    parser.add_argument("--debug","-de",action="store_true")
     parser.add_argument("--treshold","-t",type=int,default=10)
+    parser.add_argument("--sim_treshold","-st",type=float,default=0.5)
     parser.add_argument("--top_dest_dir","-td",default="/infolab/headnode2/lukuang/2016-rts/code/my_code/post_analysis/predictor_analysis/sday_prediction_data")
     parser.add_argument("--result_expansion","-re",choices=list(map(int, Expansion)),default=0,type=int,
         help="""
@@ -225,7 +318,7 @@ def main():
     args.result_expansion = Expansion(args.result_expansion)
     args.retrieval_method = RetrievalMethod(args.retrieval_method)
 
-    
+    print "The sim threshold is %f" %(args.sim_treshold)    
 
     results = {}
     if args.result_expansion != Expansion.raw:
@@ -252,9 +345,16 @@ def main():
         classifier.gene_classification_result()
     # print results
     for year in results:
+        # if args.debug:
+        print "for year %s" %(year.name)
+        year_index_dir = FULL_IND_DIR[year]
+        previous_results = PreviousResults(args.sim_treshold,args.debug)
         new_result_file = os.path.join(args.new_result_dir,year.name)
         with open(new_result_file,"w") as of:
-            for day in sorted(results[year].keys()):
+            for day in sorted(map(int,results[year].keys())):
+                # if args.debug:
+                day = str(day)
+                print "\tprocess day %s" %(day)
                 for qid in results[year][day]:
                     is_silent = True
                     if args.gene_original:
@@ -269,7 +369,11 @@ def main():
                             day_string = "201507%s" %(day.zfill(2))
 
                         for line in results[year][day][qid]:
-                            of.write("%s %s\n" %(day_string,line))
+                            parts = line.strip().split()
+                            tid = parts[2]
+                            t_text = get_text(year_index_dir,tid)
+                            if not previous_results.is_redundant(t_text,year.name,qid):
+                                of.write("%s %s\n" %(day_string,line))
 
 
 
