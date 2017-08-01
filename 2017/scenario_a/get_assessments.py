@@ -21,12 +21,14 @@ def now():
 
 def need_wait():
     # compute how many secs need to wait before next run for next
-    # da. Run it everyday 00:00
+    # da. Run it everyday 22:00
     time_struct =  time.gmtime() 
-    if time_struct.tm_hour == 0:
+    if time_struct.tm_hour == 22:
         wait_hours = 23
+    elif time_struct.tm_hour == 23:
+        wait_hours = 22
     else:
-        wait_hours = 23 - time_struct.tm_hour
+        wait_hours = 21 - time_struct.tm_hour
     
     wait_minutes = 60 - time_struct.tm_min
     
@@ -61,7 +63,7 @@ def main():
     run_info = json.load(open(args.run_name_file))
 
 
-    print "wait till 00:00 today first!"
+    print "wait till 22:00 today first!"
     total_secs = need_wait()    
     time.sleep(total_secs)
 
