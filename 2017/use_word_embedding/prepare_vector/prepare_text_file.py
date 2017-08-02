@@ -10,6 +10,7 @@ import argparse
 import codecs
 from datetime import date, timedelta
 import langid
+from myUtility.misc import split_list
 # sys.path.append("/infolab/node4/lukuang/2015-RTS/src")
 # from my_code.distribution.data import Year
 
@@ -49,7 +50,7 @@ def get_file_list(src_dir):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    # parser.add_argument("begin_month",type=int)
+    parser.add_argument("-i","--id",type=int)
     # parser.add_argument("begin_date",type=int)
     # parser.add_argument("end_month",type=int)
     # parser.add_argument("end_date",type=int)
@@ -74,6 +75,12 @@ def main():
     file_list = get_file_list(args.src_dir)
 
     text_string_for_all = ""
+
+    if args.id:
+        file_list = split_list(sorted(file_list),5,args.id)
+        args.dest_file = args.dest_file+".%d" %( int(args.id) )
+        print "There are %d files in the sublist" %(len(file_list))
+        print "write to:%s" %(args.dest_file)
 
     with codecs.open(args.dest_file,"w",'utf-8') as of:
         for single_file in file_list:
