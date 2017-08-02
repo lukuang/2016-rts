@@ -89,7 +89,11 @@ def main():
                 for line in f:
                     line = line.strip()
                     if line:
-                        tweet = json.loads(line)
+                        try:
+                            tweet = json.loads(line)
+                        except ValueError:
+                            print "Mal-formatted tweet:"
+                            print line
                         if "delete" not in tweet:
                             try:
                                 text = re.sub("\n"," ",tweet["text"])
