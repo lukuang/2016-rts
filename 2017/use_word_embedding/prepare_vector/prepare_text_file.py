@@ -9,6 +9,7 @@ import re
 import argparse
 import codecs
 from datetime import date, timedelta
+import langid
 # sys.path.append("/infolab/node4/lukuang/2015-RTS/src")
 # from my_code.distribution.data import Year
 
@@ -74,20 +75,21 @@ def main():
 
     text_string_for_all = ""
 
-    in_text = False
-    for single_file in file_list:
-        with open(single_file) as f:
-            print "Process file: %s" %(single_file)
-            for line in f:
-                line = line.strip()
-                if line:
-                    tweet = json.loads(line)
-                    text = re.sub("\n"," ",tweet["text"])
-                    text_string_for_all += " " + text
-                    
+    with codecs.open(args.dest_file,"w",'utf-8') as of:
+        for single_file in file_list:
+            with open(single_file) as f:
+                print "Process file: %s" %(single_file)
+                for line in f:
+                    line = line.strip()
+                    if line:
+                        tweet = json.loads(line)
+                        if "delete" not in tweet:
+                            text = re.sub("\n"," ",tweet["text"])
+                            if langid.classify(text)[0] == 'en':
+                                of.write(" " + text.lower())
+            # break
+                        
 
-    with open(args.dest_file,"w") as of:
-        of.write(text_string_for_all)
 
 
 
