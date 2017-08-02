@@ -15,6 +15,7 @@ GET_LINK_TERM_RELATEDNESS = get_link_term_relatedness
 GET_COLLECTION_F2EXP_SCORE = get_collection_f2exp_score
 GET_COLLECTION_SCORE = get_collection_score
 GET_DOCUMENT_SCORE = get_document_scores
+SIZED_LQC=get_sized_lqc
 GET_WIG = get_wig
 GET_PWIG = get_pwig
 GET_CANDIDATE_SIZE=get_candidate_size
@@ -33,7 +34,7 @@ LIBPATH=-L$(libdir)
 CXXFLAGS=-DPACKAGE_NAME=\"Indri\" -DPACKAGE_TARNAME=\"indri\" -DPACKAGE_VERSION=\"5.6\" -DPACKAGE_STRING=\"Indri\ 5.6\" -DPACKAGE_BUGREPORT=\"project@lemurproject.org\" -DYYTEXT_POINTER=1 -DINDRI_STANDALONE=1 -DHAVE_LIBM=1 -DHAVE_LIBPTHREAD=1 -DHAVE_LIBZ=1 -DHAVE_LIBIBERTY=1 -DHAVE_NAMESPACES= -DISNAN_IN_NAMESPACE_STD= -DHAVE_FSEEKO=1 -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_EXT_ATOMICITY_H=1 -DP_NEEDS_GNU_CXX_NAMESPACE=1 -DHAVE_MKSTEMP=1 -DHAVE_MKSTEMPS=1 -DNDEBUG=1 -std=c++0x  -g -O3 $(INCPATH)
 CPPLDFLAGS  =  -lindri -liberty -lz -lpthread -lm 
 
-all: feedback_query get_candidate_size scq var collection_f2exp uw_local_coherence w_local_coherence query_length avgidf clarity term_relatedness mst_term_relatedness link_term_relatedness wig pwig local_term_relatedness show_queries
+all: feedback_query get_candidate_size scq var collection_f2exp uw_local_coherence w_local_coherence query_length avgidf clarity term_relatedness mst_term_relatedness link_term_relatedness wig pwig local_term_relatedness show_queries sized_lqc
 
 get_candidate_size:
 	$(CXX) $(CXXFLAGS) $(GET_CANDIDATE_SIZE).cpp -o $(GET_CANDIDATE_SIZE) $(OBJ) $(LIBPATH) $(CPPLDFLAGS)
@@ -60,6 +61,8 @@ wig:
 pwig:
 	$(CXX) $(CXXFLAGS) $(GET_PWIG).cpp -o $(GET_PWIG) $(OBJ) $(LIBPATH) $(CPPLDFLAGS)
 
+sized_lqc:
+	$(CXX) $(CXXFLAGS) $(SIZED_LQC).cpp -o $(SIZED_LQC) $(OBJ) $(LIBPATH) $(CPPLDFLAGS)
 
 collection_f2exp:
 	$(CXX) $(CXXFLAGS) $(GET_COLLECTION_F2EXP_SCORE).cpp -o $(GET_COLLECTION_F2EXP_SCORE) $(OBJ) $(LIBPATH) $(CPPLDFLAGS)

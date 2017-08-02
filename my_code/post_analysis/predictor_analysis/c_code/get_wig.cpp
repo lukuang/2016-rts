@@ -26,7 +26,34 @@ using namespace std;
 
 
 
+vector< vector<int> > get_index_vector(const int& begin,const int& end,const int& size){
+    vector< vector<int> > index_vector;
+    int range = end-begin+1;
+    if(range >= size){
+        for(int i = begin; i<= end; i++){
+            if(size>1){
+                int sub_size = size-1;
+                vector< vector<int> > sub_index_vector = get_index_vector(i+1,end,sub_size);
+                
+                for(vector< vector<int> >::iterator iit=sub_index_vector.begin(); iit!=sub_index_vector.end();++iit){
+                    (*iit).push_back(i);
+                    index_vector.push_back(*iit);
+                }
 
+                // vector< vector<int> > sub_index_vector_full_size = get_index_vector(i+2,end,size);
+                // for(vector< vector<int> >::iterator iit=sub_index_vector_full_size.begin(); iit!=sub_index_vector_full_size.end();++iit){
+                //     index_vector.push_back(*iit);
+                // }
+            }
+            else{
+                std::vector<int> single_word;
+                single_word.push_back(i);
+                index_vector.push_back(single_word);
+            }
+        }
+    }
+    return index_vector;
+}
 
 map<string, vector<string> > get_results(char* result_file, const int& n){
     ifstream f;
@@ -90,6 +117,7 @@ class SizedPhrases{
         map<int,float> ow_cf;
         map<int,string> ow_phrase_string;
         map<int, map<int,float> > ow_document_map;
+        map<string,int> phrase_check_map ;
 
         map<int,float> get_expression_document_map(indri::api::QueryEnvironment& env,const std::string& expression){
             map<int,float> expression_document_map;
@@ -130,6 +158,16 @@ class SizedPhrases{
                 this->phrases.push_back(temp_phrase_vector);
                 phrase_ids.push_back(i);
                 phrase_string.push_back( temp_phrase_string );
+                phrase_check_map[temp_phrase_string] = 0;
+            }
+        }
+
+        bool check_phrase(string temp_phrase_string){
+            if(this->phrase_check_map.find(temp_phrase_string)!=this->phrase_check_map.end()){
+                return true;
+            }
+            else{
+                return false;
             }
         }
 
@@ -182,7 +220,7 @@ class SizedPhrases{
                 else{
                     int window_size = 4*length;
                     // uw_string = "#uw"+string( itoa(window_size))+"("+phrase_string[pid] +")";
-                    uw_string = "#uw"+to_string(window_size)+"("+phrase_string[pid] +")";
+                    uw_string = "#uw"+to_string(static_cast<long long>(window_size))+"("+phrase_string[pid] +")";
 
                 }
 
@@ -227,6 +265,163 @@ class SizedPhrases{
 
 };
 
+class UnorderedSizedPhrases{
+    private:
+        int length;
+        bool debug;
+        vector< vector<string> > phrases;
+        vector<int> phrase_ids;
+        vector<string> phrase_string;
+        map<int,float> uw_cf;
+        map<int,string> uw_phrase_string;
+        map<int, map<int,float> > uw_document_map;
+
+        map<int,float> get_expression_document_map(indri::api::QueryEnvironment& env,const std::string& expression){
+            map<int,float> expression_document_map;
+            vector<indri::api::ScoredExtentResult> result = env.expressionList( expression );
+            for( size_t i=0; i<result.size(); i++ ) {
+                int internal_did =  result[i].document;
+                float expression_count = result[i].score;
+                expression_document_map[internal_did] = expression_count;
+
+            }
+            return expression_document_map;
+        }
+    public:
+        UnorderedSizedPhrases(){
+
+        }
+
+        UnorderedSizedPhrases(vector<string> query_words,int length,bool debug, SizedPhrases& sized_phrases ){
+            this->length = length;
+            this->debug = debug;
+            if(length> query_words.size()){
+                cout<<"Wrong: the phrase size cannot be greater than query size!"<<endl;
+                cout<<length<<" - "<<query_words.size()<<endl;
+                exit(-1);
+            }
+            if(length <= 1){
+                cout<<"Wrong:phrase length needs to be greater than 1!"<<endl;
+                cout<<"Now inputed phrase length "<<length<<endl;
+                exit(-1);
+            }
+            else if(sized_phrases.phrase_length()!=length){
+                cout<<"The phrase length must agree!"<<endl;
+                cout<<"Now inputed  length "<<length<<endl;
+                cout<<"Now inputed sized_phrase length "<<sized_phrases.phrase_length()<<endl;
+                exit(-1);
+
+            }
+            vector< vector<string> > subwords_vector;
+            int end_index = query_words.size()-1;
+            int sub_vector_size = length;
+            vector< vector<int> > sub_index_vector = get_index_vector(0,end_index,sub_vector_size); 
+            int unordered_phrase = 0;
+            for(vector< vector<int> >::iterator iit=sub_index_vector.begin(); iit!=sub_index_vector.end();++iit){
+                vector<string> temp_phrase_vector ;
+                string temp_phrase_string;
+                for(std::vector<int>::iterator sit=(*iit).begin(); sit!=(*iit).end();++sit){
+                    temp_phrase_vector.push_back( query_words[*sit] );
+                    // temp_phrase_string += query_words[*sit] + " ";
+                }
+                for(int m=temp_phrase_vector.size()-1;m>=0;m--){
+                    temp_phrase_string += temp_phrase_vector[m] + " ";
+                }
+                if(sized_phrases.check_phrase(temp_phrase_string)){
+                    continue;
+                }
+                this->phrases.push_back(temp_phrase_vector);
+                phrase_ids.push_back(unordered_phrase);
+                unordered_phrase +=1 ;
+                phrase_string.push_back( temp_phrase_string );
+            }
+
+
+            
+        }
+
+        int phrase_length(){
+            return length;
+        }
+
+        vector<int> get_phrase_ids(){
+            return phrase_ids;
+        }
+
+        vector<string> get_single_phrase(int id){
+            return phrases[id];
+        }
+
+        string get_single_phrase_string(int id){
+            return phrase_string[id];
+        }
+
+        int phrase_count(){
+            return phrase_ids.size();
+        }
+
+        void show(){
+            cout<<"length "<<length<<":";
+            for(int i=0;i<phrase_string.size();i++){
+                cout<<phrase_string[i]<<",";
+            }
+            cout<<endl;
+        }
+
+        void compute_pcf(const std::string& indexName){
+            indri::api::QueryEnvironment env;
+
+            // compute the expression list using the QueryEnvironment API
+            env.addIndex( indexName );
+            for(int i=0;i<phrase_ids.size();i++){
+                if(debug) cout<<"Phrase frequency for unrodered phrases"<<phrase_string[i]<<endl;
+                int pid = phrase_ids[i];
+                
+
+                string uw_string;
+                if(length==2){
+                    uw_string = "#uw140("+phrase_string[pid] +")";
+                }
+                else{
+                    int window_size = 4*length;
+                    // uw_string = "#uw"+string( itoa(window_size))+"("+phrase_string[pid] +")";
+                    uw_string = "#uw"+to_string(static_cast<long long>(window_size))+"("+phrase_string[pid] +")";
+
+                }
+
+                uw_phrase_string[pid] = uw_string;
+                uw_cf[pid] = env.expressionCount( uw_string );
+                if(debug) cout<<"\t"<<uw_string<<" "<<uw_cf[pid]<<endl;
+                uw_document_map[pid] = get_expression_document_map(env,uw_string);
+
+            }
+            env.close();
+
+        }
+
+        
+
+        float get_UF_document_count(const int& phrase_id,const int& internal_did){
+            if (uw_document_map[phrase_id].find(internal_did)!=uw_document_map[phrase_id].end() ){
+                return uw_document_map[phrase_id][internal_did];
+            }
+            else{
+                return .0;
+            }
+        }
+
+       
+
+        float get_UF_collection_count(const int& phrase_id){
+            return uw_cf[phrase_id];
+        }
+        
+
+
+
+};
+
+
 class Document{
     private:
         string ex_did;
@@ -236,7 +431,7 @@ class Document{
         string stemmed_doc_string;
         bool debug;
 
-        int dl = 0;
+        int dl ;
     public:
         Document(){
 
@@ -245,7 +440,7 @@ class Document{
         Document(indri::collection::Repository& r, const string& ex_did, bool debug ){
             internal_did = get_internal_did(r,ex_did);
             this->debug = debug;
-            
+            dl = 0;   
             indri::server::LocalQueryServer local(r);
 
             std::vector<lemur::api::DOCID_T> documentIDs;
@@ -287,6 +482,14 @@ class Document{
             }
         }
 
+        void get_feature_document_count( UnorderedSizedPhrases& unordered_sized_phrases, map<int,float>& uf){
+            vector<int> phrase_ids = unordered_sized_phrases.get_phrase_ids();
+            for(int i=0;i<phrase_ids.size();i++){
+                int phrase_id = phrase_ids[i];
+                uf[phrase_id] = unordered_sized_phrases.get_UF_document_count(phrase_id,internal_did);
+            }
+        }
+
         int get_dl(){
             return dl;
         }
@@ -305,6 +508,7 @@ class Query{
 
     public:
         map<int, SizedPhrases > sized_phrases;
+        map<int, UnorderedSizedPhrases > unordered_sized_phrases;
 
         Query(){
 
@@ -319,9 +523,11 @@ class Query{
             term_count = terms.size();
             phrase_count = 0;
             if(query_words.size()>=2){
-                for(int j=2;j<=query_words.size();j++){
+                for(int j=2;j<=min(int(query_words.size()),5);j++){
                     sized_phrases[j] = SizedPhrases(query_words,j,debug);
+                    unordered_sized_phrases[j] = UnorderedSizedPhrases(query_words,j,debug,sized_phrases[j]);
                     phrase_count += sized_phrases[j].phrase_count();
+                    phrase_count += unordered_sized_phrases[j].phrase_count();
                 }
             }
         }
@@ -342,6 +548,10 @@ class Query{
 
         void compute_pcf(const std::string& indexName){
             for(map<int,SizedPhrases>::iterator it=sized_phrases.begin();it!=sized_phrases.end();++it){
+                it->second.compute_pcf(indexName);
+            }
+
+            for(map<int,UnorderedSizedPhrases>::iterator it=unordered_sized_phrases.begin();it!=unordered_sized_phrases.end();++it){
                 it->second.compute_pcf(indexName);
             }
         }
@@ -396,6 +606,24 @@ class Query{
                             wig += phrase_lambda*log2( of_document_score/of_collection_score);
                             if(debug) cout<<"add "<<phrase_lambda*log2( of_document_score/of_collection_score)<<"for unordered feature to wig"<<endl;
                         }
+                        if(cuf!=.0){              
+                            float uf_document_score = (1-alpha)*(uf[phrase_id]/dl) + alpha*(cuf/C);
+                            float uf_collection_score = cuf/C;
+                            wig += phrase_lambda*log2( uf_document_score/uf_collection_score);
+                            if(debug) cout<<"add "<< phrase_lambda*log2( uf_document_score/uf_collection_score)<<"for unordered feature to wig"<<endl;
+                        }
+                    }
+                }
+                if(debug) cout<<"Get Unordered Phrase features"<<endl;
+                for(map<int,UnorderedSizedPhrases>::iterator it=unordered_sized_phrases.begin(); it!=unordered_sized_phrases.end();++it){
+                    map<int,float> uf;
+                    single_document.get_feature_document_count(it->second,uf);
+                    for(map<int,float>::iterator uit=uf.begin();uit!=uf.end();++uit){
+                        int phrase_id = uit->first;
+                        string phrase_string = it->second.get_single_phrase_string(phrase_id);
+                        if(debug) cout<<"For phrase "<<phrase_string<<endl;
+                        float cuf = it->second.get_UF_collection_count(phrase_id);
+                        
                         if(cuf!=.0){              
                             float uf_document_score = (1-alpha)*(uf[phrase_id]/dl) + alpha*(cuf/C);
                             float uf_collection_score = cuf/C;

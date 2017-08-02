@@ -10,7 +10,7 @@ import argparse
 import codecs
 from enum import IntEnum, unique
 
-from disk45_plot_silentDay_predictor import PredictorName,R_DIR,PREDICTOR_CLASS,PredictorClass,RetrievalMethod,load_silent_day,Q_DIR
+from disk45_plot_silentDay_predictor import PredictorName,R_DIR,PREDICTOR_CLASS,PredictorClass,RetrievalMethod,load_silent_day,Q_DIR,IndexType
 
 sys.path.append("/infolab/node4/lukuang/2015-RTS/src")
 
@@ -52,14 +52,14 @@ class SingleFeature(object):
     
 
     # Note the feature format should be "PredictorChoice:Expansion"
-    def __init__(self,feature_descrption_string,predictor_data_dir,retrieval_method):
+    def __init__(self,feature_descrption_string,predictor_data_dir,retrieval_method,index_type):
 
 
         self._feature_descrption_string, self._predictor_data_dir =\
              feature_descrption_string, predictor_data_dir
 
         self._retrieval_method = retrieval_method    
-
+        self._index_type = index_type
 
         self._get_feature_detail()
 
@@ -135,6 +135,7 @@ class SingleFeature(object):
                 self._data_file_path = os.path.join(
                                 self._predictor_data_dir,self._predictor_class.name,
                                 self._predictor_choice.name,
+                                self._index_type.name,
                                 self._retrieval_method.name,"data")
         # print "Data path:%s" %(self._data_file_path)
         self._feature_data = json.load(open(self._data_file_path))
@@ -169,9 +170,10 @@ class DataPreparor(object):
 
 
     def __init__(self,predictor_data_dir,feature_descrption_list,
-                 top_dest_dir,retrieval_method,silent_query_info_file):
+                 top_dest_dir,retrieval_method,silent_query_info_file,index_type):
         self._predictor_data_dir,self._feature_descrption_list, self._retrieval_method=\
             predictor_data_dir,feature_descrption_list,retrieval_method
+        self._index_type = index_type
 
 
         self._top_dest_dir = top_dest_dir
@@ -201,7 +203,7 @@ class DataPreparor(object):
 
         vector_data_set["features"] = {}
         for feature_descrption_string in self._feature_descrption_list:
-            single_feature = SingleFeature(feature_descrption_string,self._predictor_data_dir,self._retrieval_method)
+            single_feature = SingleFeature(feature_descrption_string,self._predictor_data_dir,self._retrieval_method,self._index_type)
             vector_data_set["features"][feature_descrption_string] = single_feature.feature_data
         
         for day in sorted(vector_data_set["silent_days"].keys()):
@@ -246,7 +248,7 @@ class DataPreparor(object):
 
         dest_dir_name =  "_".join([convert_feature_string(i) for i in sorted(self._feature_descrption_list) ])
         
-        dest_dir = os.path.join(self._top_dest_dir,self._retrieval_method.name,dest_dir_name)
+        dest_dir = os.path.join(self._top_dest_dir,self._index_type.name,self._retrieval_method.name,dest_dir_name)
         
         try_mkdir(dest_dir)
 
@@ -297,16 +299,24 @@ def main():
                 2:pivoted
                 3:bm25
         """)
+    parser.add_argument("--index_type","-it",choices=list(map(int, IndexType)),default=0,type=int,
+        help="""
+            Choose the index type:
+                0:full
+                1:processed
+        """)
     parser.add_argument("--feature_descrption_list","-f",nargs='+')
     args=parser.parse_args()
 
 
     args.retrieval_method = RetrievalMethod(args.retrieval_method)
+    args.index_type = IndexType(args.index_type)
 
     print args.feature_descrption_list
     data_preparor = DataPreparor(
                         args.predictor_data_dir, args.feature_descrption_list,
-                        args.top_dest_dir,args.retrieval_method,args.silent_query_info_file)
+                        args.top_dest_dir,args.retrieval_method,
+                        args.silent_query_info_file,args.index_type)
 
 
     data_preparor.prepare_data()

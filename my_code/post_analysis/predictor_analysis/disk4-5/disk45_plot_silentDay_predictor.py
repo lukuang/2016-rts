@@ -9,14 +9,14 @@ import re
 import argparse
 import codecs
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
+# import matplotlib
+# matplotlib.use('Agg')
+# import matplotlib.pyplot as plt
 from enum import IntEnum, unique
 
 from disk45_predictor import *
 
-sys.path.append("/infolab/node4/lukuang/2015-RTS/src")
+sys.path.append("/home/1546/code/2016-rts")
 from my_code.distribution.data import Year
 
 class Collection(IntEnum):
@@ -72,6 +72,9 @@ class PredictorName(IntEnum):
     midf_pmi = 34
     candidate_size = 35
     qf = 36
+    sized_coherence_binary = 37
+    sized_coherence_average = 38
+    sized_coherence_max = 39
 
 @unique
 class Expansion(IntEnum):
@@ -83,73 +86,89 @@ class Expansion(IntEnum):
 
 
 BIN_FILES = {
-    PredictorName.clarity: "/infolab/headnode2/lukuang/2016-rts/code/my_code/post_analysis/predictor_analysis/c_code/show_clarity",
-    PredictorName.average_idf: "/infolab/headnode2/lukuang/2016-rts/code/my_code/post_analysis/predictor_analysis/c_code/get_average_idf",
+    PredictorName.clarity: "/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/show_clarity",
+    PredictorName.average_idf: "/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_average_idf",
     PredictorName.dev:"",
     PredictorName.ndev:"",
     PredictorName.top_score:"",
-    PredictorName.coherence_binary:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_unweighted_local_coherence",
-    PredictorName.coherence_average:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_unweighted_local_coherence",
-    PredictorName.coherence_max:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_unweighted_local_coherence",
-    PredictorName.coherence_binary_n:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_unweighted_local_coherence",
-    PredictorName.coherence_average_n:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_unweighted_local_coherence",
-    PredictorName.coherence_max_n:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_unweighted_local_coherence",
-    PredictorName.query_length:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_query_length",
-    PredictorName.avg_pmi:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_term_relatedness",
-    PredictorName.max_pmi:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_term_relatedness",
-    PredictorName.cidf_binary:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
-    PredictorName.cidf_average:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
-    PredictorName.cidf_max:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
-    PredictorName.cidf_binary_n:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
-    PredictorName.cidf_average_n:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
-    PredictorName.cidf_max_n:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
-    PredictorName.cpmi_binary:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
-    PredictorName.cpmi_average:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
-    PredictorName.cpmi_max:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
-    PredictorName.mst_term_relatedness:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_mst_term_relatedness",
-    PredictorName.link_term_relatedness:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_link_term_relatedness",
-    PredictorName.scq:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_scq",
-    PredictorName.var:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_var",
-    PredictorName.nqc:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_collection_score",
-    PredictorName.wig:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_wig",
-    PredictorName.pwig:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_pwig",
-    PredictorName.local_avg_pmi:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_local_term_relatedness",
-    PredictorName.local_max_pmi:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_local_term_relatedness",
-    PredictorName.tree_estimator:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_term_df",
-    PredictorName.aidf_pmi:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_term_relatedness",
-    PredictorName.midf_pmi:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_weighted_term_relatedness",
-    PredictorName.candidate_size:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_candidate_size",
-    PredictorName.qf:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_qf_query",
+    PredictorName.coherence_binary:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_unweighted_local_coherence",
+    PredictorName.coherence_average:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_unweighted_local_coherence",
+    PredictorName.coherence_max:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_unweighted_local_coherence",
+    PredictorName.coherence_binary_n:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_unweighted_local_coherence",
+    PredictorName.coherence_average_n:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_unweighted_local_coherence",
+    PredictorName.coherence_max_n:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_unweighted_local_coherence",
+    PredictorName.query_length:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_query_length",
+    PredictorName.avg_pmi:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_term_relatedness",
+    PredictorName.max_pmi:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_term_relatedness",
+    PredictorName.cidf_binary:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
+    PredictorName.cidf_average:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
+    PredictorName.cidf_max:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
+    PredictorName.cidf_binary_n:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
+    PredictorName.cidf_average_n:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
+    PredictorName.cidf_max_n:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
+    PredictorName.cpmi_binary:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
+    PredictorName.cpmi_average:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
+    PredictorName.cpmi_max:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_weighted_local_coherence",
+    PredictorName.mst_term_relatedness:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_mst_term_relatedness",
+    PredictorName.link_term_relatedness:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_link_term_relatedness",
+    PredictorName.scq:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_scq",
+    PredictorName.var:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_var",
+    PredictorName.nqc:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_collection_score",
+    PredictorName.wig:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_wig",
+    PredictorName.pwig:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_pwig",
+    PredictorName.local_avg_pmi:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_local_term_relatedness",
+    PredictorName.local_max_pmi:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_local_term_relatedness",
+    PredictorName.tree_estimator:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_term_df",
+    PredictorName.aidf_pmi:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_weighted_term_relatedness",
+    PredictorName.midf_pmi:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_weighted_term_relatedness",
+    PredictorName.candidate_size:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_candidate_size",
+    PredictorName.qf:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_qf_query",
+    PredictorName.sized_coherence_binary:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_sized_lqc",
+    PredictorName.sized_coherence_max:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_sized_lqc",
+    PredictorName.sized_coherence_average:"/home/1546/code/2016-rts/my_code/post_analysis/predictor_analysis/c_code/get_sized_lqc",
 
 }
 
-Q_DIR = "/infolab/node4/lukuang/2015-RTS/disk4-5/data/clarity_queries"
+Q_DIR = "/lustre/scratch/lukuang/Silent_Corpora_Detection/data/disk4-5/data/clarity_queries"
 
 
 
 R_DIR = {}
 
 R_DIR[IndexType.full] = {
-        RetrievalMethod.f2exp:"/infolab/node4/lukuang/2015-RTS/disk4-5/data/results/full/f2exp",
-        RetrievalMethod.dirichlet:"/infolab/node4/lukuang/2015-RTS/disk4-5/data/results/full/dirichlet",
-        RetrievalMethod.pivoted:"/infolab/node4/lukuang/2015-RTS/disk4-5/data/results/full/pivoted",
-        RetrievalMethod.bm25:"/infolab/node4/lukuang/2015-RTS/disk4-5/data/results/full/bm25",
+        RetrievalMethod.f2exp:"/lustre/scratch/lukuang/Silent_Corpora_Detection/data/disk4-5/data/results/full/f2exp",
+        RetrievalMethod.dirichlet:"/lustre/scratch/lukuang/Silent_Corpora_Detection/data/disk4-5/data/results/full/dirichlet",
+        RetrievalMethod.pivoted:"/lustre/scratch/lukuang/Silent_Corpora_Detection/data/disk4-5/data/results/full/pivoted",
+        RetrievalMethod.bm25:"/lustre/scratch/lukuang/Silent_Corpora_Detection/data/disk4-5/data/results/full/bm25",
+        RetrievalMethod.juru:"/lustre/scratch/lukuang/Silent_Corpora_Detection/data/disk4-5/data/results/full/juru",
 
 }
 
 R_DIR[IndexType.processed] = {
-        RetrievalMethod.f2exp:"/infolab/node4/lukuang/2015-RTS/disk4-5/data/results/processed/f2exp",
-        RetrievalMethod.dirichlet:"/infolab/node4/lukuang/2015-RTS/disk4-5/data/results/processed/dirichlet",
-        RetrievalMethod.pivoted:"/infolab/node4/lukuang/2015-RTS/disk4-5/data/results/processed/pivoted",
-        RetrievalMethod.bm25:"/infolab/node4/lukuang/2015-RTS/disk4-5/data/results/processed/bm25",
+        RetrievalMethod.f2exp:"/lustre/scratch/lukuang/Silent_Corpora_Detection/data/disk4-5/data/results/processed/f2exp",
+        RetrievalMethod.dirichlet:"/lustre/scratch/lukuang/Silent_Corpora_Detection/data/disk4-5/data/results/processed/dirichlet",
+        RetrievalMethod.pivoted:"/lustre/scratch/lukuang/Silent_Corpora_Detection/data/disk4-5/data/results/processed/pivoted",
+        RetrievalMethod.bm25:"/lustre/scratch/lukuang/Silent_Corpora_Detection/data/disk4-5/data/results/processed/bm25",
+        RetrievalMethod.juru:"/lustre/scratch/lukuang/Silent_Corpora_Detection/data/disk4-5/data/results/processed/juru",
 
 }
 
 
 
 IND_DIR = {
-    IndexType.processed:"/infolab/node4/lukuang/2015-RTS/disk4-5/index/processed",
-    IndexType.full:"/infolab/node4/lukuang/2015-RTS/disk4-5/index/full",
+    IndexType.processed:"/lustre/scratch/lukuang/Silent_Corpora_Detection/data/disk4-5/individual_index/processed",
+    IndexType.full:"/lustre/scratch/lukuang/Silent_Corpora_Detection/data/disk4-5/individual_index/full",
+}
+
+T_DIR = {
+    IndexType.processed:"/infolab/node4/lukuang/2015-RTS/disk4-5/data/term_result_dir/processed",
+    IndexType.full:"/infolab/node4/lukuang/2015-RTS/disk4-5/data/term_result_dir/full",    
+}
+
+LA_DIR = {
+    IndexType.processed:"/infolab/node4/lukuang/2015-RTS/disk4-5/data/la_dir/processed",
+    IndexType.full:"/infolab/node4/lukuang/2015-RTS/disk4-5/data/la_dir/full",    
+
 }
 
 # predictor class dictionary used for getting predictor class
@@ -192,7 +211,9 @@ PREDICTOR_CLASS = {
     PredictorName.midf_pmi: PredictorClass.pre,
     PredictorName.candidate_size: PredictorClass.pre,
     PredictorName.qf: PredictorClass.post,
-
+    PredictorName.sized_coherence_binary: PredictorClass.post,
+    PredictorName.sized_coherence_average: PredictorClass.post,
+    PredictorName.sized_coherence_max: PredictorClass.post,
 }
 
 
@@ -200,7 +221,8 @@ PREDICTOR_CLASS = {
 def generate_predictor_values(predictor_choice,qrel,
                               index_dir,query_dir,result_dir,
                               bin_file,link_dir,data_storage_file,
-                              term_size,retrieval_method):
+                              term_size,retrieval_method,
+                              term_result_dir=None,la_dir=None):
     print "use %s" %(predictor_choice.name)
     print index_dir
     print query_dir
@@ -386,7 +408,10 @@ def generate_predictor_values(predictor_choice,qrel,
         if not result_dir:
             raise RuntimeError("Need to specify result dir when using tree_estimator!")
         else:
-            predictor = TreeEstimator(qrel,index_dir,query_dir,bin_file,result_dir)
+            predictor = TreeEstimator(qrel,index_dir,query_dir,bin_file,
+                                      result_dir,term_result_dir=term_result_dir,
+                                      la_dir=la_dir,
+                                      retrieval_method=retrieval_method)
     
     elif predictor_choice == PredictorName.aidf_pmi:
         predictor = AvgIDFWeightedPMI(qrel,index_dir,query_dir,bin_file)
@@ -405,8 +430,27 @@ def generate_predictor_values(predictor_choice,qrel,
         else:
             predictor = QF(qrel,index_dir,query_dir,bin_file,result_dir,retrieval_method=retrieval_method)
     
+    elif predictor_choice == PredictorName.sized_coherence_binary:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using sized_coherence_binary!")
+        else:
+            predictor = LocalSizedCoherenceUnweighetedBinary(qrel,index_dir,query_dir,bin_file,result_dir)
 
-    # predictor.show()
+    elif predictor_choice == PredictorName.sized_coherence_average:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using sized_coherence_average!")
+        else:
+            predictor = LocalSizedCoherenceUnweighetedAverage(qrel,index_dir,query_dir,bin_file,result_dir)
+
+    elif predictor_choice == PredictorName.sized_coherence_max:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using sized_coherence_max!")
+        else:
+            predictor = LocalSizedCoherenceUnweighetedMax(qrel,index_dir,query_dir,bin_file,result_dir)
+
+
+    predictor.show()
+    print "store to file %s" %(data_storage_file)
     with open(data_storage_file,"w") as f:
         f.write(json.dumps(predictor.values))
 
@@ -415,40 +459,41 @@ def generate_predictor_values(predictor_choice,qrel,
     
 
 
-def plot_predictor_values(predictor_values,silent_day_values,dest_file):
-    silent_predictor_values = []
-    non_silent_predictor_values = []
-    val = .0
-    for day in silent_day_values:
-        for qid in silent_day_values[day]:
-            try:
-                single_predictor_values = predictor_values[day][qid]
-            except KeyError:
-                continue
-            else:
-                if silent_day_values[day][qid]:
-                    silent_predictor_values.append(single_predictor_values)
-                    # if predictor_values[day][qid] == 5.93344:
-                    #     print "%s,%s" %(qid,day)
-                else:
-                    non_silent_predictor_values.append(single_predictor_values)
+# def plot_predictor_values(predictor_values,silent_day_values,dest_file):
+#     silent_predictor_values = []
+#     non_silent_predictor_values = []
+#     val = .0
+#     for day in silent_day_values:
+#         for qid in silent_day_values[day]:
+#             try:
+#                 single_predictor_values = predictor_values[day][qid]
+#             except KeyError:
+#                 continue
+#             else:
+#                 if silent_day_values[day][qid]:
+#                     silent_predictor_values.append(single_predictor_values)
+#                     # if predictor_values[day][qid] == 5.93344:
+#                     #     print "%s,%s" %(qid,day)
+#                 else:
+#                     non_silent_predictor_values.append(single_predictor_values)
 
-    # print silent_predictor_values
-    # print max(silent_predictor_values)
-    # print non_silent_predictor_values
-    # print max(non_silent_predictor_values)
-    plt.plot(silent_predictor_values, np.zeros_like(silent_predictor_values) + 1.0, 'ro', label='silent days')
-    plt.plot(non_silent_predictor_values,np.zeros_like(non_silent_predictor_values) + -1.0,'bx', label='non-silent days')
-    plt.ylim([-2,2])
-    plt.legend()
-    plt.savefig(dest_file)
+#     # print silent_predictor_values
+#     # print max(silent_predictor_values)
+#     # print non_silent_predictor_values
+#     # print max(non_silent_predictor_values)
+#     plt.plot(silent_predictor_values, np.zeros_like(silent_predictor_values) + 1.0, 'ro', label='silent days')
+#     plt.plot(non_silent_predictor_values,np.zeros_like(non_silent_predictor_values) + -1.0,'bx', label='non-silent days')
+#     plt.ylim([-2,2])
+#     plt.legend()
+#     plt.savefig(dest_file)
 
 def load_silent_day(silent_query_info_file):
     silent_day_values = {}
     silent_day_values["10"] = {}
     data = json.load(open(silent_query_info_file))
     for qid in data:
-        silent_day_values["10"][qid] = True
+        silent_day_values["10"][qid+"_desc"] = True
+        silent_day_values["10"][qid+"_title"] = True
 
     clarity_query_file = os.path.join(Q_DIR,"10")
     with open(clarity_query_file) as f:
@@ -456,7 +501,8 @@ def load_silent_day(silent_query_info_file):
             parts = line.split(":")
             qid = parts[0]
             if qid not in silent_day_values["10"]:
-                silent_day_values["10"][qid] = False
+                silent_day_values["10"][qid+"_desc"] = False
+                silent_day_values["10"][qid+"_title"] = False
 
     return silent_day_values
 
@@ -478,7 +524,7 @@ def main():
                 0:full
                 1:processed
         """)
-    parser.add_argument("--silent_query_info_file","-sf",default="/infolab/node4/lukuang/2015-RTS/disk4-5/eval/silent_query_info")
+    parser.add_argument("--silent_query_info_file","-sf",default="/lustre/scratch/lukuang/Silent_Corpora_Detection/data/disk4-5/eval/silent_query_info")
     parser.add_argument("--force","-f",action="store_true")
     parser.add_argument("--predictor_choice","-pc",choices=list(map(int, PredictorName)),default=0,type=int,
         help="""
@@ -520,6 +566,10 @@ def main():
                 34: midf_pmi
                 35: candidate_size
                 36: qf
+                37: sized_coherence_binary 
+                38: sized_coherence_average
+                39: sized_coherence_max
+
         """)
     parser.add_argument("--term_size","-tn",type=int,
         help="""
@@ -537,6 +587,8 @@ def main():
     query_dir = Q_DIR
     index_dir = IND_DIR[args.index_type]
     link_dir = None
+    term_result_dir = None
+    la_dir = None
     
     # print query_dir
     # print index_dir
@@ -548,6 +600,10 @@ def main():
     args.data_dir = os.path.join(args.data_dir,PREDICTOR_CLASS[args.predictor_choice].name)
     args.data_dir = os.path.join(args.data_dir,args.predictor_choice.name)
     dest_dir = args.data_dir
+
+    if args.predictor_choice == PredictorName.tree_estimator:
+        term_result_dir = T_DIR[args.index_type]
+        la_dir = LA_DIR[args.index_type]
 
     if PREDICTOR_CLASS[args.predictor_choice] == PredictorClass.post:
         printing_message += "\tretrieval method:%s\n" %(args.retrieval_method.name) 
@@ -574,7 +630,7 @@ def main():
     #     silent_day_generator = SilentDaysFromRes(args.year,result_dir)
     # else:
     clarity_query_file = os.path.join(Q_DIR,"10")
-    silent_day_values = load_silent_day(args.silent_query_info_file)
+    # silent_day_values = load_silent_day(args.silent_query_info_file)
     # print silent_day_values
     # print silent_day_values.keys()
 
@@ -583,14 +639,16 @@ def main():
         predictor_values = generate_predictor_values(
                                 args.predictor_choice,disk45_qrel,
                                 index_dir,query_dir,result_dir,
-                                bin_file,link_dir,data_storage_file,args.term_size,
-                                args.retrieval_method)
+                                bin_file,link_dir,data_storage_file,
+                                args.term_size,args.retrieval_method,
+                                term_result_dir=term_result_dir,
+                                la_dir=term_result_dir)
     
     else:
         predictor_values = json.load(open(data_storage_file))
 
-    if args.predictor_choice!= PredictorName.tree_estimator:
-        plot_predictor_values(predictor_values,silent_day_values,graph_file)
+    # if args.predictor_choice!= PredictorName.tree_estimator:
+    #     plot_predictor_values(predictor_values,silent_day_values,graph_file)
 
 
 
