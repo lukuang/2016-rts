@@ -77,7 +77,7 @@ class PreviousResults(object):
         words1 = re.findall("\w+",tweet_text)
         words2 = re.findall("\w+",t_text)
         common = list(set(words1).intersection(words2))
-        return len(common)*1.0/min(len(words1),len(words2))
+        return len(common)*1.0/max(len(words1),len(words2))
 
 
     def _check_tweet_redundant(self,tweet_text,t_text):
@@ -291,6 +291,7 @@ class Classifier(object):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--use_result","-ur",action="store_true")
+    parser.add_argument("--sd_only","-sdo",action="store_true")
     parser.add_argument("--gene_original","-gn",action="store_true")
     parser.add_argument("--debug","-de",action="store_true")
     parser.add_argument("--treshold","-t",type=int,default=10)
@@ -348,7 +349,8 @@ def main():
         # if args.debug:
         print "for year %s" %(year.name)
         year_index_dir = FULL_IND_DIR[year]
-        previous_results = PreviousResults(args.sim_treshold,args.debug)
+        if not args.sd_only:
+            previous_results = PreviousResults(args.sim_treshold,args.debug)
         new_result_file = os.path.join(args.new_result_dir,year.name)
         with open(new_result_file,"w") as of:
             for day in sorted(map(int,results[year].keys())):
@@ -371,9 +373,12 @@ def main():
                         for line in results[year][day][qid]:
                             parts = line.strip().split()
                             tid = parts[2]
-                            t_text = get_text(year_index_dir,tid)
-                            if not previous_results.is_redundant(t_text,year.name,qid):
+                            if args.sd_only:
                                 of.write("%s %s\n" %(day_string,line))
+                            else:
+                                t_text = get_text(year_index_dir,tid)
+                                if not previous_results.is_redundant(t_text,year.name,qid):
+                                    of.write("%s %s\n" %(day_string,line))
 
 
 
