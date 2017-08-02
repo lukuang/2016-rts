@@ -84,9 +84,13 @@ def main():
                     if line:
                         tweet = json.loads(line)
                         if "delete" not in tweet:
-                            text = re.sub("\n"," ",tweet["text"])
-                            if langid.classify(text)[0] == 'en':
-                                of.write(" " + text.lower())
+                            try:
+                                text = re.sub("\n"," ",tweet["text"])
+                                if langid.classify(text)[0] == 'en':
+                                    of.write(" " + text.lower())
+                            except KeyError:
+                                print "Mal-formatted tweet:"
+                                print tweet
             # break
                         
 
