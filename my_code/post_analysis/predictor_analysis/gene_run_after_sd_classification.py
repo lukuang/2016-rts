@@ -77,7 +77,7 @@ class PreviousResults(object):
         words1 = re.findall("\w+",tweet_text)
         words2 = re.findall("\w+",t_text)
         common = list(set(words1).intersection(words2))
-        return len(common)*1.0/max(len(words1),len(words2))
+        return len(common)*1.0/min(len(words1),len(words2))
 
 
     def _check_tweet_redundant(self,tweet_text,t_text):
