@@ -10,9 +10,11 @@ import argparse
 import codecs
 import subprocess
 from nltk import corpus
+import math
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import numpy as np
 from enum import IntEnum, unique
 from myStemmer import pstem as stem
 
@@ -30,6 +32,13 @@ Q_DIR = {
     Year.y2016:"/infolab/headnode2/lukuang/2016-rts/code/my_code/post_analysis/data/2016/raw/clarity_queries",
     Year.y2011:"/infolab/node4/lukuang/2015-RTS/2011-data/generated_data/raw/clarity_queries"
 }
+
+
+
+@unique
+class PlotType(IntEnum):
+    dot_plot = 0
+    bar_chart = 1
 
 
 class TextRetriever(object):
@@ -88,8 +97,11 @@ class QueryGenerator(object):
         self._query_file = os.path.join(query_dir,self._query_file)
         print "open query file:\n%s" %(self._query_file)
 
-    def generate_queries(self,converter):
+    def generate_queries(self,converter,query_length):
         queries = {}
+        # max_length = 0
+        if query_length is None:
+            query_length = 100
         with open(self._query_file) as f:
             for line in f:
                 line = line.rstrip()
@@ -100,7 +112,13 @@ class QueryGenerator(object):
                         continue
                     else:
                         words = converter.convert_text_to_words(m.group(2))
-                        queries[qid] = words
+                        if len(words) != query_length:
+                            continue
+                        else:
+                            queries[qid] = words
+        #                 if len(words)> max_length:
+        #                     max_length = len(words)
+        # print "max query length: %d" %(max_length)
         return queries
 
 
@@ -180,13 +198,13 @@ class TweetGenerator(object):
 
 
 
-def prepare_probability(text_retriever,converter,year):
+def prepare_count(text_retriever,converter,year,query_length):
     tweet_generator = TweetGenerator(year)
     tweets = tweet_generator.generate_tweets(text_retriever,converter)
     text_retriever.store()
 
     query_generator = QueryGenerator(tweets,year)
-    queries = query_generator.generate_queries(converter)
+    queries = query_generator.generate_queries(converter,query_length)
 
     relevance_count = {}
     total_count = {}
@@ -194,6 +212,8 @@ def prepare_probability(text_retriever,converter,year):
     for qid in queries:
         for tweet in tweets[qid]:
             coverage = tweet.get_coverage(queries[qid])
+            # if coverage == 0:
+            #     print "tweet %s for query %s has coverage 0!" %(tweet._tid,qid)
             if coverage not in total_count:
                 total_count[coverage] = 0
                 relevance_count[coverage] = 0
@@ -201,44 +221,144 @@ def prepare_probability(text_retriever,converter,year):
             if tweet.is_relevant():
                 relevance_count[coverage] += 1
 
-    probability = {}
+    # probability = {}
     for coverage in sorted(total_count.keys()):
         print "for coverage %f, there are %d out of %d tweets that are relevant" %(coverage,relevance_count[coverage],total_count[coverage])
-        probability[coverage] = relevance_count[coverage]*1.0/total_count[coverage]
+        # probability[coverage] = relevance_count[coverage]*1.0/total_count[coverage]
 
-    return probability
+    return relevance_count,total_count
+
+def prepare_per_query_count(text_retriever,converter,year,query_length):
+    tweet_generator = TweetGenerator(year)
+    tweets = tweet_generator.generate_tweets(text_retriever,converter)
+    text_retriever.store()
+
+    query_generator = QueryGenerator(tweets,year)
+    queries = query_generator.generate_queries(converter,query_length)
+
+    relevance_count = {}
+    total_count = {}
+
+    for qid in queries:
+        relevance_count[qid] = {}
+        total_count[qid] = {}
+        for tweet in tweets[qid]:
+            coverage = tweet.get_coverage(queries[qid])
+            # if coverage == 0:
+            #     print "tweet %s for query %s has coverage 0!" %(tweet._tid,qid)
+            if coverage not in total_count[qid]:
+                total_count[qid][coverage] = 0
+                relevance_count[qid][coverage] = 0
+            total_count[qid][coverage] += 1
+            if tweet.is_relevant():
+                relevance_count[qid][coverage] += 1
+
+    # probability = {}
+    # for coverage in sorted(total_count.keys()):
+    #     print "for coverage %f, there are %d out of %d tweets that are relevant" %(coverage,relevance_count[coverage],total_count[coverage])
+    #     probability[coverage] = relevance_count[coverage]*1.0/total_count[coverage]
+
+    return relevance_count,total_count
+
+
+def plot(plot_type,dest_file,relevance_count,total_count,data_lable):
+    if len(relevance_count) == 0:
+        print "No queries!"
+        return 
+    if plot_type == PlotType.dot_plot:
+        dot_plot(dest_file,relevance_count,total_count,data_lable)
+    elif plot_type == PlotType.bar_chart:
+        bar_chart_plot(dest_file,relevance_count,total_count,data_lable)
+    else:
+        raise NotImplementedError("The plot type is not implemented:%s" %(str(plot_type)) )
+
+def dot_plot(dest_file,relevance_count,total_count,data_lable):
+    coverages = []
+    probabilities = []
+    for coverage in sorted(relevance_count.keys()):
+        coverages.append(coverage)
+        single_probability = relevance_count[coverage]*1.0/total_count[coverage]
+        probabilities.append(single_probability)
+    plt.plot(coverages, probabilities, 'ro', label=data_lable)
+    plt.title(data_lable)
+    plt.ylabel("probabilities")
+    plt.xlabel('query coverage')
+    plt.ylim([0,1])
+    plt.xlim([0,1.1])
+    plt.legend()
+    plt.savefig(dest_file)
+    plt.clf()
+
+def bar_chart_plot(dest_file,relevance_count,total_count,data_lable):
+    bin_name = ("0.0-0.1","0.1-0.2","0.2-0.3","0.3-0.4","0.4-0.5",
+            "0.5-0.6","0.6-0.7","0.7-0.8","0.8-0.9","0.9-1.0")
+    bin_pos = np.arange(len(bin_name))
+    bin_relevance_count = [0]*10
+    bin_total_count = [0]*10
+    bin_probabilities = [0]*10
+    for coverage in sorted(relevance_count.keys()):
+        pos = int(math.floor(coverage*10)) 
+        if pos == 10:
+            pos = 9
+        bin_relevance_count[pos] += relevance_count[coverage]
+        bin_total_count[pos] += total_count[coverage]
+        print "add the counts of %f to bin %s" %(coverage,bin_name[pos])
+
+    for i in range(10):
+        try:
+            bin_probabilities[i] = bin_relevance_count[i]*1.0/bin_total_count[i]
+        except ZeroDivisionError:
+            pass
+    plt.bar(bin_pos, bin_probabilities, align='center', alpha=0.5)
+    plt.title(data_lable)
+    plt.xticks(bin_pos, bin_name)
+    plt.ylim([0,1])
+    plt.ylabel("probabilities")
+    plt.xlabel('coverage range')
+    plt.savefig(dest_file)
+    plt.clf()
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("-py","--per_year",action="store_true")
     parser.add_argument("-pc","--per_collection",action="store_true")
+    parser.add_argument("-pq","--per_query",action="store_true")
     parser.add_argument("-a","--all",action="store_true")
+    parser.add_argument("-ql","--query_length",type=int)
+    parser.add_argument("--plot_type","-pt",choices=list(map(int, PlotType)),default=0,type=int,
+        help="""
+            Choose the plot type:
+                0:dot_plot
+                1:bar_chart
+        """)
     parser.add_argument("judged_tweet_text_file")
     parser.add_argument("dest_dir")
     args=parser.parse_args()
+
+    args.plot_type = PlotType(args.plot_type)
 
     converter = TextWordsConverter()
     text_retriever = TextRetriever(args.judged_tweet_text_file)
     
 
     per_year_probability = {}
+    if args.per_query:
+        print "print per query plot for 2016"
+        relevance_count,total_count = prepare_per_query_count(text_retriever,converter,Year.y2016,args.query_length)
+        for qid in relevance_count:
+            dest_file = os.path.join(args.dest_dir,qid)
 
-    for year in Year:
-        print "process year %s" %(year.name)
-        per_year_probability[year] = prepare_probability(text_retriever,converter,year)
-        coverages = []
-        probabilities = []
-        for coverage in sorted(per_year_probability[year].keys()):
-            coverages.append(coverage)
-            probabilities.append(per_year_probability[year][coverage])
+            plot(args.plot_type, dest_file,relevance_count[qid],total_count[qid],qid)
+    else:
+        for year in Year:
+            print "process year %s" %(year.name)
+            relevance_count,total_count = prepare_count(text_retriever,converter,year,args.query_length)
+            
+            dest_file = os.path.join(args.dest_dir,year.name)
 
-        plt.plot(coverages, probabilities, 'ro', label='probabilities')
-        plt.ylim([0,1])
-        plt.legend()
-        dest_file = os.path.join(args.dest_dir,year.name)
-        plt.savefig(dest_file)
-        plt.clf()
+            plot(args.plot_type, dest_file,relevance_count,total_count,year.name)
+        
 
 
 if __name__=="__main__":
