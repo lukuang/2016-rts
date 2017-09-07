@@ -100,8 +100,6 @@ class QueryGenerator(object):
     def generate_queries(self,converter,query_length):
         queries = {}
         # max_length = 0
-        if query_length is None:
-            query_length = 100
         with open(self._query_file) as f:
             for line in f:
                 line = line.rstrip()
@@ -112,7 +110,9 @@ class QueryGenerator(object):
                         continue
                     else:
                         words = converter.convert_text_to_words(m.group(2))
-                        if len(words) != query_length:
+                        if query_length is None:
+                            queries[qid] = words
+                        elif len(words) != query_length:
                             continue
                         else:
                             queries[qid] = words
