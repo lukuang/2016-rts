@@ -290,28 +290,30 @@ def dot_plot(dest_file,relevance_count,total_count,data_lable):
     plt.clf()
 
 def bar_chart_plot(dest_file,relevance_count,total_count,data_lable):
-    bin_name = ("0.0-0.1","0.1-0.2","0.2-0.3","0.3-0.4","0.4-0.5",
-            "0.5-0.6","0.6-0.7","0.7-0.8","0.8-0.9","0.9-1.0")
-    bin_pos = np.arange(len(bin_name))
-    bin_relevance_count = [0]*10
-    bin_total_count = [0]*10
-    bin_probabilities = [0]*10
+    # bin_name = ("0.0-0.1","0.1-0.2","0.2-0.3","0.3-0.4","0.4-0.5",
+    #         "0.5-0.6","0.6-0.7","0.7-0.8","0.8-0.9","0.9-1.0")
+    # bin_pos = np.arange(len(bin_name))
+    bin_size = 100
+    bin_pos = np.arange(bin_size)
+    bin_relevance_count = [0]*bin_size
+    bin_total_count = [0]*bin_size
+    bin_probabilities = [0]*bin_size
     for coverage in sorted(relevance_count.keys()):
-        pos = int(math.floor(coverage*10)) 
-        if pos == 10:
-            pos = 9
+        pos = int(math.floor(coverage*bin_size)) 
+        if pos == bin_size:
+            pos = bin_size -1
         bin_relevance_count[pos] += relevance_count[coverage]
         bin_total_count[pos] += total_count[coverage]
-        print "add the counts of %f to bin %s" %(coverage,bin_name[pos])
+        # print "add the counts of %f to bin %s" %(coverage,bin_name[pos])
 
-    for i in range(10):
+    for i in range(bin_size):
         try:
             bin_probabilities[i] = bin_relevance_count[i]*1.0/bin_total_count[i]
         except ZeroDivisionError:
             pass
     plt.bar(bin_pos, bin_probabilities, align='center', alpha=0.5)
     plt.title(data_lable)
-    plt.xticks(bin_pos, bin_name)
+    # plt.xticks(bin_pos)
     plt.ylim([0,1])
     plt.ylabel("probabilities")
     plt.xlabel('coverage range')
