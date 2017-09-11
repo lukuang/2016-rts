@@ -270,7 +270,13 @@ def generate_predictor_values_for_tune(predictor_choice,qrel,
         else:
             predictor = QF(qrel,index_dir,query_dir,bin_file,result_dir,tune_documents=tune_documents,tune_terms=tune_terms,retrieval_method=retrieval_method)
     
-
+    elif predictor_choice == PredictorName.qtc_max:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using qtc max!")
+        else:
+            predictor = QueryTermCoverageMax(qrel,index_dir,query_dir,bin_file,result_dir)
+    
+    
     return predictor.values
 
 
