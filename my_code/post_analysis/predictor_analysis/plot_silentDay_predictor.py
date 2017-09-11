@@ -73,10 +73,11 @@ class PredictorName(IntEnum):
     qtc_median = 41
     qtc_upper = 42
     qtc_lower = 43
-    ttc_average = 44
-    ttc_median = 45
-    ttc_upper = 46
-    ttc_lower = 47
+    qtc_max = 44
+    ttc_average = 45
+    ttc_median = 46
+    ttc_upper = 47
+    ttc_lower = 48
 
 @unique
 class Expansion(IntEnum):
@@ -132,6 +133,7 @@ BIN_FILES = {
     PredictorName.qtc_median:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_query_term_coverage",
     PredictorName.qtc_lower:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_query_term_coverage",
     PredictorName.qtc_upper:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_query_term_coverage",
+    PredictorName.qtc_max:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_query_term_coverage",
     PredictorName.ttc_average:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_top_term_coverage",
     PredictorName.ttc_median:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_top_term_coverage",
     PredictorName.ttc_lower:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_top_term_coverage",
@@ -278,6 +280,7 @@ PREDICTOR_CLASS = {
     PredictorName.qtc_median: PredictorClass.post,
     PredictorName.qtc_upper: PredictorClass.post,
     PredictorName.qtc_lower: PredictorClass.post,
+    PredictorName.qtc_max: PredictorClass.post,
     PredictorName.ttc_average: PredictorClass.post,
     PredictorName.ttc_median: PredictorClass.post,
     PredictorName.ttc_upper: PredictorClass.post,
@@ -524,6 +527,12 @@ def gene_predictor(predictor_choice,qrel,
             raise RuntimeError("Need to specify result dir when using qtc upper!")
         else:
             predictor = QueryTermCoverageUpper(qrel,index_dir,query_dir,bin_file,result_dir)
+    elif predictor_choice == PredictorName.qtc_max:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using qtc upper!")
+        else:
+            predictor = QueryTermCoverageMax(qrel,index_dir,query_dir,bin_file,result_dir)
+    
     elif predictor_choice == PredictorName.qtc_lower:
         if not result_dir:
             raise RuntimeError("Need to specify result dir when using qtc lower!")
@@ -560,6 +569,10 @@ def generate_predictor_values(predictor_choice,qrel,
                               bin_file,link_dir,data_storage_file,
                               term_size,retrieval_method):
     
+    predictor = gene_predictor(predictor_choice,qrel,
+                   index_dir,query_dir,result_dir,
+                   bin_file,link_dir,data_storage_file,
+                   term_size,retrieval_method)
     # predictor.show()
     with open(data_storage_file,"w") as f:
         f.write(json.dumps(predictor.values))
@@ -673,10 +686,11 @@ def main():
                 41: qtc_median
                 42: qtc_upper
                 43: qtc_lower
-                44: ttc_average
-                45: ttc_median
-                46: ttc_upper
-                47: ttc_lower
+                44: qtc_max
+                45: ttc_average
+                46: ttc_median
+                47: ttc_upper
+                48: ttc_lower
         """)
     parser.add_argument("--term_size","-tn",type=int,
         help="""

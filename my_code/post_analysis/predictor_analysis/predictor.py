@@ -676,6 +676,9 @@ class QueryTermCoverageLower(QueryTermCoverage):
     def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=5):
         super(QueryTermCoverageLower,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"lower",tune_documents=tune_documents)
 
+class QueryTermCoverageMax(QueryTermCoverage):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=5):
+        super(QueryTermCoverageMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"max",tune_documents=tune_documents)
 
 class TopTermCoverage(PredictorUsingBoth):
     """
