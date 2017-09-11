@@ -23,7 +23,6 @@ using namespace std;
 
 
 
-
 //get unique index vectors of given size for a range of ints 
 vector< vector<int> > get_index_vector(const int& begin,const int& end,const int& size){
     vector< vector<int> > index_vector;
@@ -92,7 +91,34 @@ map<string, vector <vector<string> > > get_subwords_vector( map<string, vector<s
     return query_subwords_vector;
 }
 
-void show_unweighted_coherence( map<string, vector <vector<string> > >& query_subwords_vector, map<string, vector <int> >& co_occurrence_map,const string& cu,const bool& debug, const int& tn, map<string, vector<string> >& queries){
+float get_weight(const string& weight_scheme,int subquery_size,int query_size){
+    if(weight_scheme=="linear"){
+        return float(subquery_size);
+    }
+    else if(weight_scheme=="log"){
+        return log2(subquery_size);
+    }
+    else if(weight_scheme=="linear_normalized"){
+        return subquery_size*1.0/query_size;
+    }
+    else if(weight_scheme=="log_normalized"){
+        if (query_size==1){
+            return 1.0;
+        }
+        float log_sum = .0;
+        for(int i=2; i<=query_size; i++){
+            log_sum += log2(i);
+        }
+        return log2(subquery_size)/log_sum;
+    }
+    else{
+        cout<<"the weight_scheme: "<<weight_scheme<<" is not supported!"<<endl;
+        exit(-1);
+    }
+
+}
+
+void show_unweighted_coherence( map<string, vector <vector<string> > >& query_subwords_vector, map<string, vector <int> >& co_occurrence_map,const string& cu,const bool& debug, const int& tn, map<string, vector<string> >& queries, const string& weight_scheme){
     for(map<string, vector <vector<string> > >::iterator it=query_subwords_vector.begin(); it!=query_subwords_vector.end();++it){
         string qid = it->first;
         if(debug) cout << it->first<<":"<<endl;
@@ -153,6 +179,8 @@ void show_unweighted_coherence( map<string, vector <vector<string> > >& query_su
         float ideal_value = .0;
         for(map<int,int>::iterator cit=output_count.begin();cit!=output_count.end();++cit){
             float subquery_value ;
+            float subquery_weight = get_weight(weight_scheme,cit->first,queries[qid].size()); 
+            if(debug) cout<<"weight is:"<<subquery_weight<<endl;
             if(cu=="average"){
                 subquery_value = cit->second*1.0/size_count[cit->first];
             }
@@ -160,9 +188,9 @@ void show_unweighted_coherence( map<string, vector <vector<string> > >& query_su
                 subquery_value = cit->second;
             }
             if(debug) cout<<cit->first<<":"<<subquery_value;
-            if(debug) cout<<" final value added "<<log2(cit->first)*subquery_value<<", ";
-            final_value += log2(cit->first)*subquery_value;
-            ideal_value += log2(cit->first)*1.0;
+            if(debug) cout<<" final value added "<<subquery_weight*subquery_value<<", ";
+            final_value += subquery_weight*subquery_value;
+            ideal_value += subquery_weight*1.0;
             
             
         }
@@ -321,9 +349,10 @@ static void usage( indri::api::Parameters param ) {
   if( !param.exists( "query" ) || 
       !( param.exists( "index" ) ) ||
       !( param.exists( "result") ) ||
+      !( param.exists( "weight_scheme") ) ||
       !( param.exists( "cu") )) {
    std::cerr << "get_unweighted_local_coherence usage: " << std::endl
-             << "   get_unweighted_local_coherence -query=myquery -index=myindex -result=myresult -cu=cu_choice" << std::endl;
+             << "   get_unweighted_local_coherence -query=myquery -weight_scheme=weight_scheme -index=myindex -result=myresult -cu=cu_choice" << std::endl;
    exit(-1);
   }
   string cu = param[ "cu" ];
@@ -332,6 +361,16 @@ static void usage( indri::api::Parameters param ) {
             cu!="max" ){
     std::cerr << "cu must be one of the values below: " << std::endl
              << "   binary average max" << std::endl;
+    exit(-1);
+
+  }
+  string weight_scheme = param[ "weight_scheme" ];
+  if(   weight_scheme!="log" &&
+        weight_scheme!="linear" &&
+        weight_scheme!="log_normalized" &&
+        weight_scheme!="linear_normalized" ){
+    std::cerr << "weight_scheme must be one of the values below: " << std::endl
+             << "   log linear log_normalized linear_normalized" << std::endl;
     exit(-1);
 
   }
@@ -346,6 +385,7 @@ int main(int argc, char** argv){
     
         usage( param );
         string cu = param[ "cu" ];
+        string weight_scheme = param[ "weight_scheme" ];
         bool debug = false;
         if (param.exists( "debug" )){
             debug = true;
@@ -391,7 +431,7 @@ int main(int argc, char** argv){
         if (debug) cout<<"Finished geting result map"<<endl;
         map<string, vector <int> > co_occurrence_map = get_co_occurrence_map(query_subwords_vector,result_term_map);
         if (debug) cout<<"Finished geting co-occurrence map"<<endl;
-        show_unweighted_coherence(query_subwords_vector,co_occurrence_map,cu,debug,tn,queries);
+        show_unweighted_coherence(query_subwords_vector,co_occurrence_map,cu,debug,tn,queries,weight_scheme);
 
 
         // for(map<string,float>:: iterator it=average_idf.begin(); it!=average_idf.end(); ++it){
