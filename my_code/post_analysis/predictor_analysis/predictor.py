@@ -886,21 +886,23 @@ class LocalCoherenceUnweigheted(PredictorUsingBoth):
     """Compute unweigheted query local coherence.
     """
 
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,cu,tune_documents=10):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,cu,weight_scheme,tune_documents=10):
         super(LocalCoherenceUnweigheted, self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir)
         self._tune_documents = tune_documents
         self._cu=cu
+        self._weight_scheme = weight_scheme
 
 
     def _compute_daily_value(self,day_index_dir,day_query_file,
                              day_result_file):
         day_clarity = {}
-        run_command = "%s -index=%s -query=%s -result=%s -cu=%s -tune_documents=%d" %(self._bin_file,
+        run_command = "%s -index=%s -query=%s -result=%s -cu=%s -tune_documents=%d -weight_scheme=%s" %(self._bin_file,
                                                             day_index_dir,
                                                             day_query_file,
                                                             day_result_file,
                                                             self._cu,
-                                                            self._tune_documents)
+                                                            self._tune_documents,
+                                                            self._weight_scheme)
         # print "command being run:\n%s" %(run_command)
         p = subprocess.Popen(run_command,stdout=subprocess.PIPE,shell=True)
         
@@ -923,21 +925,21 @@ class LocalCoherenceUnweighetedBinary(LocalCoherenceUnweigheted):
     """local coherence with binary co-occurrence count
     """
     def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=100):
-        super(LocalCoherenceUnweighetedBinary,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"binary",tune_documents=tune_documents)
+        super(LocalCoherenceUnweighetedBinary,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"binary","log",tune_documents=tune_documents)
 
 
 class LocalCoherenceUnweighetedAverage(LocalCoherenceUnweigheted):
     """local coherence with average co-occurrence count
     """
     def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
-        super(LocalCoherenceUnweighetedAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"average",tune_documents=tune_documents)
+        super(LocalCoherenceUnweighetedAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"average","log",tune_documents=tune_documents)
 
 
 class LocalCoherenceUnweighetedMax(LocalCoherenceUnweigheted):
     """
     """
     def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=5):
-        super(LocalCoherenceUnweighetedMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"max",tune_documents=tune_documents)
+        super(LocalCoherenceUnweighetedMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"max","log",tune_documents=tune_documents)
 
 class LocalSizedCoherenceUnweighetedBinary(LocalCoherenceUnweigheted):
     """local coherence with binary co-occurrence count (SIZED)
@@ -960,6 +962,25 @@ class LocalSizedCoherenceUnweighetedMax(LocalCoherenceUnweigheted):
         super(LocalSizedCoherenceUnweighetedMax,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"max",tune_documents=tune_documents)
 
 
+class LocalCoherenceUnweighetedBinaryLinear(LocalCoherenceUnweigheted):
+    """local coherence with binary co-occurrence count
+    """
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=100):
+        super(LocalCoherenceUnweighetedBinaryLinear,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"binary","linear",tune_documents=tune_documents)
+
+
+class LocalCoherenceUnweighetedAverageLinear(LocalCoherenceUnweigheted):
+    """local coherence with average co-occurrence count
+    """
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+        super(LocalCoherenceUnweighetedAverageLinear,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"average","linear",tune_documents=tune_documents)
+
+
+class LocalCoherenceUnweighetedMaxLinear(LocalCoherenceUnweigheted):
+    """
+    """
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=5):
+        super(LocalCoherenceUnweighetedMaxLinear,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"max","linear",tune_documents=tune_documents)
 
 
 class LocalCoherenceUnweighetedN(PredictorUsingBoth):

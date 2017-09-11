@@ -78,6 +78,9 @@ class PredictorName(IntEnum):
     ttc_median = 46
     ttc_upper = 47
     ttc_lower = 48
+    coherence_binary_linear = 49
+    coherence_average_linear = 50
+    coherence_max_linear = 51
 
 @unique
 class Expansion(IntEnum):
@@ -138,7 +141,10 @@ BIN_FILES = {
     PredictorName.ttc_median:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_top_term_coverage",
     PredictorName.ttc_lower:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_top_term_coverage",
     PredictorName.ttc_upper:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_top_term_coverage",
-
+    PredictorName.coherence_binary_linear:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_unweighted_local_coherence",
+    PredictorName.coherence_average_linear:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_unweighted_local_coherence",
+    PredictorName.coherence_max_linear:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_unweighted_local_coherence",
+    
 }
 
 Q_DIR = {
@@ -285,7 +291,9 @@ PREDICTOR_CLASS = {
     PredictorName.ttc_median: PredictorClass.post,
     PredictorName.ttc_upper: PredictorClass.post,
     PredictorName.ttc_lower: PredictorClass.post,
-
+    PredictorName.coherence_binary_linear : PredictorClass.post,
+    PredictorName.coherence_average_linear : PredictorClass.post,
+    PredictorName.coherence_max_linear : PredictorClass.post,
 
 }
 
@@ -336,6 +344,23 @@ def gene_predictor(predictor_choice,qrel,
             raise RuntimeError("Need to specify result dir when using coherence_max!")
         else:
             predictor = LocalCoherenceUnweighetedMax(qrel,index_dir,query_dir,bin_file,result_dir)
+    elif predictor_choice == PredictorName.coherence_binary_linear:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using coherence_binary!")
+        else:
+            predictor = LocalCoherenceUnweighetedBinaryLinear(qrel,index_dir,query_dir,bin_file,result_dir)
+
+    elif predictor_choice == PredictorName.coherence_average_linear:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using coherence_average!")
+        else:
+            predictor = LocalCoherenceUnweighetedAverageLinear(qrel,index_dir,query_dir,bin_file,result_dir)
+
+    elif predictor_choice == PredictorName.coherence_max_linear:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using coherence_max!")
+        else:
+            predictor = LocalCoherenceUnweighetedMaxLinear(qrel,index_dir,query_dir,bin_file,result_dir)
     
     elif predictor_choice == PredictorName.coherence_binary_n:
         if not result_dir:
@@ -691,6 +716,9 @@ def main():
                 46: ttc_median
                 47: ttc_upper
                 48: ttc_lower
+                49: coherence_binary_linear
+                50: coherence_average_linear
+                51: coherence_max_linear
         """)
     parser.add_argument("--term_size","-tn",type=int,
         help="""
