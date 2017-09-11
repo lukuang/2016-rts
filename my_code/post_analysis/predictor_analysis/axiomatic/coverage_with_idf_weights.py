@@ -130,7 +130,7 @@ class WeightQueryGenerator(object):
         self._qids = year_stats.qids 
         self._days = year_stats.days
 
-    def generate_queries(self,converter,query_length):
+    def generate_queries(self,converter,query_length,required_qid=None):
         queries = {}
         # max_length = 0
         with open(self._query_file) as f:
@@ -139,8 +139,12 @@ class WeightQueryGenerator(object):
                 m = re.search("^(\w+):(.+)$",line)
                 if m:
                     qid = m.group(1)
+                    if required_qid:
+                        if qid != required_qid:
+                            continue
                     if qid not in self._qids:
                         continue
+                
                     else:
                         words = converter.convert_text_to_words(m.group(2))
                         if query_length is None:
@@ -152,6 +156,8 @@ class WeightQueryGenerator(object):
         #                 if len(words)> max_length:
         #                     max_length = len(words)
         # print "max query length: %d" %(max_length)
+        print "queries: "
+        print queries.keys()
         return queries
 
 
@@ -184,6 +190,13 @@ class WeightTweetForPlot(TweetForPlot):
         # time.sleep(3)
         return round(coverage,2)
 
+    def get_subquery(self,query):
+        subquery_term_list = []
+        for w in query.idfs[self._day]:
+            if w in self._words:
+                subquery_term_list.append(w)
+        return ("_".join(sorted(subquery_term_list)))
+
 
 class WeightTweetGenerator(TweetGenerator):
     def __init__(self,year,year_stats):
@@ -193,7 +206,7 @@ class WeightTweetGenerator(TweetGenerator):
 
         self._days = year_stats.days
 
-    def generate_tweets(self,text_retriever,converter):
+    def generate_tweets(self,text_retriever,converter,required_qid=None):
         tweets = {}
         missing_tweet_count = 0
         total_tweet_count = 0
@@ -203,6 +216,9 @@ class WeightTweetGenerator(TweetGenerator):
                 parts = line.split()
                 qid = parts[0]
                 tid = parts[2]
+                if required_qid:
+                    if qid != required_qid:
+                        continue
                 day = self._t2day.get_date(tid)
                 if day is None:
                     # print "Cannot find day for %s" %(tid)
@@ -266,30 +282,47 @@ def prepare_count(text_retriever,converter,year,query_length,year_stats):
 
     return relevance_count,total_count
 
-def prepare_per_query_count(text_retriever,converter,year,query_length,year_stats):
+def prepare_per_query_count(text_retriever,converter,year,query_length,year_stats,show_subquery,required_qid):
     tweet_generator = WeightTweetGenerator(year,year_stats)
-    tweets = tweet_generator.generate_tweets(text_retriever,converter)
+    tweets = tweet_generator.generate_tweets(text_retriever,converter,required_qid)
     text_retriever.store()
 
     query_generator = WeightQueryGenerator(year,year_stats)
-    queries = query_generator.generate_queries(converter,query_length)
+    queries = query_generator.generate_queries(converter,query_length,required_qid)
+
+    if show_subquery:
+        subquery_coverage = {}
 
     relevance_count = {}
     total_count = {}
 
     for qid in queries:
+        
         relevance_count[qid] = {}
         total_count[qid] = {}
         for tweet in tweets[qid]:
             coverage = tweet.get_coverage(queries[qid])
+
             # if coverage == 0:
             #     print "tweet %s for query %s has coverage 0!" %(tweet._tid,qid)
             if coverage not in total_count[qid]:
                 total_count[qid][coverage] = 0
                 relevance_count[qid][coverage] = 0
+            if show_subquery:
+                if coverage not in subquery_coverage:
+                    subquery_coverage[coverage] = set()
+                subquery_coverage[coverage].add(tweet.get_subquery(queries[qid]))
             total_count[qid][coverage] += 1
             if tweet.is_relevant():
                 relevance_count[qid][coverage] += 1
+
+    if show_subquery:
+        print "show subquery and its coverage:"
+        for coverage in sorted(subquery_coverage.keys()):
+            print "%f %d-%d:" %(coverage,relevance_count[qid][coverage],total_count[qid][coverage])
+            for subquery in subquery_coverage[coverage]:
+                print "\t%s" %(subquery)
+
 
     # probability = {}
     # for coverage in sorted(total_count.keys()):
@@ -305,8 +338,10 @@ def main():
     parser.add_argument("-py","--per_year",action="store_true")
     parser.add_argument("-pc","--per_collection",action="store_true")
     parser.add_argument("-pq","--per_query",action="store_true")
+    parser.add_argument("-ss","--show_subquery",action="store_true")
     parser.add_argument("-a","--all",action="store_true")
     parser.add_argument("-ql","--query_length",type=int)
+    parser.add_argument("-rq","--required_qid",type=str)
     parser.add_argument("--plot_type","-pt",choices=list(map(int, PlotType)),default=0,type=int,
         help="""
             Choose the plot type:
@@ -327,8 +362,10 @@ def main():
         print "print per query plot for 2016"
         year = Year.y2016
         year_stats = YearStats(year)
-        relevance_count,total_count = prepare_per_query_count(text_retriever,converter,year,args.query_length,year_stats)
+        relevance_count,total_count = prepare_per_query_count(text_retriever,converter,year,args.query_length,
+                                                              year_stats,args.show_subquery,args.required_qid)
 
+         
         for qid in relevance_count:
             dest_file = os.path.join(args.dest_dir,qid)
 
