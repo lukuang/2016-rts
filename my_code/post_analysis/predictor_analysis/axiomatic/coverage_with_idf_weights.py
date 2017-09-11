@@ -32,18 +32,23 @@ def get_term_idf(day_index_dir,term):
                    "-index=%s" %(day_index_dir),
                    "-query_term=%s" %(term)]
 
-    p = subprocess.Popen(run_command,stdout=subprocess.PIPE,shell=True)
+    p = subprocess.Popen(run_command,stdout=subprocess.PIPE)
     output = p.communicate()[0]
-
-    return float(output.rstrip()) 
+    try:
+        value = float(output.rstrip()) 
+    except ValueError:
+        print "output is:\n%s" %(output)
+        print run
+        sys.exit(-1)
+    return value
 
 def get_idf(day_index_dir,query_words):
     idfs = {}
     # since I directly used the documentStemCount function, use 
     # the stemmed term here
     for w in query_words:
-        #idfs[w] = get_term_idf(day_index_dir,w)
-        idfs[w] = return_1(day_index_dir,w)
+        idfs[w] = get_term_idf(day_index_dir,w)
+        # idfs[w] = return_1(day_index_dir,w)
 
     return idfs
 
@@ -157,19 +162,27 @@ class WeightTweetForPlot(TweetForPlot):
 
     def get_coverage(self,query):
         coverage_count = .0
-        try:
+        if query.day_idf_sum[self._day] != 0:
+            try:
+                for w in query.idfs[self._day]:
+                    if w in self._words:
+                        coverage_count += query.idfs[self._day][w]
+            except KeyError:
+                print "Error day %s" %(self._day)
+                print "Qid:%s" %(self._qid)
+                print "Tid:%s" %(self._tid)
+                sys.exit(-1)
+            coverage = coverage_count*1.0/query.day_idf_sum[self._day]
+        else:
             for w in query.idfs[self._day]:
                 if w in self._words:
-                    coverage_count += query.idfs[self._day][w]
-        except KeyError:
-            print "Error day %s" %(self._day)
-            print "Qid:%s" %(self._qid)
-            print "Tid:%s" %(self._tid)
-            sys.exit(-1)
+                    coverage_count += 1
+            coverage = coverage_count*1.0/len(query.idfs[self._day])
+
         # print "for query %s and tweet %s" %(self._qid,self._tid)
         # print "coverage %f and idf sum %f" %(coverage_count,query.day_idf_sum[self._day])
         # time.sleep(3)
-        return coverage_count*1.0/query.day_idf_sum[self._day]
+        return round(coverage,2)
 
 
 class WeightTweetGenerator(TweetGenerator):
@@ -315,6 +328,7 @@ def main():
         year = Year.y2016
         year_stats = YearStats(year)
         relevance_count,total_count = prepare_per_query_count(text_retriever,converter,year,args.query_length,year_stats)
+
         for qid in relevance_count:
             dest_file = os.path.join(args.dest_dir,qid)
 
@@ -324,7 +338,8 @@ def main():
             print "process year %s" %(year.name)
             year_stats = YearStats(year)
             relevance_count,total_count = prepare_count(text_retriever,converter,year,args.query_length,year_stats)
-            
+            print sorted(relevance_count.keys())
+            print "There are %d coverage values" %(len(relevance_count))
             dest_file = os.path.join(args.dest_dir,year.name)
 
             plot(args.plot_type, dest_file,relevance_count,total_count,year.name)
