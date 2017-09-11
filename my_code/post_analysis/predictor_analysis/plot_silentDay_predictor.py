@@ -529,7 +529,7 @@ def gene_predictor(predictor_choice,qrel,
             predictor = QueryTermCoverageUpper(qrel,index_dir,query_dir,bin_file,result_dir)
     elif predictor_choice == PredictorName.qtc_max:
         if not result_dir:
-            raise RuntimeError("Need to specify result dir when using qtc upper!")
+            raise RuntimeError("Need to specify result dir when using qtc max!")
         else:
             predictor = QueryTermCoverageMax(qrel,index_dir,query_dir,bin_file,result_dir)
     
