@@ -72,6 +72,23 @@ def generate_predictor_values_for_tune(predictor_choice,qrel,
             raise RuntimeError("Need to specify tune_documents when using coherence_max!")
         else:
             predictor = LocalCoherenceUnweighetedMax(qrel,index_dir,query_dir,bin_file,result_dir,tune_documents=tune_documents)
+    elif predictor_choice == PredictorName.coherence_binary_linear:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using coherence_binary!")
+        else:
+            predictor = LocalCoherenceUnweighetedBinaryLinear(qrel,index_dir,query_dir,bin_file,result_dir)
+
+    elif predictor_choice == PredictorName.coherence_average_linear:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using coherence_average!")
+        else:
+            predictor = LocalCoherenceUnweighetedAverageLinear(qrel,index_dir,query_dir,bin_file,result_dir)
+
+    elif predictor_choice == PredictorName.coherence_max_linear:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using coherence_max!")
+        else:
+            predictor = LocalCoherenceUnweighetedMaxLinear(qrel,index_dir,query_dir,bin_file,result_dir)
     
     elif predictor_choice == PredictorName.coherence_binary_n:
         if not result_dir:
@@ -275,8 +292,13 @@ def generate_predictor_values_for_tune(predictor_choice,qrel,
             raise RuntimeError("Need to specify result dir when using qtc max!")
         else:
             predictor = QueryTermCoverageMax(qrel,index_dir,query_dir,bin_file,result_dir)
+    elif predictor_choice == PredictorName.qtc_average:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using qtc average!")
+        else:
+            predictor = QueryTermCoverageAverage(qrel,index_dir,query_dir,bin_file,result_dir)
     
-    
+
     return predictor.values
 
 
@@ -376,6 +398,7 @@ def main():
             The number of terms used for generating
             coherence feature
         """)
+    parser.add_argument("--tune_documents","-td",type=int)
     args=parser.parse_args()
 
 
@@ -473,7 +496,7 @@ def main():
                                 args.predictor_choice,silent_day_generator.qrel,
                                 index_dir,query_dir,result_dir,
                                 bin_file,link_dir,
-                                args.term_size,
+                                args.term_size,tune_documents=args.tune_documents,
                                 retrieval_method=args.retrieval_method)
         y_true, y_score = prepare_for_auc(predictor_values,silent_day_values)
         score = roc_auc_score(y_true, y_score)
