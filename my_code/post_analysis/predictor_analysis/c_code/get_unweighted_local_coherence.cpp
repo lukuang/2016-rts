@@ -149,6 +149,11 @@ void show_unweighted_coherence( map<string, vector <vector<string> > >& query_su
                         output_count[subquery_size] = 0;
                     }
                 }
+                else{
+                    if(now_count>0){
+                        output_count[subquery_size] = 1;
+                    }
+                }
             }
             else if(cu=="max"){
                 if(output_count.find(subquery_size)!=output_count.end()){
