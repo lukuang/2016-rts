@@ -924,7 +924,7 @@ class LocalCoherenceUnweigheted(PredictorUsingBoth):
 class LocalCoherenceUnweighetedBinary(LocalCoherenceUnweigheted):
     """local coherence with binary co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=100):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=20):
         super(LocalCoherenceUnweighetedBinary,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"binary","log",tune_documents=tune_documents)
 
 
@@ -944,13 +944,13 @@ class LocalCoherenceUnweighetedMax(LocalCoherenceUnweigheted):
 class LocalSizedCoherenceUnweighetedBinary(LocalCoherenceUnweigheted):
     """local coherence with binary co-occurrence count (SIZED)
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=5):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=20):
         super(LocalSizedCoherenceUnweighetedBinary,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"binary",tune_documents=tune_documents)
 
 class LocalSizedCoherenceUnweighetedAverage(LocalCoherenceUnweigheted):
     """local coherence with average co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=5):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
         super(LocalSizedCoherenceUnweighetedAverage,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"average",tune_documents=tune_documents)
 
 
@@ -965,7 +965,7 @@ class LocalSizedCoherenceUnweighetedMax(LocalCoherenceUnweigheted):
 class LocalCoherenceUnweighetedBinaryLinear(LocalCoherenceUnweigheted):
     """local coherence with binary co-occurrence count
     """
-    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=100):
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=20):
         super(LocalCoherenceUnweighetedBinaryLinear,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir,"binary","linear",tune_documents=tune_documents)
 
 
