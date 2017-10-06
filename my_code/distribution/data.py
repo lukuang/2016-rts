@@ -14,6 +14,7 @@ class Year(IntEnum):
     y2015 = 0
     y2016 = 1
     y2011 = 2
+    y2017 = 3
 
 
 DocScorePair  = collections.namedtuple('DocScorePair', ['scores', 'docids'])
@@ -105,6 +106,8 @@ class  T2Day(object):
             date_finder = re.compile("201507(\d+)")
         elif year == Year.y2011:
             date_finder = re.compile("20110[12](\d+)")
+        elif year == Year.y2017:
+            date_finder = re.compile("20110[78](\d+)")
         else:
             raise NotImplementedError("Year %s is not implemented" %(year.name))
 
@@ -202,6 +205,12 @@ class Days(object):
             for qid in self._days:
                 self._days[qid] = day_strings
 
+        elif year == Year.y2017:
+
+            day_strings = map(str,range(29,32)+range(1,6)) 
+            for qid in self._days:
+                self._days[qid] = day_strings
+
 
     @property
     def days(self):
@@ -225,7 +234,8 @@ class SemaCluster(object):
             self._read_cluster_file_16(t2day)
         elif year == Year.y2011:
             self._read_cluster_file_16(t2day)
-
+        elif year == Year.y2017:
+            self._read_cluster_file_17(t2day)
         else:
             raise NotImplementedError("Year %s is not implemented" %(year.name))
 
@@ -263,6 +273,26 @@ class SemaCluster(object):
                 self._cluster[qid][cluster_id] = all_data[qid]["clusters"][cluster_id]
                 
                 for tid in all_data[qid]["clusters"][cluster_id]:
+                    date = t2day.get_date(tid)
+                    if date not in self._day_cluster:
+                        self._day_cluster[date] = {}
+                    if qid not in self._day_cluster[date]:
+                        self._day_cluster[date][qid] = {}
+                    if cluster_id not in self._day_cluster[date][qid]:
+                        self._day_cluster[date][qid][cluster_id] = []
+
+                    self._day_cluster[date][qid][cluster_id].append(tid)
+
+    def _read_cluster_file_17(self,t2day):
+        self._cluster = {}
+        self._day_cluster = {}
+        all_data = json.load(open(self._cluster_file))
+        for qid in all_data:
+            self._cluster[qid] = {}
+            for cluster_id in all_data[qid]["clusters"]:
+                self._cluster[qid][cluster_id] = all_data[qid]["clusters"][cluster_id]["tweets"]
+                
+                for tid in all_data[qid]["clusters"][cluster_id]["tweets"]:
                     date = t2day.get_date(tid)
                     if date not in self._day_cluster:
                         self._day_cluster[date] = {}
