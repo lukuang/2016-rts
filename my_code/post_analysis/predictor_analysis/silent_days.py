@@ -52,6 +52,14 @@ class SilentDays(object):
             self._qrel_file = os.path.join(self._eval_dir,"new_qrels")
             self._topic_file = os.path.join(self._eval_dir,"topics")
 
+        elif self._year == Year.y2017:
+            self._eval_dir = '/infolab/node4/lukuang/2015-RTS/src/2017/eval'
+            self._tweet2day_file = os.path.join(self._eval_dir,"rts2017-batch-tweets2dayepoch.txt")
+            self._cluster_file = os.path.join(self._eval_dir,"rts2017-batch-clusters.json")
+            self._qrel_file = os.path.join(self._eval_dir,"rts2017-batch-qrels.txt")
+            self._topic_file = None
+
+
         else:
             raise NotImplementedError("Year %s is not implemented!" %(self._year.name))
 
@@ -59,7 +67,9 @@ class SilentDays(object):
         self._sema_cluster = SemaCluster(self._cluster_file,self._t2day,self._year)
         self._days = Days(self._qrel_file,self._year,self._topic_file).days
         self._qrel = Qrel(self._qrel_file,self._days,year=self._year)
+        # print self._qrel._judgement
         self._judged_qids = self._qrel.qids
+        print self._qrel.qids
 
     @abstractmethod
     def _get_silent_days(self):
@@ -197,8 +207,17 @@ class SilentDaysFromJug(SilentDays):
                         prefix = "201101"
                 elif self._year == Year.y2016:
                     prefix = "201608"
-                else:
+                elif self._year == Year.y2015:
                     prefix = "201507"
+                elif self._year == Year.y2017:
+                    if int(day) >= 29:
+                        prefix = "201707"
+                    else:
+                        prefix = "201708"
+                else:
+                    raise NotImplementedError("The Silent Day for year %w is not implemented" %(self._year.name))
+
+
                 day_string = "%s%s" %(prefix,day.zfill(2))
                 if day_string not in non_silent_days[qid]:
                     self._silent_days[day][qid] = True
@@ -231,6 +250,7 @@ def main():
                 0:2015
                 1:2016
                 2:2011
+                3:2017
         """)
     parser.add_argument("--result_dir","-rd")
     args=parser.parse_args()
