@@ -107,7 +107,7 @@ class  T2Day(object):
         elif year == Year.y2011:
             date_finder = re.compile("20110[12](\d+)")
         elif year == Year.y2017:
-            date_finder = re.compile("20110[78](\d+)")
+            date_finder = re.compile("20170[78](\d+)")
         else:
             raise NotImplementedError("Year %s is not implemented" %(year.name))
 
