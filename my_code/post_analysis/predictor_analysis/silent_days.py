@@ -195,7 +195,7 @@ class SilentDaysFromJug(SilentDays):
             else:
                 continue
 
-        for qid in non_silent_days:
+        for qid in self._days:
             
             for day in self._days[qid]:
                 if day not in self._silent_days:
@@ -219,7 +219,7 @@ class SilentDaysFromJug(SilentDays):
 
 
                 day_string = "%s%s" %(prefix,day.zfill(2))
-                if day_string not in non_silent_days[qid]:
+                if qid not in non_silent_days or  day_string not in non_silent_days[qid]:
                     self._silent_days[day][qid] = True
                 else:
                     self._silent_days[day][qid] = False
