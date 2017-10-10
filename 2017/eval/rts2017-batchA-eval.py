@@ -8,6 +8,7 @@
 #
 # - v1.00 (Sept 2017): Original release
 
+from __future__ import print_function
 __author__ = 'Luchen'
 import argparse
 import json
@@ -88,7 +89,7 @@ run_epoch_dt = {}
 run_lines = open(run_path).readlines()
 if len(run_lines) == 0:
     print("This is an empty run.")
-    sys.exit()
+    #sys.exit()
 for line in run_lines:
     line = line.strip().split()
     runname = line[3]
