@@ -52,6 +52,9 @@
 
     expanded results: /infolab/node4/lukuang/2015-RTS/2011-data/generated_data/static/results
 
+2017:
+    raw results: /infolab/headnode2/lukuang/2017-rts/data/result/raw/
+
 embedding vecoters:
     /infolab/headnode2/lukuang/glove/data/vectors
 
