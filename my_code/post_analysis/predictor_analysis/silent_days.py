@@ -69,7 +69,7 @@ class SilentDays(object):
         self._qrel = Qrel(self._qrel_file,self._days,year=self._year)
         # print self._qrel._judgement
         self._judged_qids = self._qrel.qids
-        print self._qrel.qids
+        # print self._qrel.qids
 
     @abstractmethod
     def _get_silent_days(self):
