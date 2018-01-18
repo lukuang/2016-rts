@@ -70,7 +70,7 @@ def run_query(date,query_dir,result_dir):
     return raw_results
 
 
-def generate_output(raw_results,date,decisions,dest_dir):
+def generate_output(raw_results,date,decisions,dest_dir,gene_original):
     
     dest_file = os.path.join(dest_dir,date)
     tids = set()
@@ -78,7 +78,7 @@ def generate_output(raw_results,date,decisions,dest_dir):
     silent_count = 0
     with open(dest_file,"w") as f:
         for qid in raw_results:
-            if decisions[qid]==0:
+            if gene_original or decisions[qid]==0:
                 for line in raw_results[qid]:
                     f.write(line+"\n")
 
@@ -122,44 +122,49 @@ def main():
     parser.add_argument("--result_dir","-rr",default="/infolab/headnode2/lukuang/2017-rts/data/result")
     parser.add_argument("--para_dir","-pr",default="/infolab/headnode2/lukuang/2017-rts/data/para")
     parser.add_argument("--clarity_query_dir","-cqr",default="/infolab/headnode2/lukuang/2017-rts/data/clarity_queries")
-    parser.add_argument("--model_dir","-mr",default="/infolab/headnode2/lukuang/2017-rts/data/models")
-    parser.add_argument("--dest_dir","-dr",default="/infolab/headnode2/lukuang/2017-rts/data/raw_result_with_sd")
-    parser.add_argument("--all_text_file","-atf",default="/infolab/headnode2/lukuang/2017-rts/code/2017/scenario_b/2017_all_text")
+    parser.add_argument("--model_dir","-mr",default="/infolab/headnode2/lukuang/2017-rts/data/models/for_naacl2018-trainedOnMB20112012")
+    parser.add_argument("--dest_dir","-dr",default="/infolab/headnode2/lukuang/2017-rts/data/for_naacl2018")
+    parser.add_argument("--gene_original","-gn",action="store_true")
     parser.add_argument(
         "--communication_dir","-cr",
         default="/infolab/headnode2/lukuang/2017-rts/data/communication")
     args=parser.parse_args()
 
-    print "load all text"
-    all_text = {}
-    if os.path.exists(args.all_text_file):
-        all_text = json.load(open(args.all_text_file))
+    # print "load all text"
+    # all_text = {}
+    # if os.path.exists(args.all_text_file):
+    #     all_text = json.load(open(args.all_text_file))
 
     topic_file = os.path.join(args.communication_dir,"topics")
     single_term_qids, multi_term_qids = separate_qids(topic_file) 
     all_qids = single_term_qids + multi_term_qids
 
-    single_term_with_result_feature_list = [
-        PredictorName.average_idf, 
-        PredictorName.scq, 
-        PredictorName.dev
-    ]
+    if not args.gene_original:
+        single_term_with_result_feature_list = [
+            PredictorName.coherence_average,
+            PredictorName.coherence_binary,
+            PredictorName.coherence_max,
+            PredictorName.pwig
+        ]
 
 
-    multi_term_feature_list = [
-        PredictorName.coherence_average,
-        PredictorName.coherence_binary,
-        PredictorName.coherence_max,
-        PredictorName.pwig
-    ]
+        multi_term_feature_list = [
+            PredictorName.coherence_average,
+            PredictorName.coherence_binary,
+            PredictorName.coherence_max,
+            PredictorName.pwig
+        ]
 
-    print "load pre-trained models for silent day detection"
-    with_result_models = Models(os.path.join(args.model_dir,"with"))
+        print "load pre-trained models for silent day detection"
+        with_result_models = Models(args.model_dir)
 
-    with_result_detector = Detector(with_result_models,single_term_qids,
-                                    single_term_with_result_feature_list,multi_term_qids,
-                                    multi_term_feature_list)
+        with_result_detector = Detector(with_result_models,single_term_qids,
+                                        single_term_with_result_feature_list,multi_term_qids,
+                                        multi_term_feature_list)
 
+        args.dest_dir = os.path.join(args.dest_dir,"with_sd")
+    else:
+        args.dest_dir = os.path.join(args.dest_dir,"original")
 
     days = ["29","30","31","1","2","3","4","5"]
 
@@ -173,30 +178,32 @@ def main():
 
         print "get predictor values"
         result_dir = os.path.join(args.result_dir,"raw")
-        single_term_with_result_predictor_values = get_predictor_values(date,single_term_qids,
-                                                            single_term_with_result_feature_list,
-                                                            args.clarity_query_dir,
-                                                            result_dir,args.index_dir)
-        
-        muti_term_predictor_values = get_predictor_values(date,multi_term_qids,
-                                                            multi_term_feature_list,
-                                                            args.clarity_query_dir,
-                                                            result_dir,args.index_dir)
+        if not args.gene_original:
+            single_term_with_result_predictor_values = get_predictor_values(date,single_term_qids,
+                                                                single_term_with_result_feature_list,
+                                                                args.clarity_query_dir,
+                                                                result_dir,args.index_dir)
+            
+            muti_term_predictor_values = get_predictor_values(date,multi_term_qids,
+                                                                multi_term_feature_list,
+                                                                args.clarity_query_dir,
+                                                                result_dir,args.index_dir)
 
-        print "make silent day decisions"
-        with_result_decisions = with_result_detector.make_descision(
-                                        single_term_with_result_predictor_values,
-                                        muti_term_predictor_values)   
-             
+            print "make silent day decisions"
+            with_result_decisions = with_result_detector.make_descision(
+                                            single_term_with_result_predictor_values,
+                                            muti_term_predictor_values)   
+        else:
+            with_result_decisions = None
         print "generate output"
-        tids = generate_output(raw_results,date,with_result_decisions,args.dest_dir)
+        tids = generate_output(raw_results,date,with_result_decisions,args.dest_dir,args.gene_original)
 
-        print "get text"
-        get_text(args.index_dir,date,tids,all_text)
+        # print "get text"
+        # get_text(args.index_dir,date,tids,all_text)
 
-    print "store text"
-    with codecs.open(args.all_text_file,"w",'utf-8') as f:
-        f.write(json.dumps(all_text))
+    # print "store text"
+    # with codecs.open(args.all_text_file,"w",'utf-8') as f:
+    #     f.write(json.dumps(all_text))
 
 if __name__=="__main__":
     main()
