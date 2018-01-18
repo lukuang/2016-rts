@@ -78,7 +78,8 @@ for topic in clusters_topic_dt:
 runname = ''
 run_dt = {}
 run_epoch_dt = {}
-for line in gzip.open(run_path, "r").readlines():
+# for line in gzip.open(run_path, "r").readlines():
+for line in open(run_path).readlines():
 
     line = line.decode().strip().split()
 
