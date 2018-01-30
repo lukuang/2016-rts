@@ -53,6 +53,12 @@
     expanded results: /infolab/node4/lukuang/2015-RTS/2011-data/generated_data/static/results
 
 2017:
+    individual index: /infolab/headnode2/lukuang/2017-rts/data/index
+
+    eval data: /infolab/node4/lukuang/2015-RTS/src/2017/eval
+
+    raw clarity queries: /infolab/headnode2/lukuang/2017-rts/data/clarity_queries
+
     raw results: /infolab/headnode2/lukuang/2017-rts/data/result/raw/
 
 embedding vecoters:
