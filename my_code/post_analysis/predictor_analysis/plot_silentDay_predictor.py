@@ -787,6 +787,7 @@ def main():
     else:
         result_dir = None
         printing_message += "\twithout result\n"
+        dest_dir = os.path.join(dest_dir,"without_result")
         graph_file = os.path.join(dest_dir,"without_result_plot.png")
 
     print printing_message
