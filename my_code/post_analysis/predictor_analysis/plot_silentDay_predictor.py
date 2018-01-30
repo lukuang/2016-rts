@@ -150,7 +150,8 @@ BIN_FILES = {
 Q_DIR = {
     Year.y2015:{},
     Year.y2016:{},
-    Year.y2011:{}
+    Year.y2011:{},
+    Year.y2017:{}
 }
 
 Q_DIR[Year.y2015] = {
@@ -168,6 +169,11 @@ Q_DIR[Year.y2011] = {
     Expansion.raw:"/infolab/node4/lukuang/2015-RTS/2011-data/generated_data/raw/clarity_queries",
     Expansion.static:"/infolab/node4/lukuang/2015-RTS/2011-data/generated_data/static/clarity_queries"
 }
+
+Q_DIR[Year.y2017] = {
+    Expansion.raw:"/infolab/headnode2/lukuang/2017-rts/data/clarity_queries"
+}
+
 
 LINK_DIR = {
     Year.y2015:{},
@@ -191,7 +197,8 @@ LINK_DIR[Year.y2011] = {
 R_DIR = {
     Year.y2015:{},
     Year.y2016:{}, 
-    Year.y2011:{} 
+    Year.y2011:{}, 
+    Year.y2017:{} 
 }
 
 R_DIR[Year.y2015] = {
@@ -231,10 +238,17 @@ R_DIR[Year.y2011][Expansion.raw] = {
 
 }
 
+R_DIR[Year.y2017][Expansion.raw] = {
+        RetrievalMethod.f2exp:"/infolab/headnode2/lukuang/2017-rts/data/result/raw/",
+
+}
+
+
 IND_DIR = {
     Year.y2015: "/infolab/node4/lukuang/2015-RTS/2015-data/collection/simulation/index/individual",
     Year.y2016: "/infolab/headnode2/lukuang/2016-rts/data/full_index_reparsed",
-    Year.y2011: "/infolab/node4/lukuang/2015-RTS/2011-data/individual_index"
+    Year.y2011: "/infolab/node4/lukuang/2015-RTS/2011-data/individual_index",
+    Year.y2017: "/infolab/headnode2/lukuang/2017-rts/data/index"
 }
 
 
@@ -647,6 +661,7 @@ def main():
                 0:2015
                 1:2016
                 2:2011
+                3:2017
         """)
     parser.add_argument("--retrieval_method","-rm",choices=list(map(int, RetrievalMethod)),default=0,type=int,
         help="""
