@@ -267,10 +267,10 @@ def main():
     silent_day_count = 0
     total_count = 0
     print "There are %d days" %(len(silent_days.keys()))
-    for qid in silent_days:
-        for day in silent_days[qid]:
+    for day in silent_days:
+        for qid in silent_days[day]:
             total_count += 1
-            if silent_days[qid][day]:
+            if silent_days[day][qid]:
                 silent_day_count += 1
             # print "There are %s queries of day %s" %(len(silent_days[day].keys()), day)
     # print silent_days
