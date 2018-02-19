@@ -79,9 +79,9 @@ class Forest(object):
     def _compute_alpha(self,errors):
         # ek = .0
         # for i in self._weights:
-        #     day_qid = self._query_data[i]["day_qid"]
-        #     if errors[day_qid] != 0:
-        #         ek += self._weights[i]*errors[day_qid]
+        #     year_day_qid = self._query_data[i]["year_day_qid"]
+        #     if errors[year_day_qid] != 0:
+        #         ek += self._weights[i]*errors[year_day_qid]
 
 
         ek = (sum(errors.values())*1.0)/len(errors)
@@ -90,8 +90,8 @@ class Forest(object):
 
     def _update_weights(self,errors,alpha):
         for i in self._weights:
-            day_qid = self._query_data[i]["day_qid"]
-            if errors[day_qid] == 0:
+            year_day_qid = self._query_data[i]["year_day_qid"]
+            if errors[year_day_qid] == 0:
                 self._weights[i] *= math.exp(-1*alpha)
             else:
                 self._weights[i] *= math.exp(alpha)
@@ -106,15 +106,15 @@ class Forest(object):
     def output_result(self,test_data):
         output = {}
         for sinlge_data in test_data:
-            day_qid = sinlge_data["day_qid"]
+            year_day_qid = sinlge_data["year_day_qid"]
             value_pairs = sinlge_data["values"]
-            if day_qid not in output:
-                output[day_qid] = .0
+            if year_day_qid not in output:
+                output[year_day_qid] = .0
             for tree in self._trees:
                 alpha = tree["alpha"]
                 single_tree = tree["single_tree"]
 
-                output[day_qid] += alpha*single_tree.predict_value(value_pairs)
+                output[year_day_qid] += alpha*single_tree.predict_value(value_pairs)
 
         return output
 

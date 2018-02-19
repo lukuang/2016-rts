@@ -139,9 +139,9 @@ def read_results(result_dir,eval_data):
 def evaluate_kt(ndcgs,predicted_values):
     real = []
     predicted = []
-    for day_qid in ndcgs:
-        real.append(ndcgs[day_qid])
-        predicted.append(predicted_values[day_qid])
+    for year_day_qid in ndcgs:
+        real.append(ndcgs[year_day_qid])
+        predicted.append(predicted_values[year_day_qid])
     
     # print real
     # print predicted
@@ -212,7 +212,7 @@ def main():
                 # prediction tree
                 if silent_day_values[day][qid] == True:
                     continue
-                day_qid = "%s_%s" %(day,qid)
+                year_day_qid = "%s_%s_%s" %(year.name,day,qid)
                 # print day_qid
                 # print results[day]
                 if qid in results[day]:
@@ -222,10 +222,10 @@ def main():
                     # print "for day %s and qid %s, thq ndcg is %f" %(day,qid,day_query_ndcg)
                 else:
                     day_query_ndcg = .0
-                ndcgs[day_qid] = day_query_ndcg
+                ndcgs[year_day_qid] = day_query_ndcg
                 
                 single_data = {}
-                single_data["day_qid"] = day_qid
+                single_data["year_day_qid"] = year_day_qid
                 single_data["ndcg"] = day_query_ndcg
                 if len(values[day][qid]) == 0:
                     single_data["values"] = [[0,0]]

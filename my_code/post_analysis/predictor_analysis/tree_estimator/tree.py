@@ -23,8 +23,8 @@ class Tree(object):
     Tree class
     """
 
-    # query_data is the data structure of [{"day_qid":day_qid,"values": [], "ndcg":ndcg}]
-    # where day_qid is "day_qid" which consist of day and qid
+    # query_data is the data structure of [{"year_day_qid":year_day_qid,"values": [], "ndcg":ndcg}]
+    # where year_day_qid is "year_day_qid" which consist of year, day and qid
     # values is the value pairs of [overlap,bucketed log(DF)]
     #
     # value is the value of the node which is used as output when new
@@ -46,7 +46,7 @@ class Tree(object):
         H = [[],[]]
         t = []
         for sinlge_data in query_data:
-            day_qid = sinlge_data["day_qid"]
+            year_day_qid = sinlge_data["year_day_qid"]
             value_pair = sinlge_data["values"][0]
             query_ndcg = sinlge_data["ndcg"]
             H[0].append(value_pair[0])
@@ -76,12 +76,12 @@ class Tree(object):
         for sinlge_data in query_data:
             if ( len(sinlge_data["values"])>1 ):
 
-                day_qid = sinlge_data["day_qid"]
+                year_day_qid = sinlge_data["year_day_qid"]
                 value_pair = sinlge_data["values"][0]
                 query_ndcg = sinlge_data["ndcg"]
 
                 temp_data = {}
-                temp_data["day_qid"] =  day_qid
+                temp_data["year_day_qid"] =  year_day_qid
                 temp_data["values"] = sinlge_data["values"][1:]
                 temp_data["ndcg"] = query_ndcg
 
@@ -126,9 +126,9 @@ class Tree(object):
         predicted_values = {}
         real_values = {}
         for sinlge_data in query_data:
-            day_qid = sinlge_data["day_qid"]
-            real_values[day_qid] = sinlge_data["ndcg"] 
-            predicted_values[day_qid] = self.predict_value(sinlge_data["values"])
+            year_day_qid = sinlge_data["year_day_qid"]
+            real_values[year_day_qid] = sinlge_data["ndcg"] 
+            predicted_values[year_day_qid] = self.predict_value(sinlge_data["values"])
 
         predicted_values = sorted(predicted_values.items(),key=lambda x:x[1])
         real_values = sorted(real_values.items(),key=lambda x:x[1])
@@ -140,12 +140,12 @@ class Tree(object):
             real_rank[ real_values[j][0] ] = j
 
 
-        for day_qid in predicted_rank:
-            single_error = abs(predicted_rank[day_qid]-real_rank[day_qid])
+        for year_day_qid in predicted_rank:
+            single_error = abs(predicted_rank[year_day_qid]-real_rank[year_day_qid])
             if (single_error<error_threshold ):
-                errors[day_qid] = 0
+                errors[year_day_qid] = 0
             else:
-                errors[day_qid] = 1
+                errors[year_day_qid] = 1
 
         return errors
 

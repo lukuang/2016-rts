@@ -306,8 +306,8 @@ def main():
                         testing_pre_y_score.append(1000)
                         testing_pre_y_true.append(silent_days[day_qid])
 
-        test_forest = Forest(testing_data,args.error_threshold,args.number_of_iterations)
-        test_forest.start_training()
+        # test_forest = Forest(testing_data,args.error_threshold,args.number_of_iterations)
+        # test_forest.start_training()
 
         test_predicted_values = forest.output_result(testing_data)
         testing_y_true, testing_y_score = make_score_prediction_lists(test_predicted_values,silent_days)
