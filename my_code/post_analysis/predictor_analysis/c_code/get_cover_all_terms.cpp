@@ -117,7 +117,7 @@ map<int,float> get_expression_document_map(indri::api::QueryEnvironment& env,con
     return expression_document_map;
 }
 
-float check_cover_all_terms(indri::collection::Repository& r,vector<int>& document_results,const string& query_string,const string& indexName){
+float check_cover_all_terms(indri::collection::Repository& r,vector<int>& document_results,const string& query_string,const string& indexName, const bool& debug){
     indri::api::QueryEnvironment env;
 
     env.addIndex( indexName );
@@ -139,9 +139,12 @@ map<string, float> get_cover_all_terms(indri::collection::Repository& r,map<stri
     for (vector<string>::iterator t=it->second.begin(); t!=it->second.end(); ++t){
         query_string += *t + " ";
     } 
+    query_string = "#uw140(" + query_string +")";
+    
     if(debug) cout<<"For query "<<qid<<endl;
     if(debug) cout<<"Got queries"<<endl;
-    cover_all_terms[qid] = check_cover_all_terms(r,results[qid],query_string, indexName);
+    if(debug) cout<<"Got query string "<<query_string<<endl;
+    cover_all_terms[qid] = check_cover_all_terms(r,results[qid],query_string, indexName,debug);
     // query_with_phrases[qid].show();
     // for(vector<string>::const_iterator sid=it->second.begin(); sid!=it->second.end(); ++sid){
 
