@@ -81,6 +81,7 @@ class PredictorName(IntEnum):
     coherence_binary_linear = 49
     coherence_average_linear = 50
     coherence_max_linear = 51
+    cover_all_terms = 52
 
 @unique
 class Expansion(IntEnum):
@@ -144,7 +145,7 @@ BIN_FILES = {
     PredictorName.coherence_binary_linear:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_unweighted_local_coherence",
     PredictorName.coherence_average_linear:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_unweighted_local_coherence",
     PredictorName.coherence_max_linear:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_unweighted_local_coherence",
-    
+    PredictorName.cover_all_terms:"/infolab/node4/lukuang/2015-RTS/src/my_code/post_analysis/predictor_analysis/c_code/get_cover_all_terms",
 }
 
 Q_DIR = {
@@ -308,7 +309,7 @@ PREDICTOR_CLASS = {
     PredictorName.coherence_binary_linear : PredictorClass.post,
     PredictorName.coherence_average_linear : PredictorClass.post,
     PredictorName.coherence_max_linear : PredictorClass.post,
-
+    PredictorName.cover_all_terms : PredictorClass.post,
 }
 
 
@@ -598,7 +599,12 @@ def gene_predictor(predictor_choice,qrel,
             raise RuntimeError("Need to specify result dir when using ttc lower!")
         else:
             predictor = TopTermCoverageLower(qrel,index_dir,query_dir,bin_file,result_dir)
-
+    elif predictor_choice == PredictorName.cover_all_terms:
+        if not result_dir:
+            raise RuntimeError("Need to specify result dir when using pwig!")
+        else:
+            predictor = CoverAllTerms(qrel,index_dir,query_dir,bin_file,result_dir)
+    
 
     
     return predictor
@@ -734,6 +740,7 @@ def main():
                 49: coherence_binary_linear
                 50: coherence_average_linear
                 51: coherence_max_linear
+                52: cover_all_terms
         """)
     parser.add_argument("--term_size","-tn",type=int,
         help="""

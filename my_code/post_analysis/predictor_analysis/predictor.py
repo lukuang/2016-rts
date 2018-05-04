@@ -599,6 +599,47 @@ class PWIG(PredictorUsingBoth):
                 break 
         return daily_value 
 
+
+
+class CoverAllTerms(PredictorUsingBoth):
+    """
+    get whether the results have any tweets
+    that contain all query terms
+    """
+    def __init__(self,qrel,top_index_dir,query_dir,bin_file,result_dir,tune_documents=10):
+        super(CoverAllTerms,self).__init__(qrel,top_index_dir,query_dir,bin_file,result_dir)
+        self._tune_documents = tune_documents
+
+    def _compute_daily_value(self,day_index_dir,day_query_file,
+                             day_result_file):
+        daily_value = {}
+
+        run_command = "%s -index=%s -query=%s -result=%s -n=%d" %(self._bin_file,
+                                                            day_index_dir,
+                                                            day_query_file,
+                                                            day_result_file,
+                                                            self._tune_documents)
+
+   
+
+        # print "command being run:\n%s" %(run_command)
+        p = subprocess.Popen(run_command,stdout=subprocess.PIPE,shell=True)
+        
+        while True:
+            line = p.stdout.readline()
+            if line != '':
+                line = line.rstrip()
+                parts = line.split()
+                qid = parts[0]
+                if qid not in self._judged_qids:
+                    continue
+                daily_value[qid] = float(parts[1])
+                
+
+            else:
+                break 
+        return daily_value 
+
 class LocalTermRelatedness(PredictorUsingBoth):
     """
     compute loca term relatedness (pmi)
@@ -1411,6 +1452,7 @@ def _main():
                 31: local_max_pmi
                 32: aidf_pmi
                 33: midf_pmi
+                34: get_cover_all_terms
         """)
     args=parser.parse_args()
 
