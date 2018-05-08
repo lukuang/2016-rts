@@ -279,6 +279,21 @@ def main():
 
     true_count = 0
     all_days = silent_day_generator.all_days
+
+    qid_as_first = {}
+    for qid in all_days:
+        
+        qid_as_first[qid] = {}
+        for day in all_days[qid]: 
+            if day not in silent_days:
+                continue
+            else:
+                if qid not in silent_days[day]:
+                    continue
+                else:
+                    qid_as_first[qid][day] = int(silent_days[day][qid])
+    print qid_as_first
+
     for qid in all_days:
         for day in all_days[qid]:
             if day not in silent_days or qid not in silent_days[day]:
