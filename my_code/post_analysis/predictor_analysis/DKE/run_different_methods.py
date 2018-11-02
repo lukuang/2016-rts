@@ -71,7 +71,6 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("src_query_file")
     parser.add_argument("dest_dir")
-    parser.add_argument("--result_prefix","-rp",default="")
     parser.add_argument("--year","-y",choices=[0,1,3],default=0,type=int,
         help="""
             Choose the year:
@@ -107,7 +106,8 @@ def main():
 
     rule = RULE[ args.retrieval_method ]
 
-    result_file_name = args.result_prefix
+    result_prefix = os.path.basename(args.src_query_file)
+    result_file_name = result_prefix
     if len(result_file_name)==0:
         result_file_name = args.retrieval_method.name
     else:
