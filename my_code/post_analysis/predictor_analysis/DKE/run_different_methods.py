@@ -11,14 +11,31 @@ import argparse
 import subprocess
 from lxml import etree
 from string import Template
+from enum import IntEnum, unique
 
 sys.path.append("/infolab/node4/lukuang/2015-RTS/src")
 from my_code.distribution.data import Year
 
-sys.path.append("../")
-from predictor import RetrievalMethod,RULE
 
+sys.path.append("../")
 from plot_silentDay_predictor import IND_DIR
+
+
+@unique
+class RetrievalMethod(IntEnum):
+    f2exp = 0
+    dirichlet = 1
+    pivoted = 2
+    bm25 = 3
+    tfidf = 4
+
+RULE = {
+    RetrievalMethod.f2exp:"method:f2exp,s:0.1",
+    RetrievalMethod.dirichlet:"method:dirichlet,mu:500",
+    RetrievalMethod.pivoted:"method:pivoted,s:0.2",
+    RetrievalMethod.bm25:"method:okapi,k1:1.0",
+    RetrievalMethod.tfidf:"method:tfidf",
+}
 
 
 class GetDays(object):
@@ -70,8 +87,9 @@ def main():
                 1:dirichlet
                 2:pivoted
                 3:bm25
+                4:tfidf
         """)
-    parser.add_argument("--use_fb","-uf",action="store_true",
+    parser.add_argument("--fbDocs","-fd",type=int,
         help="""
             When specified, rm3 feedback method is in use
         """)
@@ -94,14 +112,14 @@ def main():
         result_file_name = args.retrieval_method.name
     else:
         result_file_name += "_{}".format(args.retrieval_method.name)
-    if args.use_fb:
-        result_file_name += "_fb"
+    if args.fbDocs:
+        result_file_name += "_fbDocs:{}".format(args.fbDocs)
 
     result_file = os.path.join(args.dest_dir,result_file_name)
 
     fbDocs = ""
-    if args.use_fb:
-        fbDocs = "-fbDocs=10"
+    if args.fbDocs:
+        fbDocs = "-fbDocs={}".format(args.fbDocs)
 
     command_template = Template("IndriRunQuery {} {} -rule={} -index=$index_path ".format(args.src_query_file,
                                                                                                fbDocs,
