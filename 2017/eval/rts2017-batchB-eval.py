@@ -97,8 +97,10 @@ for line in open(run_path).readlines():
 print("{0}\t{1:5s}\t{2:6s}\t{3:6s}".format("runtag".ljust(len(runname)), "topic", "nDCGp", "nDCG1"))
 
 total_ndcg1, total_ndcgp = 0.0, 0.0
+total_ndcg0 = 0.0
 for topic in sorted(qrels_dt):
     topic_ndcg1, topic_ndcgp = 0.0, 0.0
+    topic_ndcg0 = 0.0
     exist_clusterids = set()
     for day in days:
         interesting = False
@@ -146,6 +148,7 @@ for topic in sorted(qrels_dt):
                     ndcg = dcg / idcg
                 topic_ndcg1 += ndcg
                 topic_ndcgp += ndcg
+                topic_ndcg0 += ndcg
         else:
             if topic not in run_dt or day not in run_dt[topic]:
                 topic_ndcg1 += 1
@@ -158,9 +161,13 @@ for topic in sorted(qrels_dt):
 
     topic_ndcg1 /= len(days)
     topic_ndcgp /= len(days)
-    print("{0}\t{1:5s}\t{2:.4f}\t{3:.4f}".format(runname, topic, topic_ndcgp, topic_ndcg1))
+    topic_ndcg0 /= len(days)
+    print("{0}\t{1:5s}\t{2:.4f}\t{3:.4f}\t{4:.4f}".format(runname, topic, topic_ndcgp, topic_ndcg1,topic_ndcg0))
     total_ndcg1 += topic_ndcg1
     total_ndcgp += topic_ndcgp
+    total_ndcg0 += topic_ndcg0
+    
 total_ndcg1 /= len(qrels_dt)
 total_ndcgp /= len(qrels_dt)
-print("{0}\t{1:5s}\t{2:.4f}\t{3:.4f}".format(runname, "All", total_ndcgp, total_ndcg1))
+total_ndcg0 /= len(qrels_dt)
+print("{0}\t{1:5s}\t{2:.4f}\t{3:.4f}\t{4:.4f}".format(runname, "All", total_ndcgp, total_ndcg1,total_ndcg0))
