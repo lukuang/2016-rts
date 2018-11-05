@@ -76,23 +76,34 @@ class DataSet(object):
             self._model = cPickle.load(f)
 
         predicted = self._model.predict(self._X)
+        prob =  self._model.predict_proba(self._X)
         self._prediction = {}
+        self._prob = {}
         for index, value in enumerate(predicted):
             qid = self._index_2_info[index]["qid"]
             day = self._index_2_info[index]["day"]
             year = self._index_2_info[index]["year"]
             if year not in self._prediction:
                 self._prediction[year] = {}
+                self._prob[year] = {}
             if day not in self._prediction[year]:
                 self._prediction[year][day] = {}
+                self._prob[year][day] = {}
             
             self._prediction[year][day][qid] = (value == 1)
+            self._prob[year][day][qid] = self._prob[index][0]
 
     def is_silent_day(self,year,day,qid):
         try:
             return self._prediction[year][day][qid]
         except KeyError:
             return True
+
+    def get_prob(self,year,day,qid)
+        try:
+            return self._prob[year][day][qid]
+        except KeyError:
+            return .0
 
     @property
     def years(self):
