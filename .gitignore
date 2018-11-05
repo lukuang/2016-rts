@@ -22,4 +22,3 @@ data/
 #!show_clarity.cpp
 regr
 get_average_idf
-predictor_data/
