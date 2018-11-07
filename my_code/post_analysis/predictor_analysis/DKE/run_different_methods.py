@@ -55,6 +55,8 @@ class GetDays(object):
 
             self._days = map(str,range(29,32)+range(1,6)) 
 
+        else:
+            self._days = map(str,range(23,32)+range(1,8)) 
 
 
     @property
@@ -71,7 +73,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("src_query_file")
     parser.add_argument("dest_dir")
-    parser.add_argument("--year","-y",choices=[0,1,3],default=0,type=int,
+    parser.add_argument("--year","-y",choices=[0,1,2,3],default=0,type=int,
         help="""
             Choose the year:
                 0:2015
