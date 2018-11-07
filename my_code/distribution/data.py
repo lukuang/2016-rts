@@ -452,6 +452,73 @@ class Qrel(object):
         existed_clusters = {}
         return self.day_dcg10(day,day_results,existed_clusters,sema_cluster)
 
+    def get_raw_ndcg10_per_pair(self,results,
+                                eval_days,sema_cluster):
+        """get the ndcg10-0 per-topic at per day,
+
+        """
+        ndcg10 = {}
+        for day in results:
+            ndcg10[day] = self.raw_per_topic_ndcg10(day,results[day],
+                                                    sema_cluster,
+                                                    eval_days)
+
+        return ndcg10
+
+
+    def raw_per_topic_ndcg10(self,day,day_results,
+                             sema_cluster,eval_days):
+        limit = 10
+        result_size = {}
+        total_score = .0
+        ndcg10 = {}
+        for qid in day_results:
+            if (qid not in eval_days 
+                    or day not in eval_days[qid]):
+                continue
+            cluster_day = day.zfill(2)
+            
+            top_gains = []
+            if qid in sema_cluster.day_cluster[cluster_day]:
+                for cluster_id in sema_cluster.day_cluster[cluster_day][qid]:
+                    for tid in sema_cluster.day_cluster[cluster_day][qid][cluster_id]:
+                        top_gains.append(self._qrels_dt[qid][tid])
+    
+            ndcg = .0
+            gains = []
+            result_size[qid] = 0
+            for tid in day_results[qid]:
+                if result_size[qid] == limit:
+                    break
+                gain = .0
+                cluster_id = sema_cluster.get_cluster_id(qid,tid)
+                if cluster_id is not None:
+                    gain = self._qrels_dt[qid][tid]
+                    
+                gains.append(gain)
+                result_size[qid] += 1
+
+            dcg = .0
+            for i in range(len(gains)):
+                gain  = gains[i]
+                dcg += (pow(2, gain) - 1) * 1.0 / math.log(i + 2, 2)
+
+            
+            top_gains.sort(reverse = True)
+            rank_cut = min(len(top_gains), limit)
+            idcg = 0.0
+            top_gains = top_gains[:rank_cut]
+            for i in range(rank_cut):
+                gain = top_gains[i]
+                idcg = idcg + (pow(2, gain) - 1) * 1.0 / math.log(i + 2, 2)
+            
+            if idcg != 0:
+                ndcg = dcg / idcg
+
+            ndcg10[qid] = ndcg
+
+        return ndcg10
+
     def raw_ndcg10(self,day,day_results,sema_cluster):
         limit = 10
         result_size = {}
