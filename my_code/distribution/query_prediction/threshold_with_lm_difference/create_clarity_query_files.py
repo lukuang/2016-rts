@@ -67,16 +67,24 @@ def output_clarity_queries(query_words,dest_dir):
             for qid in query_words[day]:
                 f.write("%s:%s\n" %(qid,query_words[day][qid]))
 
+def read_qrel_file(qrel_file):
+    eval_topics = set()
+    with open(qrel_file) as f:
+        for line in f:
+            parts = line.split()
+            eval_topics.add(parts[0])
+    return eval_topics
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("eval_topics_file")
+    parser.add_argument("qrel_file")
     parser.add_argument("query_dir")
     parser.add_argument("dest_dir")
     args=parser.parse_args()
 
-    eval_topics = json.load(open(args.eval_topics_file))
+    eval_topics = read_qrel_file(args.qrel_file)
     query_words = get_query_words_by_day(args.query_dir,eval_topics)
+    
     output_clarity_queries(query_words,args.dest_dir)
 
 
