@@ -22,12 +22,14 @@ class RetrievalMethod(IntEnum):
     dirichlet = 1
     pivoted = 2
     bm25 = 3
+    tfidf = 4
 
 RULE = {
     RetrievalMethod.f2exp:"method:f2exp,s:0.1",
     RetrievalMethod.dirichlet:"method:dirichlet,mu:500",
     RetrievalMethod.pivoted:"method:pivoted,s:0.2",
     RetrievalMethod.bm25:"method:okapi,k1:1.0",
+    RetrievalMethod.tfidf:"method:tfidf"
 }
 
 def get_query_terms(day_query_file):

@@ -106,6 +106,25 @@ map<string, float>  compute_collection_score(indri::collection::Repository& r,ma
 
             }
         }
+        else if(retrieval_method=="tfidf"){
+            for(vector<string>::iterator wit = query_words.begin(); wit!=query_words.end(); ++wit){
+                
+                float k1=1.2;
+                float b = 0.75;
+                int f_ct = local.stemCount(*wit);
+                int df = local.documentStemCount(*wit);
+                int d_size = local.documentCount();
+
+                if(f_ct!=0 && df!=0){
+                    float idf = log( (d_size + 1)*1.0/(df+0.5)  );
+                    float termWeight = (idf*1000) / 1001.0;
+                    double numerator = termWeight * idf * k1 *f_ct ;
+                    double denominator = k1*( (1-b) + b*d_size ) + f_ct;
+                    query_collection_score +=  numerator / denominator;                
+                }
+
+            }
+        }
         else{
             cout<<"The method "<<retrieval_method<<" is not implemented!"<<endl;
             exit(-1);
