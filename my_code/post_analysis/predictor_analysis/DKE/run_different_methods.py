@@ -139,11 +139,19 @@ def main():
                         line_prefix = "201507{} ".format(day.zfill(2))
                     elif args.year == Year.y2016:
                         line_prefix = "201608{} ".format(day.zfill(2))
-                    else:
+                    elif args.year == Year.y2017:
                         if int(day) >= 29: 
                             line_prefix = "201707{} ".format(day.zfill(2))
                         else:
                             line_prefix = "201708{} ".format(day.zfill(2))
+                    elif args.year == Year.y2011:
+                        if int(day) < 10: 
+                            line_prefix = "201102{} ".format(day.zfill(2))
+                        else:
+                            line_prefix = "201101{} ".format(day.zfill(2))
+                    else:
+                        raise NotImplementedError("%s not implemented!" %(year.name))
+
                     of.write(line_prefix+line)        
                 else:
                     break
