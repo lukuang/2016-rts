@@ -472,9 +472,11 @@ class Qrel(object):
         result_size = {}
         total_score = .0
         ndcg10 = {}
-        for qid in day_results:
-            if (qid not in eval_days 
-                    or day not in eval_days[qid]):
+        for qid in eval_days:
+            if (day not in eval_days[qid]):
+                continue
+            if qid not in day_results:
+                ndcg10[qid] = .0
                 continue
             cluster_day = day.zfill(2)
             
