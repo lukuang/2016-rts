@@ -24,7 +24,7 @@ Non-silent query day pairs prediction results (using raw ndcg@10 for each day):
 | QPPc + TR            | 0.3950<sup>*mt*</sup>       | 0.3212<sup>*mt*</sup>       | 0.3437<sup>*mb*</sup>  |
 | TR                   | 0.3581                      | 0.2980                      | 0.3353  |
 | per-topic-day-oracle | 0.4964                      | 0.4557                      | 0.4902  |
-| best_baseline        | 0.4022                      | 0.3249                      | 0.3295  |
+| cv_baseline          | 0.3974                      | 0.3249                      | 0.3295  |
 
 Note that *d*, *m*, *c*, *a*, *b*, *t* indicate the effectiveness is statistically significantly higher with **p < 0.01** against 
 *QPPd*, *QPPm*, *QPPc*, *QPPc+TR*, *best_baseline*, *TR*
