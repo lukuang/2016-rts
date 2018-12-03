@@ -18,13 +18,13 @@ Non-silent query day pairs prediction results (using raw ndcg@10 for each day):
 
 |                      |  mb2011&2012                | mb2015&rts2016              | rts2017 |
 | -------------------- |:---------------------------:| ---------------------------:| -------:|
-| QPPd                 | 0.4456<sup>*b*</sup>        | 0.3569                      | 0.4008<sup>mca</sup>  |
-| QPPm                 | 0.4704<sup>*bdca*</sup>     | **0.3748**<sup>*bdca*</sup> | 0.3808  |
-| QPPc                 | 0.4506<sup>*b*</sup>        | 0.3575                      | 0.3913  |
-| QPPc + TR            | 0.4493<sup>*b*</sup>        | 0.3575                      | 0.3913  |
-| TR                   | **0.4717**<sup>*bdca*</sup> | 0.3737<sup>*bdca*</sup>     | **0.4060**<sup>*mca*</sup> |
-| per-topic-day-oracle | 0.4964                      | 0.4557                      | 0.4902                     |
-| best_baseline        | 0.4022                      | 0.3421                      | 0.3950                    |
+| QPPd                 | 0.3958<sup>*mt*</sup>       | 0.3227<sup>*mt*</sup>       | 0.3463<sup>*mb*</sup>  |
+| QPPm                 | 0.3723                      | 0.3019                      | 0.3309  |
+| QPPc                 | 0.3963<sup>*mt*</sup>       | 0.3232<sup>*mt*</sup>       | 0.3447<sup>*mb*</sup>  |
+| QPPc + TR            | 0.3950<sup>*mt*</sup>       | 0.3212<sup>*mt*</sup>       | 0.3437<sup>*mb*</sup>  |
+| TR                   | 0.3581                      | 0.2980                      | 0.3353  |
+| per-topic-day-oracle | 0.4964                      | 0.4557                      | 0.4902  |
+| best_baseline        | 0.4022                      | 0.3249                      | 0.3295  |
 
 Note that *d*, *m*, *c*, *a*, *b*, *t* indicate the effectiveness is statistically significantly higher with **p < 0.01** against 
 *QPPd*, *QPPm*, *QPPc*, *QPPc+TR*, *best_baseline*, *TR*
