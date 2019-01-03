@@ -1,4 +1,4 @@
-#This page contains the results for experiments that only consider three methods: 
+# This page contains the results for experiments that only consider three methods: 
   - f2exp
   - f2exp + rm3
   - dirichlet
