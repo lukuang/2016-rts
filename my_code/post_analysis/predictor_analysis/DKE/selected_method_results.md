@@ -4,7 +4,7 @@
   - dirichlet
   - dirichlet + rm3
 
-# Method Selection Performances (NDCG@10):
+## Method Selection Performances (NDCG@10):
 |                      |  mb2011&2012                | mb2015&rts2016              | rts2017 |
 | -------------------- |:---------------------------:| ---------------------------:| -------:|
 | QPPd                 | 0.3969                      | 0.3237                      | 0.3567  |
@@ -16,3 +16,11 @@
 | cv_baseline          | 0.3859                      | 0.3172                      | 0.3426  |
 | best_baseline        | 0.3926                      | 0.3243                      | 0.3566  |
 
+
+## Method Selection + Silent Day Detection Performances (NDCG@10-1):
+The *QPPc* feature set is chosen for method selection
+
+|                      |  mb2015              | rts2016              | rts2017 |
+| -------------------- |:--------------------:| --------------------:| -------:|
+| new results          |0.332                 | 0.235                | 0.319   | 
+| Results in previous paper (f2exp + SD)          |0.336                 | 0.237        | 0.317   | 
